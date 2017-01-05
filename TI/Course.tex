@@ -728,6 +728,176 @@ Code $C$ on alphabet $[q]=\{1,...,q\}$ with blocklength $(x_1,...,x_n \in C)$. A
 
 This procedure gives a binary code with blocklength $nt$ and dimension $kt$ ($2^{kt}$ codewords).
 
+Consider $\left[ n,\frac{n}{2},\frac{n}{2}+1 \right]_n$ RS code, we will obtain a $\left( n \log_2 n, \frac{n}{2}\log_2 n, ? \right)_2$ code.
+
+\bigskip
+Let $k=\log n$
+
+\begin{align*}
+\Delta(x_{1,1},...,x_{1,t},...,x_{n,1},...,x_{n,t},y_{1,1},...,y_{n,t}) & = |\{(i,j)\in [n]\times[t]:x_{i,j} \neq y_{i,j} \}|\\
+& \geq |\{i\in [n]: x_i \neq y_i \}|\\
+& \geq \frac{n}{2}+1 \tag{Distance of our original code}\\
+\end{align*}
+
+
+We obtained a $\left( n \log_2 n, \frac{n}{2}\log_2 n, \frac{n}{2} + 1 \right)_2$.
+
+
+\paragraph{Idea}
+Instead of trivial representation: $x_i\to x_{i,1},...,x_{i,t}$ (binary representation), we will use a \emph{code}.
+
+
+\begin{defi}[Concatenation Code]
+Let $C_{out} : [Q]^K\to [Q]^N$ a $(N,K,D)_Q$ code and $C_{in}: [q]^k \to [q]^n$ be a $(n,k,d)_q$ code with $Q=q^k$.
+
+Then the concatenation $C_{out} \circ C_{in}$ is a code on alphabet $[q]$ blocklength $nN$, dimension $kK$ defined by
+\begin{align*}
+C &: [Q]^K\to [q]^{nN}\\
+C(m) & = \Big( C_{in}\big(C_{out}(m)_1\big),C_{in}\big(C_{out}(m)_2\big),...,C_{in}\big(C_{out}(m)_N\big) \Big)
+\end{align*}
+Where $C_{out}(m)_i$ is the $i$-th symbol of $C_{out}(m)$
+
+\end{defi}
+
+
+In the example: $C_{out}$: RS $\left[ N, \frac{N}{2}, \frac{N}{2}+1\right]_N$.\\
+$C_{in}$ is $(n=\log N, k= \log N, d=1)_2$, and $C_{in}(x)=x$ the trivial code.
+
+\paragraph{Remark}
+We have identified $[Q]$ with $[q]^k$. For that, we can take any bijection between the sets.
+
+When $C_{in}$ and $C_{out}$ are \emph{linear} codes, we can take this bijection so that $C_{out}\circ C_{in}$ is also a linear code.
+
+In this, we use $[Q]=\mathbb{F}_{q^k}$ ($Q=q^k$) and $[q]^k=\big( \mathbb{F}_q\big) ^k$. $\mathbb{F}_{q^k}$ can be seen as a vector space over $\mathbb{F}_q$.
+
+Let $\sigma : \mathbb{F}_{q^k}\to \big( \mathbb{F}_q \big)^k$ be an isomorphism, $G_{in}$ and $G_{out}$ generator matrices for $C_{in}$ and $C_{out}$.
+
+
+\[G_{out \,\circ\, in} =\]
+\[
+\underset{\substack{\\\uparrow \\ (\mathbb{F}_q)^{kK}}}{}
+\begin{pmatrix}
+\sigma^{-1} & \\
+0 & \ddots & \\
+& & \sigma^{-1} \\
+\end{pmatrix}
+\underset{\substack{\\\uparrow \\ (\mathbb{F}_{q^k})^{K}}}{}
+G_{out}
+\underset{\substack{\\\uparrow \\ (\mathbb{F}_{q^k})^{N}}}{}
+\begin{pmatrix}
+\sigma & \\
+0& \ddots &0 \\
+& & \sigma \\
+\end{pmatrix}
+\underset{\substack{\\\uparrow \\ (\mathbb{F}_q)^{kN}}}{}
+\begin{pmatrix}
+G_{in} & & \\
+0 & \ddots & 0 \\
+&  & G_{in} \\
+\end{pmatrix}
+\underset{\substack{\\\uparrow \\ (\mathbb{F}_q)^{nN}}}{}
+\]
+
+\begin{prop}
+If $C_{out}$ is $(N,J,D)_{q^k}$ and $C_{in}$ is $(n,k,d)_q$, then $C_{out\,\circ\, in}$ is a $(Nn,Kk,Dd)_q$ code.
+\end{prop}
+
+\begin{proof}
+Let $m\neq m'\in [q^k]^K$ with $\Delta \Big(C_{out}(m),C_{out}(m') \Big) \geq D$.
+
+If $C_{out}(m)_i\neq C_{out}(m')_i$, then $\Delta\Big( C_{in} \big( C_{out}(m)_i\big),C_{in}\big( C_{out}(m')_i \big) \Big) \geq d$, so
+\begin{align*}
+\Delta \big( C_{in \,\circ \, out}(m),C_{in \,\circ \, out}(m')\big) & = \sum_{\underbrace{i:C_{out}(m)\neq C_{out}(m')}_{D}} \Delta\Big( C_{in} \big( C_{out}(m)_i\big),C_{in}\big( C_{out}(m')_i \big) \Big)\\
+& \geq Dd
+\end{align*}
+\end{proof}
+
+To construct a good code it remains to find a good \emph{inner} code. What have we gained ? $\to$ Inner code is ``small", so we can more easily find a good one.
+
+
+\paragraph{Explicit construction}
+Explicit here means can construct code in time polynomial in the blocklength.
+
+We construct $G_{in}$ and $G_{out}$:
+\begin{itemize}
+\item For $G_{in}$: RS code $[\left[ N, \frac{N}{2}, \frac{N}{2}+1\right]_N$ with $N=2^k$. $G_{out}$ is a Vandermonde matrix, so we can construct $G_{out}$ in $O(N^2)$ steps.
+\item For $G_{in}$: Should have dimension $k$. We construct a code achieving Gilbert-Varshamov bound (See homework).
+\end{itemize}
+
+For example, cam construct a parity check matrix for a code with parameters $[n=2k,k,d=0.1n]_2$. This algorithm takes $O(2^{2k} poly(k)$ steps $=O\big(N^2 poly(\log N) \big)$
+So we can get $G_{out\,\circ \, in}$ in time $poly(N)$.
+
+$C_{out \,\circ\, in}$ is a $\left[ N \cdot 2\log N,\frac{N}{2}\log N, \left( \frac{N}{2}+1 \right) (0.2 \log N\right]_2$
+
+\paragraph{Decoding a concatenated code}
+$D_{C_{in}}$, $D_{C_{out}}$ for $(y_1,...,y_n)\in (\mathbb{F}_q)^N$
+
+\[D_{C_{out\,\circ\, in}}(y_1,...,y_N)=D_{C_{out}}(D_{C_{in}}(y_1),...,D_{C_{in}}(y_n))\]
+
+
+\paragraph{Running time}
+\[N\cdot \underbrace{Cost(D_{C_{in}}}_{\substack{\text{generic decoder runs in}\\ O(2^{2k}poly(k))=O(N^2poly(\log(N)))}} + \underbrace{Cost(D_{C_{out}})}_{\text{For RS, } O(N^3)} \]
+
+\begin{prop}
+The algorithm $D_{C_{out \,\circ\, in}}$ can correct $<\frac{Dd}{4}$ errors.
+\end{prop}
+\begin{proof}
+Let $m$ be such that 
+\[\Delta( C_{out \,\circ \, in (m),y) < \frac{dD}{4}}\]
+We want to show that we return $m$.
+
+We define $B=\{i\in [N] \; D_{C_{in}}(y_i) \neq C_{out}(m)_i\}$.
+
+\begin{itemize}
+\item If $|B|<\frac{D}{2}$ then $D_{C_{out}}$ can correct the errors and returns $m$
+\item Otherwise, if $|B|\geq \frac{D}{2}$, if $i\in B$, $\Delta(y_i,C_{in}(C_{out}(m)_i))\geq \frac{d}{2}$\\
+So $\Delta \Big( (y_1,...,y_N),C_{in}(C_{out}(m)_1),...,C_{in}(C_{out}(m)_N) \Big) \geq \frac{Dd}{4} \; \to \; $ contradiction
+\end{itemize}
+\end{proof}
+
+
+\subsection{An application of ECC}
+
+\paragraph{Communication complexity}
+\[\underset{x\in \{0,1\}^n}{\text{Alice}} \qquad \qquad \underset{y\in \{0,1\}^n}{\text{Bob}} \]
+
+\paragraph{Example}
+\begin{itemize}
+\item $PAR(x,y)=\sum_{i=1}^n (x_i+y_i) \mod 2$\\
+Alice sends parity $\sum_i x_i \mod 2$ to Bob, and bob computes $\Big( \sum_i x_i \Big) + \Big( \sum_i y_i \Big)$
+\item $EQ(x,y)=
+\begin{cases}
+0 & \text{if } x\neq y\\
+1 & \text{if } x= y
+\end{cases}$
+
+Alice sends $x$ to Bob, Bob compute $EQ(x,y)$ and sends back the result to Alice.
+\[Cost = n+1 \text{ bits}\]
+\end{itemize}
+
+\begin{defi}[Communication complexity of $f$]
+\[D(f)=\min_{\mathcal{P}\text{ protocol compting } f} Cost( \mathcal{P}) \]
+\end{defi}
+
+$Cost(\mathcal{P})$ is the maximum over all input $x_{ij}$ of the number of bits communicated by applying $\mathcal{P}$ on inputs $(x,y)$.
+
+We have seen $D(PAR)\leq 2$ and $D(EQ) \leq n+1$
+
+\begin{prop}
+\[D(EQ)\geq n+1\]
+\end{prop}
+
+\subsubsection*{Randomized protocol}
+\paragraph{Require}
+For all inputs $\mathbb{P}(\mathcal{P}(x,y)\neq f(x,y))\leq \epsilon$.
+
+\begin{defi}
+\[R_\epsilon (f) = \min_{\mathcal{P}:\mathbb{P}\{ \mathcal{P}(x,y)\neq f(x_{ij}\} \leq \epsilon } Cost(\mathcal{P})\]
+\end{defi}
+
+\begin{prop}
+\[R_{1/3}(EQ)=O(\log n)\]
+\end{prop}
 
 
 \end{document}
