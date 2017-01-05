@@ -1,0 +1,199 @@
+\textit{Midterm exam: Friday 4th November, 10:00 a.m.}
+
+
+\textit{This course will mainly be a mathematical one, with only a few practical courses.}\medskip\\
+\underline{Background needed:}
+\begin{itemize}
+\item A bit of Probability theory
+\item Linear algebra (finite field)
+\end{itemize}
+
+\bigskip
+
+"Information theory" comes from \textit{Shannon} in 1948 as "Communication theory": \quote{"The fundamental problem of communication is that of reproducing at one point either exactly or approximately a message selected at another point."} where "point" is to be taken at the broad sense.
+
+\underline{Ex:}
+\begin{itemize}
+\item Point 1: memory at $t_1$, Point 2: memory at $t_2$.
+\item Point 1: DNA of the parent cell, Point 2: DNA of the daughter cell.
+\end{itemize}
+
+
+\begin{align*}
+\Qcircuit @C=2em @R=0.8em {
+& \text{Point 1} & & \gate{\text{Channel}} & \qw & \text{Point 2} 
+}
+\end{align*}
+
+
+\bigskip
+Two fields of solution:
+\begin{itemize}
+\item Improve the channel
+\item Accept an error model as given and build a system on top of it to transform it into a reliable one.
+\end{itemize}
+
+\begin{align*}
+\Qcircuit @C=2em @R=0.8em {
+& s & & \qw & t & & \gate{\text{Noise}} & \qw & r  & & \qw & \hat{s} 
+}
+\end{align*}
+
+
+
+The goal is to achieve $s=\hat{s}$.  
+
+
+As a designer: Find "good" encoding and decoding function. We want $\mathbb{P}(s\neq \hat{s} )$ small.
+
+\underline{Example:} Suppose $I$ have memory cells storing 1 bit suffers from noise. After one year, the bits flip with probability $f\in [0,1]$.\\
+We model this channel:
+\begin{equation*}
+W(y|x)=\text{prob that output}=y\text{ for input }x
+\end{equation*}
+For this channel, $W(0|0)=1-f$, $W(1|1)=1-f$, $W(1|0)=f$, $W(0|1)=f$.
+
+Think that $f=0.1$, and that we want to tore a file with $n=10^6$ bits.
+\bigskip
+
+\subsection{Encoding 1: the Trivial encoding}
+
+\begin{align*}
+\Qcircuit @C=2em @R=0.8em {
+& s_1 & & \qw_{(=)} & t_1 & & \gate{\text{Noise}} & \qw & r_1 \\
+& s_2 & & \qw_{(=)} & t_2 & & \gate{\text{Noise}} & \qw & r_2 \\
+& \vdots & & & \vdots & & & & \vdots \\
+& s_n & & \qw_{(=)} & t_n & & \gate{\text{Noise}} & \qw & r_n \\
+}
+\end{align*}
+Decoding $\hat{s}=r_i$.
+
+\underline{Bit error:}
+$\mathbb{P}(s_i\neq\hat{s}_i)=f$
+
+
+
+\underline{Aside:} How different are $s$ and $\hat{s}$ distance between $s$ and $\hat{s}$ follows a Binomial$(n,f)$ distribution.
+
+\begin{equation}
+\mathbb{E}(\#flips)=nf,\qquad Var(\#flips)=nf(1-f)
+\end{equation}
+
+With high probability, $\#flips \in [nf-10\sqrt{nf(1-f)}, \; nf+10\sqrt{nf(1-f)]}$
+
+\underline{Block error:}
+\begin{align*}
+\mathbb{P}(s\neq\hat{s}) &=1-\mathbb{P}(s\neq\hat{s})\\
+&= 1-\mathbb{P}(\forall i\in \{1,...,n\}, s_i=\hat{s}_i)\\
+&=1-(1-f)^n
+\end{align*}
+
+For this to be small, need $nf\ll 1$. For $n=10^6$, need $f=10^-8$.
+
+\underline{Rate:} $\frac{\# bits\; in \; file}{\# cells\; used}=\frac{n}{n}=1$.
+
+\bigskip
+\subsection{Encoding 2: the Repetition code}
+
+Encode each bit of file in 3 different cells.
+\begin{align*}
+\tag{$R_3$}
+0\to000\\
+1\to111
+\end{align*}
+
+\underline{Rate:} $\frac{1}{3}$
+\bigskip
+
+\begin{center}
+\begin{tabular}{c c c c}
+s & 0 & 1 & 0 \\
+t & 000 & 111 & 000\\
+r & 001 & 111 & 010\\
+$\hat{s}$ & 0 & 1 & 0
+\end{tabular}
+\textit{Decoding: Majority vote.}
+\end{center}
+
+\underline{Bit error}
+\begin{align*}
+\mathbb{P}(s_1\neq \hat{s}_1) & =\mathbb{P}(\geq 2\; flips)\\
+& = 3f^2(1-f)+f^3\\
+&= 3f^2-2f^3\\
+&<f(for\; f<1/2)
+\end{align*}
+Better than trivial encoding. For $f=0.1, \: \mathbb{P}(s_1\neq\hat{s}_1)=0.028$.
+
+
+\underline{Block Error:}
+\begin{align*}
+\mathbb{P}(s\neq\hat{s}) & = 1 - \mathbb{P}(\forall i\in \{1,...,n\}, s_i=\hat{s}_i\\
+& 1- (1-3f^2+2f^3)^n
+\end{align*}
+Slightly better but not so good.
+
+\underline{HW:} Generalize to $N$ repetitions.
+
+%TODO
+%graph bit error (f=0.1) =f( rate )
+
+\subsection{Encoding 3: the Block code}
+
+Make block of size 4 and encode each one: (7,4)-Hamming code.
+
+\begin{align*}
+    \Qcircuit @C=2em @R=0.8em { 
+&     & & & & t_1 & & \gate{\text{Noise}} & \qw & r_1\\    
+& s_1 & & & & t_2 & & ... \\
+& s_2 & & \gate{\text{Encode}} & \qw & t_3 & & ...\\
+& s_3 & & & & t_4 & & ...\\
+& s_4 & & & & t_5 & &  ...\\
+& & & & & t_6 & & ...\\
+& & & & & t_7 & & ...\\
+}
+\end{align*}
+\begin{align*}
+t_1&=s_1\\
+t_2&=s_2\\
+t_3&=s_3\\
+t_4&=s_4\\
+t_5&=s_1\oplus s_2 \oplus s_3\\
+t_6&=s_2\oplus s_3 \oplus s_4\\
+t_7&=s_1\oplus s_3 \oplus s_4\\
+\end{align*}
+
+
+\underline{Rate:} $\frac{4}{7}$
+
+\underline{Decode:} $r_1,\; r_2,\; ... \; r_7$
+
+%TODO scheme with circles
+
+\underline{Ex:} 
+\begin{equation*}
+\overbrace{1000}^s \to \overbrace{1000101}^t
+\end{equation*}
+
+\underline{Decoding:} Flip the bit that is in all violated circles and \underline{not} in good circle.
+
+If $\leq 1$ error, recover $T_1,...,t_7$ from $r_1, ... r_7$.
+
+\underline{Bit error:} One can show that 
+\begin{align*}
+\mathbb{P}(s_i\neq\hat{s_i})\leq 9f^2 + O(f^3)
+\end{align*} 
+
+\underline{Block error:}
+\begin{align*}
+\mathbb{P}(s\neq\hat{s}) & = 1 - \mathbb{P}( \forall i\in \{1,...,\frac{n}{4}\}, \forall j \in \{0,1,2,3\}, s_{4i+j}=\hat{s}_{4i+j}) \\
+& = 1 - \prod_{i=1}^{n/4} \mathbb{P} (\forall j \in {0,1,2,3,4}, s_{4i+j} = \hat{s}_{4i+j} )\\
+& \leq 1- \mathbb{P}(\leq \text{1 error in a block})^{n/4}\\
+& = 1 - (1-\left(\binom{7}{2} f^2 (n-f)^5 - ... \right)^{n/4}\\
+& = 1 - (1 -21f^2 - O(f^3))^{n/4}
+\end{align*}
+
+The conventional wisdom was: "to decrease error probability, we need to decrease the rate to 0. But Shannon showed that we can do much better. \textbf{We can make the error probability go arbitrary close to 0 with a constant rate $\mathbf{> 0}$.} Even more, we can make the block error tate arbitrary close to zero at positive rate.
+
+\underline{Ex:} $f=0.1$ File $n=10^6$ bits.
+
+Use $\simeq 2. 10^6$ cells with very small block error.

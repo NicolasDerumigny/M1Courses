@@ -35,6 +35,8 @@
 *.synctex.gz(busy)
 *.pdfsync
 
+
+
 ## Auxiliary and intermediate files from other packages:
 # algorithms
 *.alg
@@ -178,3 +180,10 @@ TSWLatexianTemp*
 
 # KBibTeX
 *~[0-9]*
+
+
+## Unwanted folders
+Projet*
+CAE-English
+CAP
+OA

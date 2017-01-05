@@ -1,0 +1,235 @@
+There are many approaches to define entropy, which mainly depends on the the question we ask.
+
+\underline{Ex:} Given data $X$, determine the minimum space needed to store $X$.
+
+\begin{itemize}
+\item Find the shortest description of $X$\\
+Solution: a description is an algorithm that computes $X$.
+This is the \textit{Algorithmic complexity}, also called \textit{Kolmogorov complexity}.
+\begin{align*}
+X & = 0 ... 0 & \text{"small"}\\
+X & = \pi & \text{"small"}\\
+X & = "random" & \text{"large"}\\
+\end{align*}
+Problem: This in not computable.
+\item More useful approach of Shannon\\
+Entropy = measure of likelihood of $X$ (Thus we need a probability model).
+\end{itemize}
+
+\subsection{Probability notations}
+All system are finite $(\Omega, \mathcal{E}, \mathbb{P})$. $X$ random variable in $\mathcal{X}$. We note $P_X(x)=\mathbb{P}(X=x)$.
+
+For joint random variables, we note:
+\begin{align*}
+P_{XY}(x,y) & =\mathbb{P}(X=x,Y=y)\\
+P_{X|Y=y}(x) & =\mathbb{P}(X=x | Y=y)\\
+P_X^{\times n}&= P_X \times P_X \times ... \times P_X \quad \text{$n$ times} \\
+\mathbb{E}(X) & = \sum_{x\in \mathcal{X}} xP_Y(x)\\
+\end{align*}
+
+\subsection{Entropy of event}
+
+\begin{equation*}
+h_X: \mathcal{E} \to \mathcal{R}_+ \cup \{\infty\}
+\end{equation*}
+
+\begin{enumerate}
+\item Independence of representation: $h(E)$ only depends on $\mathbb{P}(E)$
+\item Continuity with respect $\mathbb{P}$: $h$ continuity in $\mathbb{P}$
+\item Additivity: $h(E\cap E')=h(E) + h(E')$ if $E$ and $E'$ are independent
+\item Normalization: $h(E)= 1$ if $ \mathbb{P}(E)=\frac{1}{2}$
+\end{enumerate}
+
+\begin{prop}
+$h_X$ satisfies 1, 2, 3, 4 $\Leftrightarrow h(E)=-\log_2 \mathbb{P}(E)$
+\end{prop}
+
+\begin{proof}
+Skipped.
+\end{proof}
+
+$h$ is also called \textit{surprisal}.\\
+If $X$ is a random variable, we define:
+\begin{align*}
+h_X(x) & = h_X(\{X=x\})\\
+& = -\log_2 P_X(x)\\
+\\
+h_X: & \; \mathcal{X}\to \mathbb{R_+} \cup \{ \infty \}\\
+& x \mapsto - \log_2 P(x)\\
+\end{align*}
+
+$h(X)$ is a random variable. It's distribution is 
+
+
+\begin{defi}[Shannon entropy]
+The Shannon Entropy of X is:
+\begin{align*}
+H(X)&=\mathbb{E}(h_X(X))\\
+& =  - \sum_{x\in \mathcal{X}} P_X(x) \log_2 P_X(x)\\
+\end{align*}
+
+\end{defi}
+
+\paragraph{Remarks}
+\begin{itemize}
+\item Only depends on $P_X$ and not on the values taken
+\item Units is "bits"
+\item $0\log_2 0 = 0$
+\end{itemize}
+
+\paragraph{Remark on notation}
+$P_X(X)$ this is $P_X:\mathcal{X} \to \mathbb{R}_+$ applied to the random variable $X$. It is \underline{NOT} $\mathbb{P}(X=X)=1$.
+
+\begin{prop}
+For any $x\in \mathcal{X}$:
+\begin{align*}
+0\leq H(X) \leq \log |\mathcal{X}|\\
+\end{align*}
+With the equality cases $H(X)=0$ if and only if $X$ is constant and $H(X)=\log |\mathcal{X}|$ if and only if $X$ is uniform on $\mathcal{X}$.
+\end{prop}
+
+\begin{proof}
+\begin{itemize}
+\item First inequality: easy
+\item 
+\begin{align*}
+H(X) & =\mathbb{E}\left( \log_2 \frac{1}{P_X(X)}\right) \\
+\text{As log is concave :}\\
+& \leq \log_2 \mathbb{E}_X\left( \frac{1}{P_X(X)}\right)\\
+& = \log_2 \sum_{x\in \mathcal{X}} P_X(x)-\frac{1}{P_X(x)}=\log_2 |\mathcal{X}|\\
+\end{align*}
+Equality condition: all $P_X(x)$ are equal so $P_X$ is the uniform distribution.
+\end{itemize}
+\end{proof}
+
+
+\paragraph{Remark} Expectation $\mathbb{E}(h_X(X))$ is not the only interesting quantity. For example
+\begin{align*}
+H_{\min}(X) & = \min_{x\in \mathcal{X}} h_X(x)\\
+& = - \log_2 \max_x P_X(x)\\
+\end{align*}
+
+\paragraph{Ex} If $X\in \{0,1\}$ $P_X(0)=1-p$ and $P_X(1)=p$:
+\begin{equation*}
+H(X)=-p\log_2 p - (1-p)\log(1-p)
+\end{equation*}
+
+\subsection{Joint entropy and conditional entropy}
+
+\begin{defi}[Joint entropy]
+Let $X\in \mathcal{X}, \; Y\in \mathcal{Y}$. The joint entropy $H(X,Y)$ is defined as:
+\[
+\underbrace{H(X,Y)}_{H(XY)} = - \sum_{\substack{x\in \mathcal{X} \\ y \in \mathcal{Y}}} P_{XY}(x,y) \log_2 P_{XY}(x,y)\\
+\]
+\end{defi}
+
+\begin{defi}[Conditional entropy]
+The conditional entropy $H(X|Y)$ is defined as:
+\begin{align*}
+H(X|Y) & =\sum_{y\in \mathcal{Y}} P_Y(y).\underbrace{H(P_{X|Y=y})}_{H(X|Y=y)}\\
+\end{align*}
+\end{defi}
+
+\paragraph{Ex}
+\begin{itemize}
+\item $X=Y$, then $H(X|Y)=\sum_{y\in \mathcal{Y}}P_Y(y)H(P_{X|Y=y})=0$
+\item $Y$ and $X$ are independent, then $H(X|Y)=\sum_{y\in \mathcal{Y}} P_Y(y)\underbrace{H(P_{X|Y=y})}_{=H(P_X)}=H(X)$
+\end{itemize}
+
+\begin{prop}
+\begin{equation*}
+H(X|Y)=H(XY)-H(Y)
+\end{equation*}
+\end{prop}
+
+\begin{proof}
+\begin{align*}
+P_{XY}(x,y) & = P_Y(y)P_{X|Y=y}(x)\\
+H(XY) & = - \sum_{x,y} P_{XY}(x,y) \log_2 P_Y (y) P_{X|Y=y}(x)\\
+& = - \sum_{x,y} P_{XY} (x,y) \log_2 P_Y(y)\\
+& \quad - \sum_{x,y} P_{XY}(x,y) \log_2 P_{X|Y=y}(x)\\
+&=H(Y) \qquad \qquad \left(\text{as } \sum_x P_{XY}(x,y)=P_Y(y) \right)\\
+& \quad - \sum_y P_Y(y)\underbrace{\sum_x P_{X|Y=y}(x)\log P_{X|Y=y}(x)}_{-H(X|Y=y)}\\
+& =H(Y) + H(X|Y)
+\end{align*}
+\end{proof}
+
+\begin{defi}[The mutual information]
+\begin{align*}
+I(X:Y) & = H(X) - H(X|Y)\\
+&= H(X) + H(Y) - H(XY)\\
+I(X:Y) & = \sum_{x,y}P_{XY}\log_2 \frac{P_{XY} (xy)}{P_X(x)P_Y(y)}
+\end{align*}
+\end{defi}
+
+\paragraph{Examples}
+\begin{itemize}
+\item If $X=Y$, $I(Y:Y)=H(X)$
+\item If $X$ and $Y$ are independent, $I(X:Y)=0$
+\end{itemize}
+
+%TODO scheme
+
+\begin{defi}
+Let $P$ and $Q$ be distributed on $\mathcal{X}$.
+The relative entropy
+\begin{equation*}
+D(P||Q)=\sum_{x\in \mathcal{X}} P(x). \log_2 \frac{P(x)}{Q(x)}
+\end{equation*}
+\end{defi}
+
+\paragraph{Remark}
+\begin{itemize}
+\item Common name Kullback-Leibler divergence.
+\item If $P(x)=0$, $P(x)\log \frac{P(x)}{Q(x)}=0$.
+\item If for some $X\in\mathcal{X}$, $P(x)>0$ but $Q(x)=0$, $D(P||Q)=\infty$.
+\item Not symmetric between $P$ and $Q$
+\item $D(P||P)=0$
+\item $I(X,Y)=D(P_{XY}||P_X\times P_Y)$
+\end{itemize}
+
+\begin{prop}
+For any dist $P,Q$
+\begin{equation*}
+D(P||Q)\geq 0
+\end{equation*}
+with equality if and only of $P=Q$
+\end{prop}
+
+\begin{proof}
+Let $S=\{x:P(x)>0\}$
+\begin{align*}
+D(P||Q) & = - \sum_{x\in S} P(x) \log_2 \frac{Q(x)}{P(x)}\\
+& -\log_2 \text{ is convex}\\
+\tag{1}
+& \geq -\log_2 \sum_{x\in S} P(x) \frac{Q(x)}{P(x)}\\
+& = -\log_2 \sum_{x\in S} Q(x)\\
+\tag{2} 
+& \geq 0
+\end{align*}
+Equality condition:
+\begin{enumerate}
+\item Strict convexity: $\frac{Q(x)}{P(x)}=C$. $\forall X \in S$
+\item $\sum_{x\in S} Q(x)=1$\\
+This implies that $Q=P$
+\end{enumerate}
+\end{proof}
+
+\begin{coro}
+For any $X,Y$
+\begin{equation}
+\tag{*}\label{*}
+I(X:Y)\geq 0
+\end{equation}
+with equality if and only if $X$ and $Y$ are independent
+\end{coro}
+
+\begin{proof}
+Just write $I(X:Y)=D(P_{XY}||P_X\times P_Y)$
+\end{proof}
+
+Another way of writing \eqref{*}
+\begin{align*}
+H(X) & \geq H(X|Y)\\
+H(X)+H(Y) & \geq H(XY)
+\end{align*}

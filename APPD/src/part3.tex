@@ -1,0 +1,674 @@
+\section{Algorithm for rings of processors}
+
+Distributed memory model
+
+Each processor owns some private memory and is the only processor allowed to access it (both for reading and writing).
+
+\paragraph{Considered topology:}
+Unidirectional ring of processors. We have $p$ processors.
+
+%scheme
+
+One direct communication link from $P_i$ to $P_{i+1(mod p)}$ for $0\leq i \leq p-1$ (most of the time the ``mod $p$" expression will be implicit.\\
+$NOM\_PROCS()$: gives the number of processors in the ring.\\
+$MY\_NUM()$: identifier/rank of the calling processors.
+
+Communication links are unidirectional: to send a message to $P_0$, $P_1$ must go through $P_2,P_3,...,P_{p-1}$.
+
+\paragraph{Primitives:}
+\begin{itemize}
+\item For sending
+\[SEND(\underbrace{addr}_{\substack{\text{address where}\\ \text{to read the data}\\ \text{to send}}}, \underbrace{m}_{\substack{\text{the size of} \\ \text{the message}}})\]
+
+Point-to-point communications: we do not need to specify the destination because processor $P_i$ can only send a message to processor $P_{i+1}$.
+
+\item For receiving message:
+\[RECIEVE(\underbrace{addr}_{\substack{\text{address where to} \\ \text{store what is}\\ \text{received}}}, \underbrace{m}_{\substack{\text{the size of}\\ \text{the message}}}) \]
+\end{itemize}
+
+
+\begin{itemize}
+\item $SEND$ and $RECIEVED$ works in pairs
+\item \emph{Two kinds of primitives :}
+\begin{itemize}
+\item blocking primitives: when reaching a communication primitive, the algorithm stops and only resume its execution when the communication is completed.
+\item asynchronous or non-bocking communications: the algorithm instantaneously returns from the communication itself will take place at some later time (we have no idea when). One may \emph{test} whether  the communication has completed. Enabled an overlap of communication and computation.
+\end{itemize}
+\end{itemize}
+
+Most of the time we will use asynchronous sends and blocking receives.
+
+\paragraph{Program Multiple Data (SPMD) model:} (no longer the synchronization we had with PRAM) Different processors can execute different instructions (of the same program) at the same instant.
+
+\paragraph{Cost (time) of communications:} Sending a message of size $m$ from a processor to its neighbour takes a time
+\[\underbrace{L}_{\text{latency}}+m.\underbrace{b}_{\substack{\text{the inverse}\\ \text{of the bandwidth}}}\]
+
+Each processor can simultaneously:
+\begin{itemize}
+\item send a message
+\item received a message
+\item perform some computation
+\end{itemize}
+
+\subsection{Macro-communication}
+\subsubsection{Broadcast}
+A given processor $k$ wants to send a message of size $m$ to all other processors.
+Addresses :
+\begin{itemize}
+\item For $P_k$: where the message is initially stored
+\item For $P_i (i\neq k)$: where to store the message
+\end{itemize}
+
+\begin{algorithm}[H]
+BROADCAST(k, addr, m)\\
+p$\leftarrow$NUM\_PROCS()\\
+q$\leftarrow$MY\_NUM()\\
+\eIf{$q=k$}{
+	SEND(addr, m)
+	}{
+	\eIf{$q=k-1\mod p$}{
+	RECEIVE(addr, m)
+	}{
+	RECEIVE(addr, m)\\
+	SEND(addr, m)
+	}
+}
+\end{algorithm}
+
+The algorithm is automatically correct, and has same running time with blocking receives and asynchronous sends.
+
+\subsubsection{Scatter}
+
+Processor $P_k$ sends a different message to every other processor. Initially, processor $P_k$ holds a message for processor $P_q$ at address $addr[q]$ (we may assume that $addr[k]$ is holding a message for $P_k$)
+
+
+\begin{algorithm}[H]
+SCATTER(k, msg, addr, m)\\
+p$\leftarrow$NUM\_PROCS()\\
+q$\leftarrow$MY\_NUM()\\
+\eIf{$q=k$}{
+	\For{i=1 to p-1}{
+		SEND( addr$[k-1-i+1\mod p]$, m)
+	}
+}{
+	\For{j=1 to p-(q-k)-1}{
+		RECEIVE(tempR, m)\\
+		SEND(tempR, m)
+	}
+	RECEIVE(msg, m)
+}
+\end{algorithm}
+
+\note{Execution time:} $(p-1)(L+m.b)$
+
+\begin{algorithm}[H]
+RECEIVE(tempR, m)\\
+\For{i=1 to p-q+k-1}{
+	SEND(tempR, m)\\
+	RECEIVE(tempS, m)\\
+	tempR $\leftrightarrow$ tempS
+}
+\end{algorithm}
+% ?
+If messages are in order $Addr[k+1],Addr[k+2],...$\\
+$[(p-2)+(p-1)](L+mb)$\\
+$(2p-3)(L+mb)$
+
+\subsubsection{All to all}
+$p$ simultaneous broadcast
+
+\begin{algorithm}[H]
+ALL-TO-ALL(my\_message, addr, m)\\
+p$\leftarrow$NUM\_PROSC()\\
+q$\leftarrow$MY\_NUM()\\
+addr$[q]\leftarrow$my\_message\\
+\For{i=1 to p-1}{
+	SEND(addr$[q-i+1\mod p],m$)\\
+	RECEIVE(addr$[q-i\mod p],m)$
+}
+\end{algorithm}
+
+\note{Execution time:}$(p-1)(L+m.b)$
+
+\subsubsection{Pipelined broadcast}
+Split the message of size $m$ into $r$ pieces (we assume that $r$ divides $m$).
+
+\begin{algorithm}[H]
+PIPELINED\_BROADCAST(k,addr,m)\\
+p$\leftarrow$NUM\_PROSC()\\
+q$\leftarrow$MY\_NUM()\\
+\eIf{q=k}{
+	\For{i=0 to r-1}{
+		SEND(addr$[i]$,m/r)\\
+	}
+}{
+	\eIf{q=k+1}{
+		\For{i=0 to r-1}{
+			RECEIVE(addr$[i]$,m/r)
+		}
+	}{
+		RECEIVE(addr$[0]$,m/r)\\
+		\For{i=0 to r-2}{
+			SEND(addr$[i]$,m/r)\\
+			RECEIVE(addr$[i+1]$,m/r)
+		}
+		SEND(addr$[r-1]$,m/r)
+	}
+}
+\end{algorithm}
+
+
+\note{Execution time:}
+\[(p-1)(l+\frac{m}{r}.b)+(r-1)(L+\frac{m}{r}b)=(p+r-2)(L+\frac{m}{r}b)\]
+The value of $r$ minimizing the execution time is: 
+\[r=\sqrt{\frac{m(p-2)b}{L}}\]
+
+The execution time becomes:
+\[(\sqrt{(p-2)L}+\sqrt{mb})^2 \underset{m\to +\infty}{\sim} mb \]
+
+
+\subsection{Matrix vector multiplication}
+
+Let $A$ be a matrix of size $n\times n$, $x$ a vector of size $n$.
+
+The aim is to calculate $y=A.x$ (all indices starting at 0)
+
+Sequential version:
+
+\begin{algorithm}
+\For{i=0 to n-1}{
+	$y_i\leftarrow 0$
+	\For{j=0 to n-1}{
+		$y_i \leftarrow y_i +A_{ij} \times x_j$
+	}
+}
+\end{algorithm}
+
+The computation of the $n$ values of vector can be computed in parallel. We assume $p<n$, and $p$ divides $n$ ; let $r=\frac{n}{p}$.
+
+We charge each processor to compute $r$ entries of vector $y$. We assume there is not enough memory to replicate matrix $A$ on each processor. $A$ is distributed among the $p$ processors.
+
+\paragraph{Classical solution:} each processor is given a set of $r$ consecutive rows.\\
+Processor $P_0$ holds row 0 to $r-1$,\\
+Processor $P_1$ holds row $r$ to $2r-1$,\\
+...
+
+This is called a \emph{block} distribution of rows.
+
+We could assume that we have enough memory available to have one copy on each processor.
+
+In such a case, the whole computation could be performed without communication. Processor $P_i$ would hold rows $i \times r$ through $(i+1)r-1$ of A and $x$ and thus compute $y_{ir}$ through $y_{(i+1)r-1}$. At the end of the algorithm, $y$ would be distributed. Therefore, if we wanted to apply to apply a matrix-vector multiplication to $y$, we could not reuse our algorithm. Because, most of the time, matrix operations happen not alone but in a series of operations, we always assume that the inputs and outputs of algorithms are distributed the same way.
+
+We assume that $x$ (and later $y$) is distributed by blocks of $r$ values. Processor $P_i$ holds the component $x_{ir}$ to $x_{(i+1)r-1}$ and will compute the component $y_{ir}$ to $y_{(i+1)r-1}$.
+
+\begin{center}
+\begin{tabular}{ c c c c c c c c c c c }
+ \multirow{2}{*}{$P_0$} 
+& $A_{00}$ & $A_{01}$ & $A_{02}$ & $A_{03}$ & $A_{04}$ & $A_{05}$ & $A_{06}$ & $A_{07}$ & & $x_0$ \\
+&  $A_{10}$ & $A_{11}$ & $A_{12}$ & ... & & & & $\vdots$ & & $x_1$\\
+\hline
+ \multirow{2}{*}{$P_1$} 
+& $A_{20}$ & $A_{21}$ & $A_{22}$ & ... & & & & $\vdots$ & & $x_2$\\
+&  $A_{30}$ & $A_{31}$ & $A_{32}$ & ... & & & & $\vdots$ & & $x_3$\\
+\hline
+ \multirow{2}{*}{$P_2$} 
+& $A_{40}$ & $A_{41}$ & $A_{42}$ & ... & & & & $\vdots$ &  & $x_4$\\
+&  $A_{50}$ & $A_{51}$ & $A_{52}$ & ... & & & & $\vdots$ & & $x_5$\\
+\hline
+ \multirow{2}{*}{$P_3$} 
+& $A_{60}$ & $A_{61}$ & $A_{62}$ & ... & & & & $\vdots$ & & $x_6$\\
+&  $A_{70}$ & $A_{71}$ & $A_{72}$ & ... & ... & ... & ... & $A_{77}$ & & $x_7$
+\end{tabular}
+
+%There misses a colorful tabular illustrationg each step
+\end{center}
+
+\begin{algorithm}
+Matrix-vector Multiplication($A$, x , y)\\
+$p\leftarrow NUM\_PROCS()$\\
+$q\leftarrow MY\_NUM()$\\
+$tempS\leftarrow x$\\
+\For{step=0 to p-1}{
+	$SEND(tempS,r)$\\
+	$RECEIVE(tempR,r)$\\
+	\For{i=0 to r-1}{
+		\For{j=0 to r-1}{
+			$y[i]\leftarrow y[i] + A[i,(q-step \mod p)r + j]tempS[j]$		
+		}
+	}
+	$tempR\leftrightarrow tempS$
+}
+\end{algorithm}
+
+\paragraph{Execution time:}
+\begin{align*}
+ & p\times \max (L+rb, L+rb, \underbrace{r^2w}_{\substack{\text{cost of a}\\ \text{multiply-add}}}) \\
+ & = p \max (L+rb,r^2w)\\
+ r & =\frac{n}{p}\\
+ \text{Execution time} & = \max{pL+nb, \frac{n^2}{p}w}\\
+ & \underset{n\to \infty}{\sim} \frac{n^2}{p}w\\
+\end{align*}
+Asymptotically, our algorithm is efficient.
+
+
+\subsection{Matrix-Matrix Multiplication}
+3 matrix $A, B, C$ square $n\times n$ matrices.
+\begin{algorithm}
+\For{i=0 to n-1}{\For{j=0 to n-1}{\For{k=0 to n-1}{$C_{i,j}\leftarrow C_{i,j} + A_{ik}B_{kj}$}}}
+\end{algorithm}
+
+This is nothing but
+\begin{itemize}
+\item $n^q$ scalar products
+\item $n$ matrix-vector multiplication
+\end{itemize}
+
+We assume all matrix to be distributed the same way. Processor $P_{i}$ holds rows $i\times r$ to $(i+1)r-1$ of matrices $A,B$ and $C$.
+
+We logically divide the $r$ rows of $A$ assigned to processor $P_i$ in $p$ blocks of size $r$, this set of row is seen as $p$ $r\times r$ matrices.
+
+$P_i$ holds the block $\hat{A}_{i,l}, \hat{B}_{i,l}$ and $\hat{C}_{i,l}$ of element of $A, B$ and $C$.
+
+\[
+P_i \quad
+\begin{array}{|c c c|}
+\hline
+A_{ir,0} & \dots & A_{ir,r-1}\\
+A_{ir+1,0} & \vdots & \vdots\\
+\vdots & \vdots & \vdots\\
+A_{(i+1)r-1,0} & \hdots & \vdots\\
+\hline
+\end{array}
+\qquad
+\begin{array}{|c c c|}
+\hline
+. &\hdots&A_{ir,(p-1)r}\\
+\vdots& & A_{ir+1,(p-1)r}\\
+\vdots& & \vdots\\
+\vdots&\hdots& A_{(i+1)r-1,(p-1)r}\\
+\hline
+\end{array}
+\]
+
+\paragraph{Step 0:}
+\begin{align*}
+P_q: \qquad& \hat{A}_{q,l},\hat{B}_{q,l}, \hat{C}_{q,l}\\
+& \hat{C}_{q,l}\leftarrow \hat{A}_{q,q}.\hat{B}_{q,l}\\
+& \text{Sending } \hat{B}_{q,l} \text{ to } P_{q+1}\\
+& \text{Recieving } \hat{B}_{q-1,l} \text{ from } P_{q-1}\\
+\end{align*}
+
+\paragraph{Step 1:}
+\[
+P_q: \qquad \hat{C}_{q,l} \underset{\text{for } 0\leq l \leq p-1}{\leftarrow} \hat{C}_{q,l}+\hat{A}_{q,q-1}\times \hat{B}_{q-1,l}
+\]
+
+
+\begin{algorithm}
+Matrix Matrix Multiplication (A, B, C)\\
+$p\leftarrow NUM\_PROCS()$\\
+$q\leftarrow MY\_NUM()$\\
+$tempS\leftarrow B$\\
+\For{step=0 to p-1}{
+	$SEND(tempS, r \times n)$\\
+	$RECEIVE(tempR, r \times n)$\\
+	\For{l=0 to p-1}{
+		\For{i=0 to r-1}{
+			\For{j=0 to r-1}{
+				\For{k=0 to r-1}{
+					$C[i, lr +j]\leftarrow C[i,lr+j]+A[i,((q-step)\mod p)\times r + k] \times tempS[k,lr+j]$
+				}			
+			}		
+		}	
+	}
+	$tempR\leftrightarrow tempS$
+}
+\end{algorithm}
+
+\paragraph{Execution time:} ($r=\frac{n}{p}$)
+
+\begin{align*}
+p \times \max(L+rnb, pr^3 w) & = \max (pL+n^2 b,\frac{n^3 w}{p})\\
+& \underset{n\to \infty}{\sim}\frac{n^3 w}{p}
+\end{align*}
+
+Asymptotically an efficient algorithm
+
+Complexity of using $n$ times the matrix-vector product:
+\[n \times \max(pL+nb,\frac{n^2w}{p}) = \max(npL+n^2b,\frac{n^3w}{p})\]
+Benefit of using matrix-matrix multiplication: the number of communications, and thus the cost of latencies, is divided by $n$.
+
+\subsection{Stencil computation}
+
+$A$ a 2 dimensional array of data. % scheme
+The data is repeatedly updated.
+
+A cell is updated using a function that takes as input the value (past and/or new) of some of its neighbouring cell.
+
+\begin{center}
+\begin{tabular}{c c c}
+NW & N & NE\\
+W & C & E\\
+SN & S & SE
+\end{tabular}
+
+neighbourhood
+\end{center}
+
+We take an array of size $n\times n$.
+
+Our stencil:
+\[C_{new} \leftarrow UPDATE(C_{old},W_{new},N_{new})\]
+
+If the cell has no west neighbour, $W_{new}$ is replaced by $NIL$; if the cell has no north neighbour, $N_{new}$ is replaced by $NIL$.
+
+\begin{algorithm}[H]
+\For{i=0 to n-1}{
+	\For{j=0 to n-1}{
+		$a_{ij}\leftarrow UPDATE(a_{i,j},a_{i,j-1}, a_{i-1,j})$
+	}
+}
+\end{algorithm}
+
+\paragraph{Greedy Parallelization:} We assume that $n=p$. Each processor holds one row.
+
+\note{Idea:} do things as soon as possible.
+
+
+\begin{algorithm}[H]
+$p\leftarrow NUM\_PROCS()$\\
+$q\leftarrow MY\_PROC()$\\
+\eIf{q=0}{
+	$A[0]\leftarrow UPDATE(A[0], NIL, NIL)$\\
+	$SEND(A[0],1)$\\
+	}{
+	$RECEIVE(v,1)$\\
+	$A[0]\leftarrow UPDATE(A[0],NIL,v)$
+}
+
+\tcp{----- To correct number of SEND/RECEIVED}
+\If{$0\neq p-1$}{
+	$SEND(A[0],1)$
+}
+\If{$q\neq p-1$}{
+	$SEND(A[0],1)$
+}	
+\tcp{-----}
+
+\For{j=1 to n-1}{
+	\eIf{q=0}{
+		$A[j]\leftarrow UPDATE(A[j],A[j-1],NIL)$\\
+		$SEND(A[j],1)$
+	}{ \eIf{q=p-1}{
+			$RECEIVE(v,1)$\\
+			$A[j]\leftarrow UPDATE(A[j],A[j-1],v)$
+		}{
+			$SEND(A[j-1],1)$\\
+			$RECEIVE(v,1)$\\
+			$A[j]\leftarrow UPDATE(A[j],A[j-1],v)$
+		}
+	}
+}
+
+\end{algorithm}
+
+
+\paragraph{General case $p<n$:} $p$ divides $n$. How to distribute rows to processors?
+
+\paragraph{First solution:} cycle distribution of rows to processors. $p=3, n=9$ rows.
+
+\begin{center}
+\begin{tabular}{c c | c |}
+\cline{3-3}
+$p_0$ & 0 & $\qquad \qquad \qquad \qquad \qquad \qquad $\\
+\cline{3-3}
+$p_1$ & 1 & $\qquad \qquad \qquad \qquad \qquad \qquad $\\
+\cline{3-3}
+$p_2$ & 2 & $\qquad \qquad \qquad \qquad \qquad \qquad $\\
+\cline{3-3}
+$p_0$ & 3 & $\qquad \qquad \qquad \qquad \qquad \qquad $\\
+\cline{3-3}
+$p_1$ & 4 & $\qquad \qquad \qquad \qquad \qquad \qquad $\\
+\cline{3-3}
+$p_2$ & 5 & $\qquad \qquad \qquad \qquad \qquad \qquad $\\
+\cline{3-3}
+$p_0$ & 6 & $\qquad \qquad \qquad \qquad \qquad \qquad $\\
+\cline{3-3}
+$p_1$ & 7 & $\qquad \qquad \qquad \qquad \qquad \qquad $\\
+\cline{3-3}
+$p_2$ & 8 & $\qquad \qquad \qquad \qquad \qquad \qquad $\\
+\cline{3-3}
+\end{tabular}
+\end{center}
+
+Row $i$ is allocated to processor $P_{i\mod p}$.
+
+\begin{algorithm}[H]
+StencilWithCyclicDistribution(A)\\
+$p\leftarrow NUM\_PROCS()$\\
+$q\leftarrow MY\_PROC()$\\
+\For{i=0 to $\frac{n}{p}-1$}{
+	\eIf{q=0 and i=0}{
+		$A[0,0]\leftarrow UPDATE (A[0,0],NIL,NIL)$\\
+		$SEND(A[0,0],1)$
+	}{
+		$RECEIVE(v,1)$\\
+		$A[i,0]\leftarrow UPDATE(A[i,0],NIL,v)$\\
+		\If{$q\neq p-1$ or $i\neq \frac{n}{p}-1$}{
+			$SEND(A[i,0],1)$\\
+		}
+	}
+	\For{j=1 to n-1}{
+		\eIf{q=0 and i=0}{
+			$A[i,j]\leftarrow UPDATE(A[i,j],A[i-1,j],NIL)$\\
+			$SEND(A[i,j],1)$
+		}{
+			\eIf{q=p-1 and i=$\frac{n}{p}-1$}{
+				$RECEIVE(v,1)$\\
+				$A[i,j]\leftarrow(A[i,j],A[i-1,j],v)$			
+			}{
+				$RECEIVE(v,1)$\\
+				$A[i,j]\leftarrow UPDATE(A[i,j],A[i-1,j],v)$\\
+				$SEND(A[i,j],1)$
+			}
+		}
+	}
+}
+\end{algorithm}
+Where A is  set of $\frac{n}{p}$ rows of size $n$
+
+\note{Alternate version:} Replace line 21 by $SEND(A[i,j],1)||RECV(v,1)$ and add at the end of the program $if\; q\neq \; -1 \; then \;SEND(A[i,n],1)$
+
+
+\paragraph{Performance:} For the alternate version: 
+\[ T=( \underbrace{p-1}_{\substack{\#\text{ step before}\\\text{$P_{p-1}$ starts to}\\\text{work}}}+\underbrace{\frac{n^2}{p}}_{\substack{\# \text{ of elements/}\\\text{steps for $P_{q-1}$}}})\times (w+L+b)\]
+
+\paragraph{Asymptotical efficiency:}
+\begin{align*}
+e = \frac{p\times T_{seq}(n)}{pT_{p}(n)} & =\frac{pn^2w}{p(p-1+\frac{n^2}{p})(w+b+L)}\\
+& \underset{n\to \infty}{\sim} \frac{w}{w+b+L}
+\end{align*}
+
+
+$L$ can be large and the efficiency small.
+
+\paragraph{Coarsen the communications:}
+Instead of sending data one at a time, we send them by bulk of $k$ ($k$ divides $n$).
+
+\begin{center}
+\begin{tabular}{c | c c c|}
+\cline{2-4}
+$P_0$ & \hspace{6pt} k & \vline & k \hspace{6pt} \vline \hspace{6pt} k \hspace{6pt} \vline\hspace{6pt} k \hspace{6pt}\vline\hspace{6pt} k \hspace{6pt}\\
+\cline{2-4}
+$P_1$ &  & \vline &\\
+\cline{2-4}
+ & & &\\
+\cline{2-4}
+\end{tabular}
+\end{center}
+
+\begin{align*}
+T_p(n,k)= & \left( p-1 + \frac{n^2}{pk}\right) (wk+L+kb)\\
+e_p(n,k)= & \frac{n^2w}{p[(p-1)(wk+L+kb)+(\frac{n^2w}{p}+\frac{n^2L}{pk}+\frac{n^2b}{p})]}\\
+e_p(n,k) & \underset{n\to\infty}{\sim} \frac{w}{w+\frac{L}{k}+b}
+\end{align*}
+
+\paragraph{1st solution:} Block distribution
+$P_k$ holds the row from $\frac{kn}{p}$ to $\frac{n}{p}-1$.
+
+\paragraph{2nd solution:} (generalization) Block cyclic distribution.
+
+\note{Formally:}
+Processor $P_i$ holds row $j$ such that $i=\left\lfloor \frac{j}{r} \right\rfloor$.
+\emph{Now in one step} a processor:
+\begin{itemize}
+\item Updates: $k\times n$
+\item Receiving: $k$
+\item Sending: $k$
+\end{itemize}
+
+
+\[T_p(n,k,r)=\left( \frac{n^2}{pkr}\right) (krw+L+kb)\]
+
+Let $t=\max (p,\frac{n}{k})(kw+L+kb)$. $P_0$ does not stop if and only if $p\leq \frac{n}{k}$. We assume that $n\geq pk$ to write $T_p(n,k,r)$.
+
+\[e_p(n,k,r) \underset{n\to +\infty}{\sim}\frac{w}{w+\frac{L}{kr}+br}\]
+
+Start form $T_p(n,k,r)$. Fix $n,p$. We differentiate $T_p$ with respect to $k$. $T_p$ is minimized for $k'(r)=n\sqrt{\frac{L}{p(p-1)r(rw+b)}}$.
+
+Best solution: take the two functions $\lceil k'(r)\rceil$ and $\lfloor k'(r)\rfloor$, inject in $T_p$ and look numerically for the best value.
+
+\section{Algorithm for grids of processors}
+2D square grid of processors, $p=q^2$.
+%scheme (communication between the first and the last processor of each row and column
+
+Each processor link to its four neighbour. We only consider torus: so $P_{i,j}$ has connection to processors $P_{i-1,j},P_{i+1,j},P_{i,j-1 \mod p}, P_{i,j+1 \mod p}$
+So every processor belongs to two rings (processor of sane row, processor of same column)
+
+Links are bidirectional: full-duplex (they could have been unidirectional) (no performance degradation if two simultaneous communications (of different directions)).
+
+Simultaneously, a processor can:
+\begin{itemize}
+\item do some computation
+\item receive a message
+\item send a message
+\end{itemize}
+
+Multiport (4-port):
+\begin{itemize}
+\item can send/receive 4 messages simultaneously (one per link)
+\end{itemize}
+
+1-port:
+\begin{itemize}
+\item at most one receive (or send) at any time
+\end{itemize}
+
+$NUM\_PROCS()$ return the number of processors in the system
+
+$MY\_PROC\_ROW()$ and $MY\_PROC\_COLUMN()$ return the coordinates of the calling processor.
+
+\begin{align*}
+SEND&(dest, \underbrace{addr}_{\substack{ \text{address of}\\\text{data to}\\\text{send}}}, \underbrace{L}_{size})\\
+RECV&(src,addr,L)\\
+BROADCASTROW&( \underbrace{i,j}_{\substack{\text{coordinates of the}\\\text{processor source of}\\\text{the broadcast}}},srcaddr, destaddr)\\
+BROADCASTCOLUMN&(i,j,srcaddr,destaddr,L)
+\end{align*}
+
+If broadcast is called by a processor whose row is not $i$, we assume that it does nothing and returns immediately.
+
+\subsection{Outer matrix product}
+3 square matrix $A,B,C$ of size $n$.
+\[C\leftarrow A\times B\]
+The three matrices are distributed in the same manner on the processors.
+
+We use a 2D distribution of data. $q=4, p=16, n=16$.
+
+\begin{center}
+\begin{tabular}{c | c | c | c}
+$\hat{A}_{00}$ & $\hat{A}_{01}$ & $\hat{A}_{02}$ & $\hat{A}_{03}$\\
+\hline
+$\hat{A}_{10}$ & $\hat{A}_{11}$ & $\hat{A}_{12}$ & $\hat{A}_{13}$\\
+\hline
+$\hat{A}_{20}$ & $\hat{A}_{21}$ & $\hat{A}_{22}$ & $\hat{A}_{23}$\\
+\hline
+$\hat{A}_{30}$ & $\hat{A}_{31}$ & $\hat{A}_{32}$ & $\hat{A}_{33}$\\
+\end{tabular}
+\end{center}
+
+Processor $p_{i,j}$ ($0\leq i,j\leq q-1$) holds the block matrices $\hat{A}_{i,j}, \hat{B}_{i,j}$ and $\hat{C}_{i,j}$ that includes the elements $A_{k,l}, B_{k,l}$ and $C_{k,l}$ (respectively) where $i.m\leq k \leq (r-1)m-1$ where $m=\frac{n}{q}$ and $j.m\leq l \leq (j+1)m-1$.
+
+\paragraph{Sequential product:}$\;$
+
+\begin{algorithm}[H]
+\For{k=0 to n-1}{
+\For{i=0 to n-1}{
+\For{j=0 to n-1}{
+$C_{ij}\leftarrow C_{ij}+A_{ik}\times B_{kj}$
+}
+}
+}
+\end{algorithm}
+
+(idem with blocks)
+
+\paragraph{Step $k$:} processor holding $\hat{C}_{i,j}$ will completely compute it. $P_{i,j}$ needs block matrices $\hat{A}_{i,k}$ and $\hat{B}_{i,k}$ at step $k$. $\hat{A}_{i,k}$ is owned by $\hat{P}_{i,k}$. So $P_{i,k}$ must send  $\hat{A}_{i,k}$ to $P_{i,j}$ at step $k$ (for all value of $j$). At step $k$, $P_{i,k}$ must broadcast $A_{i,k}$ to its row of processors.
+
+$\hat{B}_{k,j}$ is held by processor $P_{k,j}$. Processor $P_{k,j}$ must send  $\hat{B}_{i,k}$ to $P_{i,j}$ (whatever the value of $i$). At step $k$, $P_{k,j}$ must broadcast  $\hat{B}_{i,k}$ to its column of processors.
+
+%scheme on propagation of values.
+
+\begin{algorithm}[H]
+OUTER MatrixMultiplication(A,B,C)\\
+$q\leftarrow SQRT(NUM\_PROSC())$\\
+$myrow\leftarrow MY\_PROC\_ROW()$\\
+$mycol\leftarrow MY\_PROC\_COL()$\\
+\For{k=0 to q-1}{
+	\For{i=0 to q-1}{
+		$BROADCASTROW(i,k,A,bufferA,m\times n)$
+	}
+	\For{i=0 to q-1}{
+		$BROADCASTCOL(i,k,B,bufferB,m\times n)$
+	}
+	\eIf{(myrow=k)and(mycol=k)}{
+		$MATRIXMULTIPLYADD(C,A,B,m)$
+	}{\eIf{(myrow=k)}{
+		$MATRIXMULTIPLYADD(C,bufferA,B,m)$
+	}{\eIf{(mycol=k)}{
+		$MATRIXMULTIPLYADD(C,A,bufferB,m)$
+	}{
+		$MATRIXMULTIPLYADD(C,bufferA,bufferB,m)$
+	}}}
+}
+\end{algorithm}
+\[T(m,q)=q(2T_{bcast}+m^3w)\]
+
+Better solution:
+\begin{itemize}
+\item Communications for $k=0$
+\item Loop for $k=0$ to $q-2$ do:
+\begin{itemize}
+\item Communication for step $k-1$
+\item Computation for step $k$
+\end{itemize}
+\item Computation for step $q-1$
+\end{itemize}
+
+$\Rightarrow$ communication and computation overlap 1-port
+
+\[T(m,q)=2T_{bcast}+(q-1)\max (2T_{bcast},m^3w)+m^3w\]
+\[T_{bcast}=(\sqrt{(q-2)L}+\sqrt{m^2b})^2\]
+\begin{itemize}
+\item rings of size $q$
+\item matrices size of size $m^2$ are sent
+\end{itemize}
+
+\begin{align*}
+T_{bcast} &\underset{n\to +\infty}{\sim}\frac{n^2b}{p}\\
+T(m,q)\frac{n^3}{p}\\
+m=\frac{n}{p} &\qquad p=q^2\\
+qm^3w &= q \frac{n^3}{q^3}w\\
+& = \frac{n^3}{p}w
+\end{align*}
+
+$\to$ there is a factor $\frac{\sqrt{p}}{2}$ between the two cost of communication.

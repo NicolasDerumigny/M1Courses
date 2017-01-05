@@ -1,0 +1,499 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+ 
+ 
+\usepackage{caption}
+%\usepackage{pgfplots}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{footnote}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{amsfonts}
+\usepackage{bbold}
+
+\newcommand{\deriv}{\mathrm{d}}
+\newtheorem{thm}{Theorem}
+\newtheorem{prop}{Propriety}
+\newtheorem{lemma}{Lemma}
+\newtheorem{coro}{Corollary}
+\newtheorem{defi}{Definition}
+
+
+
+\setlength{\oddsidemargin}{0pt}
+% Marge gauche sur pages impaires
+\setlength{\evensidemargin}{0pt}
+% Marge gauche sur pages paires
+\setlength{\textwidth}{470pt}
+% Largeur de la zone de texte 
+\setlength{\topmargin}{0pt}
+% Pas de marge en haut
+\setlength{\headheight}{13pt}
+% Haut de page
+\setlength{\headsep}{10pt}
+% Entre le haut de page et le texte
+\setlength{\footskip}{40pt}
+% Bas de page + séparation
+\setlength{\textheight}{630pt}
+% Hauteur de la zone de texte
+\setlength\parindent{0pt}
+\setcounter{section}{-1}
+
+
+\title{Performance Evaluation in Networks}
+\author{Eric Thierry\footnote{eric.thierry@ens-lyon.fr}\\
+\small ENS de Lyon}
+\date{}
+
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+
+\section{Introduction}
+\subsection{Generalities}
+
+Performance of computer and communication systems/networks. Objectives:
+\begin{itemize}
+\item Observation
+\item Prediction
+\item Control \& Optimization
+\end{itemize}
+
+Background needed:
+\begin{itemize}
+\item Not much, try to give always the specification of the system we will use
+\end{itemize}
+
+Systems can be architecture/hardware, code/software
+, communication network (included distributed systems) and logistic/industrial processes, etc.
+
+
+\bigskip
+The metrics will be:
+\begin{itemize}
+\item Speed, bandwidth, delay, load, losses.
+\item Worst case, average, ..
+\end{itemize}
+
+
+\bigskip
+Use of either a mathematical analysis of an abstract model or a simulation (math model, scale model). Comparisons with experiments/measures on a real system (statistics).
+
+
+\bigskip
+Objectives:
+\begin{itemize}
+\item Designing and analysing mathematical models (probability assumptions)
+\item Improve knowledge in probability/statistical tool
+\item Improve knowledge about communication networks
+\item practising simulation/statistic with a simulation/statistic software
+\end{itemize}
+
+\bigskip
+Why are there so many probabilities?
+\begin{itemize}
+\item Sometimes intrinsic in the system (i.e. noise in the core of the system
+\item The users themselves introduce probabilities (Ethernet protocol and randomize algorithms)
+\item Probabilistic is a good way to have a good "rough estimation"
+\item Usually works well in practice
+\end{itemize}
+
+\bigskip
+Use of statistics: Do I need to do more experiments? Do I need to run them longer (asymptotical behaviour)?
+
+\bigskip
+Classical questions: Overload? Average waiting time?
+
+
+\bigskip
+\paragraph{Bibliography:}
+\begin{itemize}
+\item Performance Evaluation of Computer and Communication systems
+\item Introduction aux probabilités et à la statistique
+\item The Art of Computer Systems Performance Analysis
+\item http://perfeval.epfl.ch/
+\item http://proweb.
+%TODO
+\end{itemize}
+
+\subsection{Refresher about Probability}
+\textit{Cf first year}
+
+\bigskip
+
+Usual working hypothesis:
+\begin{itemize}
+\item A list $\Omega$ of the outcomes and a measure of their occurrences via the measures of events.
+\end{itemize}
+
+
+\bigskip
+\begin{defi}
+$\Omega$ is the universe, $\mathcal{F}$ a set of subsets of $\Omega$, $\mathbb{P}$ function from $\Omega$ to $\mathbb{R}$.
+\end{defi}
+
+
+\bigskip
+Vocabulary:
+\begin{itemize}
+\item $\omega \in \Omega$ is an outcome
+\item $A\in \mathcal{F}$ is an event
+\item $\omega$ realise $A$ if $\omega\in A$
+\end{itemize}
+
+\bigskip
+Recalls:
+\begin{itemize}
+\item Conditional probabilities
+\item Independence of events
+\item Law of total probabilities
+\item General/Real Random Variable
+\item Cumulative distribution function: $F_x(x)=\mathbb{P}(X\leq x)$ ($\lim\limits_{x\to -\infty} F(x) = 0$ and $\lim\limits_{x\to +\infty} F(x) = 1$, $F$ non decreasing, $F$ right continuous)
+\item Discrete/Continuous r.v.\footnote{Random Variable}
+\item Random vectors \& Joint distribution
+\item Expectation
+\item Composition of discrete/continuous r.v. (if $g$ is Lebesgue integrable, then $\mathbb{E}(g(X))=\int_x g(x)f(x)dx$)
+\item Same for vectors
+\item Moments of a r.v. (generalisation of expectation and standard deviation)
+\item Generating functions (Probabilities $G_X(s)=\mathbb{E}(s^x)$, moments $M_X(t)=\mathbb{E}(e^{tX})$, characteristic $\Phi_X(t)=\mathbb{E}(e^{itX})$)
+\item Markov, Bienaymé-Tchebychev, Jensen (convex function), Hölder, Minkowski
+\item Chernoff and Hoeffding
+\item Convergence (in law, in proba, almost sure)
+\item Central limit theorem
+\item Law of large numbers
+\end{itemize}
+
+\section{Random number generation}
+cf Webpage
+
+
+\section{Markov chains}
+Recalls
+
+\section{Martingales and stuff}
+
+\section{Continuous time Markov chains}
+\begin{defi}
+A process $(X_t)_{t\in \mathbb{R}_+}$ over a space of states $E$ is a homogeneous continuous Markov chain if:
+\begin{align*}
+\tag{Markov}
+\forall t_1<...<t_n \in \mathbb{R}_+, \mathbb{P}(X_{t_n}=i_n|X_{t_{n-1}}=i_{n-1},...,X_{t_1}=i_1) & = \mathbb{P}(X_{t_n}=i_n | X_{t_{n-1}}=i_{n-1}\\
+\tag{Homogeneous}
+& = \mathbb{P}(X_{t_n-t_{n-1}}=i_n|X_0=i_{n-1})
+\end{align*}
+\end{defi}
+
+\paragraph{Notation:} $p_{ij}(t)=\mathbb{P}(X_t=j|X_0=i) \to P_t = (p_{ij}(t))_{i,j\in E}$
+
+\paragraph{Kolmogorov equations:} $P_{t+s}=P_sP_t, \forall s,t \in \mathbb{R}_+$ (same proof)
+
+\paragraph{Discrete case:} $P_n=P^n$ with $P=P_1=\mathbb{P}(X_1=j|X_0=i)$ ("kernel")
+
+\paragraph{Continuous case:} $P_t \underset{t \to 0}{\to} ?$
+
+\paragraph{Classical assumption:} $P_t \underset{t\to 0}{\to} Id$ i.e $\forall i,j, p_{ij}(t)\underset{t\to 0}{\to} 0$ if $i\neq j$ and $p_{ii}(t) \underset{t\to 0}{\to} 1$
+
+("standard") ("continuity") ("differentiability at 0")
+
+\begin{align*}
+\exists Q, \frac{P_t - Id}{t} & \underset{t\to 0}{\to} Q\\
+\text{i.e.} \forall i\neq j, \frac{p_{ij}(t)}{t} & \to q_{ij}\\
+\forall i, \frac{p_{ii}(t)-1}{t} & \to q_{ii}
+\end{align*}
+
+$Q=$ infinitesimal generator = "kernel"
+
+\paragraph{Remarks about coeff of $Q$:}
+\begin{itemize}
+\item $\forall i \neq j$, $q_{ij}\geq 0$
+\item 
+\begin{align*}
+\forall t \in \mathbb{R}_+, \sum_{j\in E} p_{ij}(t)&=1\\
+\Rightarrow \forall t>0, \frac{\sum_{j\in E}P_{ij}(t)-1}{t} & =0\\
+(t \to 0) \Rightarrow \sum_{j\in E} q_{ij} & = 0\\
+\Rightarrow q_{ii}\leq 0
+\end{align*}
+\end{itemize}
+
+\paragraph{Vocabulary:} $q_{ij}=$ transition \emph{rate} from $i$ to $j$
+
+\begin{thm}[Kolmogorov]
+With previous assumptions,
+\[\forall t \in \mathbb{R}, \frac{\deriv P_t}{\deriv t} = Q P_t\]
+\end{thm}
+
+\begin{proof}
+Use $P_{t+s}=P_tP_s$, more precisely:
+
+\begin{align*}
+p_{ij}(t+h)-p_{ij}(t) & = \sum_k p_{ik}(h)p_{kj}(t) - p_{ij}(t)\\
+& = \sum_{k\neq i} p_{ik}(h)p_{kj}(t) - (p_{ii}(h)-1)p_{ij}(t)
+\end{align*}
+Divide by $h$ and make $h$ tend to $0$:
+\begin{align*}
+\lim_{h\to 0} \frac{p_{ij}(t+h)-p_{ij}(t)}{h} & = \sum_{i\neq k} q_{ik}p_{kj}(t) + q_{ii}p_{ij}(t)\\
+& = \text{coeff $(i,j)$ of $QP_t$}
+\end{align*}
+
+\end{proof}
+
+
+
+\begin{thm}[Kolmogorov bis]
+\[\frac{\deriv P_t}{\deriv t} = P_t Q\]
+\end{thm}
+
+\begin{coro}
+Since we know that $P_0 = I$ the identity matrix:
+\[P_t = e^{tQ} \underset{\text{def}}{=} \sum_{n\in \mathbb{N}} \frac{(tQ)^n}{n!}\]
+\end{coro}
+
+\paragraph{Remark:} all the work on finite matrices apply to those infinite matrices up to defining/using matrix norms (many norms defined by combinations of sup, $\sum$)
+
+
+%\paragraph{Standard case:} $P_t = ( p_{ij}(t))$ transition matrices, $t \geq 0$.
+
+%$\exists Q$ infinitesimal generator such that
+%$q_{ij}=\lim_{t\to 0} \frac{p_{ij}(t)}{t}, i\neq j$ and %$q_{ii}=\lim_{t\to 0} \frac{p_{ii}(t)-1}{t}$
+
+\paragraph{Alternate description:} "jump process".
+1 Trajectory of HMC = alternation of \emph{waiting times} and jumps.
+
+\paragraph{Waiting times:} suppose you are at state $i$ at time 0.
+
+
+Consider
+\begin{align*}
+W & = \text{the time when you leave $i$}\\
+& = \text{inf} \{ t \geq 0 | X_t\neq i\}\\
+\mathbb{P}(W>s+t|W>s) & = ?\\
+\{W > s \} &= \{ \forall 0\leq u \leq s, X_u=i\}\\
+& = \mathbb{P}( \forall \underbrace{0\leq u \leq s+t}_{s\leq u \leq s+t}, X_u=i | \forall \underbrace{0\leq u \leq s, X_u = i}_{X_s=i})\\
+& = \mathbb{P}(W>t) \; \to \; \text{Memoryless law}\\
+& = exp(\underbrace{\lambda}_?)\\
+\mathbb{P}(W>t) & = e^{-\lambda t} \underset{t \text{ small}}{\simeq} p_{ii}(t) = \mathbb{P}(X_t=i|X_0=i)\\
+& \overset{\text{def}}{=} 1 + Q_{ii}t + o(t)
+\end{align*}
+
+\paragraph{Jump probability:} supp. that you are at state $i$ at time 0.
+
+Consider an an interval $[s,s+t[$ such that $s\leq W < s+t$, and suppose that the chain jumps only in this interval,
+\[ \mathbb{P} (\text{jump to } i | \text{it jumps})
+\underset{t \text{ small}}{\simeq} \frac{p_{ij}(t)}{1-p_{ii}(t)}
+=\frac{q_{ij}t+o(t)}{-q_{ii}t+o(t)}
+\overset{t\to 0}{\to} \frac{q_{ij}}{-q_{ii}}\]
+
+
+\subsection*{Evolution/asymptotic behaviour of HMC}
+
+\paragraph{Invariant measure/distribution:} $\pi \in \mathbb{R}_+^E$ satisfying  $\forall t \leq 0, \pi P_t=\pi$ (and proba dist, i.e. $\sum_{i\in E} \pi_i =1$)
+
+\begin{thm}
+\[\forall t \geq 0, \pi P_t =\pi \Leftrightarrow \pi Q = 0\]
+\end{thm}
+
+\begin{proof}
+\begin{align*}
+\pi Q = 0 & \Leftrightarrow	\forall n \in \mathbb{N}^*, \pi Q^n = 0\\
+& \Leftrightarrow \forall t \in \mathbb{R}_+, \pi \sum_{n=0}^{+\infty} \frac{t^nQ^n}{n!}=\pi
+\end{align*}
+\end{proof}
+
+
+\paragraph{Irreducible HMC:} rate transition graph
+\[
+= \begin{cases}
+\text{vertices} & \text{states } E\\
+\text{directed edges } i\to j  & \text{if } q_{ij}>0\\
+\end{cases}
+\]
+
+irreducible $\overset{\text{def}}{=}$ graph strongly connected.
+
+\begin{thm}[Convergence result]
+Suppose that an HMC is irreducible and admits an invariant proba distribution $\pi$.
+
+\[\lim_{t\to\infty} P_{ij}(t)=\pi_j\]
+
+Moreover, let $f:E\to \mathbb{R}$ such that $\sum_{i\in E} \pi_i |f(i)| < \infty$.
+
+Then 
+\[\lim_{t\to + \infty} \frac{1}{t} \int_0^t f(X_s) \deriv s = \sum_{i\in E} \pi_i f(i) \]
+\end{thm}
+
+
+\section{Queues}
+Queue = buffer + server
+
+\paragraph{Classical questions:}
+\begin{itemize}
+\item Average waiting time for a client
+\item Proportion of time the server is busy
+\item Distribution of nb of clients waiting in the queue
+\end{itemize}
+
+\paragraph{Kendall notation} (for single queue)
+
+\[\underbrace{A}_{\substack{\text{law of interarrival}\\\text{of clients}}} / \underbrace{B}_{\substack{\text{law of service}\\\text{time (time to}\\\text{serve one client)}}} / \underbrace{S}_{\substack{\text{nb of}\\\text{process}}}  (/ \underbrace{N}_{\substack{\text{nb of}\\\text{buffers}}})
+\]
+All are usually assumed independent.
+
+
+\paragraph{Classical laws:}
+\begin{itemize}
+\item $M$ (Markov) = exponential law
+\item $D$ (Deterministic) = constant time
+\item $E$ (Erlang) = Erlang law
+\item $G$ (General) = arbitrary law
+\end{itemize}
+
+
+
+
+\paragraph{Example:} analysis of the $M(\lambda) / M(\mu)/1$ queue.
+
+\[X_t = \text{ size of the queue at time $t$}\]
+
+
+\paragraph{Different behaviour:}
+\begin{itemize}
+\item $X_t=0 \to $ new client will arrive within time $\sim exp(\lambda)$
+\item $X_t \geq 1 \to$ one client is being saved within time $\sim exp(\mu)$ and one new client will arrive within time $\sim exp(\lambda)$
+\end{itemize}
+
+
+
+\subsection{M/M/1 queue}
+
+$(N_t)_{t\in \mathbb{R}_+}$ is a continuous time HMC.
+
+\paragraph{Search for invariant proba distribution $\pi$}
+
+$\pi Q=\pi \Rightarrow \forall n\in \mathbb{N}, \pi_n = \left( \frac{\mu}{\lambda}\right)^n\pi_0$
+An invariant proba measure exists iff $\sum_{n=0}^{+\infty}\pi_n=1 \Leftrightarrow \frac{\mu}{\lambda}<1$. Then $\pi_n=\left(\frac{\lambda}{\mu}\right)^n \left(1-\frac{\lambda}{\mu}\right)$ (geometric law).
+
+under the assumption that the system is at the permanent/stationary state/regime, i.e. $N_0$ follows the invariant distribution $\pi$, let's study some performance parameters.
+
+\begin{enumerate}
+\item Average nb of packets in the system (we assume that we have the distribution $\pi$ at time 0)
+\[\mathbb{E}_{\pi}(N_t)=\sum_{n=0}^{+\infty} n \pi_n = \frac{\frac{\mu}{\lambda}}{1-\frac{\mu}{\lambda}} \leftarrow \text{ mean for geometric law}\]
+\item Let $W=$ waiting time before being served
+
+Two cases:
+\begin{itemize}
+\item arriving in an empty queue $\Leftrightarrow$ being served immediately
+
+$\mathbb{P}(W=0)=\mathbb{P}_\pi(N_t=0)=\pi_0=1-\frac{\mu}{\lambda}$
+\item arriving in a non-empty queue: if there is a packet (with probability $\pi_n$) you must wait or sum of $n$ independent exponential laws $Exp(\lambda)$
+
+$\to$ density $f(t)$ for $W$:
+\begin{align*}
+f(t) & =\sum_{n=1}^{+\infty} \underbrace{\pi_n}_{\left(\frac{\mu}{\lambda}\right)^n \left(1-\frac{\mu}{\lambda}\right)}\times \underbrace{\text{ density of a sum of independent } Exp(\lambda)}_{e^{-\lambda t}\frac{\lambda^nt^{n-1}}{(n-1)!}}\\
+& = e^{- \lambda t}\left( 1 - \frac{\mu}{\lambda}\right) \mu \underbrace{\sum_{n=1}^{+\infty} \frac{(\mu t)^{n-1}}{(n-1)!}}_{e^{\mu t}}\\
+& = e^{-(\lambda - \mu t}(\lambda - \mu)\frac{\mu}{\lambda}\\
+\end{align*}
+We have the law of $W$, let's compute $\mathbb{E}_\pi (W)$
+\end{itemize}
+
+\begin{align*}
+\mathbb{E}_\pi(W) = \int_{t=0}^{+\infty} t f(t) \deriv t & = \int_{0}^{+\infty}t e^{-(\lambda-\mu)t}(\lambda - \mu)\frac{\lambda}{\mu}\deriv t\\
+& = \frac{\mu}{\lambda}\int_0^{+\infty}t\underbrace{(\lambda - \mu)e^{-(\lambda-\mu)t}}_{\text{density for $Exp(\lambda-\mu$}}\deriv t\\
+& = \frac{\mu}{\lambda}\frac{1}{\lambda-\mu}
+\end{align*}
+
+Average time before leaving the system $\overline{T}$ i.e. spent in the system = $\mathbb{E}_\pi(W)+\underbrace{\frac{1}{\lambda}}_{\substack{\text{average}\\\text{waiting time}}} = \frac{\mu}{\lambda}\frac{1}{\lambda - \mu}+\frac{1}{\lambda}=\frac{1}{\lambda-\mu}$
+
+\paragraph{Remark}
+\[\underbrace{\overline{N}}_{\substack{\text{average size}\\\text{of the queue}}}=\underbrace{\mu}_{\text{input rate}} \underbrace{\overline{T}}_{\substack{\text{average time}\\\text{spent in the queue}}}
+\tag{Little's law}\]
+\end{enumerate}
+
+
+\subsection{M/M/$\infty$ queue}
+Behaviour of $N_t=$ number of packet in the system?
+
+\paragraph{Search for an invariant distribution $\pi$}
+Substitution:
+\[\pi_n=\frac{1}{n!}\left( \frac{\mu}{\lambda} \right) ^n \pi_0\]
+
+There is always an invariant distribution because $\sum_{n=0}^{+\infty} \pi_n = \pi_0\sum_{n=0}^{+\infty}\frac{1}{n!}\left(\frac{\mu}{\lambda}\right)^n=\pi_0 e^{\frac{\mu}{\lambda}}$
+
+\[\Rightarrow \forall n \in \mathbb{N}, \pi_n = e^{-\frac{\mu}{\lambda}}\frac{1}{n!}\left( \frac{\mu}{\lambda}\right) ^n\]
+
+Under the stationary assumption
+\begin{enumerate}
+\item $\mathbb{E}_\pi (N_t)= \overline{N} = $ mean value for Poisson laws of parameter $\frac{\lambda}{\mu}$ = $\frac{\lambda}{\mu}$
+\item $\mathbb{E}_\pi(\underbrace{\text{time spent in the system}}_{\text{service time}})=$ mean value for $Exp(\lambda)=\frac{1}{\lambda}$.
+\end{enumerate}
+
+\paragraph{Remark}
+\[\overline{N}=\mu \overline{T}\]
+
+
+\subsection*{A useful relation: Little's law}
+
+In many cases,
+\begin{align*}
+\text{average nb of guys in the system} &= \text{average arrival rate} \times \text{average time spend in the system}\\
+\overline{N} & =\mu \overline{T}
+\end{align*}
+
+
+
+\paragraph{Examples}
+\begin{enumerate}
+\item M/M/1 queue in the stationary state
+\item M/M/$\infty$ in the stationary state
+\item General deterministic case with finite horizon
+\end{enumerate}
+
+
+
+\begin{defi}[Pseudo-inverse]
+\[f^{(-1)}(n)=\inf \{t\;|\; f(t)\geq n \}\]
+\end{defi}
+
+\begin{defi}[Definitions]
+\begin{itemize}
+\item $A(t)=$ number $n\in \mathbb{N}$ of packets entering between time 0 and time $t \in \mathbb{R}_{+}$
+\item $B(t)=$  number $n\in \mathbb{N}$ of packets leaving between time 0 and time $t \in \mathbb{R}_{+}$
+\item $N(t)=A(t)-B(t)=$ number of packet \emph{in} the system at time $t$
+\item $T(n)=B^{(-1)}(n)-A^{(-1)}(n)=$ time spent in the system by the $n$-th packet
+\end{itemize}
+\paragraph{"Averages:"}
+\begin{itemize}
+\item "finite horizons" $=$ on $[0,t]$
+\item $\mu = \frac{A(t)}{t}$ (arrival rate)
+\item $\overline{T}=\frac{1}{A(t)}\sum_{i=1}^{A(t)}T(i)$ (average time spent in the system)
+\item $\overline{N}=\frac{1}{t}\int_{x=0}^t N(x) \deriv x$ (average number of packets).
+\end{itemize}
+\end{defi}
+
+
+\begin{thm}[Little's theorem (1961)]
+If $A(t)=B(t)$
+\[\overline{N} = \mu \overline{T}\]
+\end{thm}
+
+\begin{proof}
+Graphical proof, interpreting integrals as areas.
+\begin{align*}
+\underbrace{\frac{1}{t}\int_{x=0}^t N(x) \deriv x}_{\overline{N}} = \underbrace{\frac{A(t)}{t}}_{\mu} \underbrace{\frac{1}{A(t)}\sum_{i=1}^{A(t)}T(i)}_{\overline{T}}
+\end{align*}
+\end{proof}
+
+
+
+\end{document}

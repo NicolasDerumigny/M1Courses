@@ -1,0 +1,555 @@
+Parallel Random Access Machines
+
+\begin{itemize}
+\item Theoretical model
+\item No communications:\\
+$\Rightarrow$ Shared memory model
+
+1 large memory\\
+$n$ processing elements/units directly connected to it
+\end{itemize}
+
+All processing units execute the same algorithm simultaneously: each time step all PU\footnote{Processing Unit} execute the \underline{same} instruction (but some PUs may be inactive, like in an if ... then ... else ...).
+
+
+All PU can access memory location in a unit of time. Different processing units may access the very same memory location simultaneously. 
+
+\note{3 variants:}
+\begin{itemize}
+\item CREW: Concurrent Read Exclusive Write
+\begin{itemize}
+\item  Any number of PU can simultaneously read any given memory location
+\item At any time, at most one PU can write into any given memory location
+\end{itemize}
+\item EREW: Exclusive Read, Exclusive Write
+\begin{itemize}
+\item At any given time, at most on PU can access any given memory cell
+\end{itemize}
+
+\item CRCW: Concurrent Read, Concurrent Write
+\begin{itemize}
+\item Consistent mode: all PU writing in the same memory location \textbf{must} write the same value
+\item Arbitrary mode: among the different values that PUs attempt to simultaneously write in a given location, one of them is arbitrarily (i.e. randomly) written.
+\item Priority mode: the value of the PU of highest priority/index is written
+\item Fusion mode: a commutative and associative operation is applied to the values that the PUs write in a same memory location
+\end{itemize}
+\end{itemize}
+
+
+\section{Pointer jumping}
+\subsection{List ranking}
+
+Linked list $L$ that contains $n$ objects. For any element $i$ in the list, we want to compute
+\begin{align*}
+d[i]=
+\begin{cases}
+0 & $if next$ [i]=nil \\
+1+d[$next$[i]] & $otherwise$\\
+\end{cases}
+\end{align*}
+Sequential complexity: $O(n)$ (go backward from the tail with a doubly-linked list)
+
+\begin{itemize}
+\item Associate one processor to each list element ($P_i$ is associated to element $i$)
+\item At each step, we split the list in two sub-lists: one of the odd elements and one of the even ones.\\
+$\Rightarrow$ at each step the size of the list is halved\\
+$\Rightarrow$ $O(\log n)$ steps
+\end{itemize}
+
+%TODO scheme example
+
+\note{Rank computation (L):}\\
+\begin{algorithm}[H]
+\For{all i in parallel}{
+	\eIf{next[i] = nil}{
+		d[i]=0
+	}{
+		d[i]=1
+	}
+	\While{there exists a node i such that next[i] != nil}{
+		\For{all i in parallel do}{
+			\If{next[i] != nil}{
+				d[i] $\leftarrow$ d[i] + d[next[i]]\\
+				next[i] $\leftarrow$ next[next[i]]
+			}
+		}
+	}
+}
+\end{algorithm}
+
+\note{Evaluation of \textit{while}:}\\
+We know the value of $n$.\\
+Counter initialized to 0.\\
+Each time a next field is set to nil, the counter is incremented, when we reach $n$, we are done.
+
+\begin{algorithm}[H]
+\For{all i in parallel}{
+	\eIf{next[i] = nil}{
+		d[i]=0
+	}{
+		d[i]=1
+	}
+	\While{counter $<$ n}{
+		\For{all i in parallel do}{
+			\If{next[i] != nil}{
+				d[i] $\leftarrow$ d[i] + d[next[i]]\\
+				next[i] $\leftarrow$ next[next[i]]
+			}
+			\If{next[i] = nil}{counter $\leftarrow$ counter + 1}
+		}
+	}
+}
+\end{algorithm}
+
+Only work with CRCW PRAM in fusion mode (with addition).
+
+\begin{algorithm}[H]
+\For{all i in parallel}{
+	\eIf{next[i] = nil}{
+		d[i]=0
+	}{
+		d[i]=1
+	}
+	Finished $\leftarrow$ true\\
+	\While{$\neg$ Finished}{
+		\For{all i in parallel do}{
+			\If{next[i] != nil}{
+				d[i] $\leftarrow$ d[i] + d[next[i]]\\
+				next[i] $\leftarrow$ next[next[i]]
+			}
+			\If{next[i] != nil}{Finished $\leftarrow$ false}
+		}
+	}
+}
+\end{algorithm}
+Work for any variant of CRCW PRAM.
+
+$\rightarrow$ We know that we will have at most $\lceil \log_n \rceil$ steps.
+\textit{For i=1 to $\lceil \log_n \rceil$} works also on EREW PRAM.
+
+\newpage
+\begin{itemize}
+\item About "race condition" in updating next[i]
+\end{itemize}
+\begin{algorithm}[H]
+temp $\leftarrow$ next[next[i]]\\
+\CommentSty{(Only works if concurrent reads)}\\
+next[i] $\leftarrow$ temp\\
+temp$\leftarrow$ d[i]+d[next[i]]\\
+d[i]$\leftarrow$temp\\
+temp1$\leftarrow$ d[i]\\
+temp2$\leftarrow$ d[next[i]]\\
+d[i]$\leftarrow$ temp1 + temp2\\
+\end{algorithm}
+
+\note{Execution time:} $O(\log n)$
+
+\subsection{Prefix computation}
+Sequence $x_1, x_2, ..., x_n$, we want to compute the sequence
+\begin{align*}
+y_1, y_2, ... ,y_n \text{ where}
+\begin{cases}
+y_1 = x_1 & \\
+y_k=y_{k-1} \otimes x_{k-1} = x_1 \otimes x_2 \otimes ... \otimes x_n & \\
+\end{cases}
+\end{align*}
+
+Where $\otimes$ binary associative operation.
+
+We assume that $x$ is given as a linked bit.
+
+\begin{algorithm}[H]
+\For{all i in parallel}{
+y[i]=x[i]\\}
+\While{there exists a node i such that next[i]!=nil}{
+	\For{all i in parallel}{
+		\If{next[i]!=nil}{
+			y[next[i]]$\leftarrow$ y[i] $\otimes$ y[next[i]]\\
+			next[i] $\leftarrow$ next[next[i]]]\\
+		}
+	}
+}
+\caption{Prefix Computation (L)}
+\end{algorithm}
+
+
+\section{Performance evaluation of PRAMs Algorithms}
+\subsection{Cost, work, speed-up, efficiency}
+Let $P$ be a problem of size $n$.
+
+$T_{seq}(m)$: execution time of the best known sequential algorithm to solve $P$.
+
+Let $T_{par}(p,n)$: execution time of our solution using $p$ processors.
+
+\note{Cost:} $C_p(n)=p\times T_{par}(p,n)$
+
+\note{Work:} Sum on all processing units 
+of the number of operations performed by each units (or, the time each PU is effectively used).
+\begin{align*}
+C_p(n)=W_p(n)+\text{some idle time}
+\end{align*}
+
+\note{Speed-up}:
+\begin{align*}
+S_p(n)=\frac{T_{seq}(p)}{T_{par}(p,n)}
+\end{align*}
+
+\note{Efficiency:}
+\begin{align*}
+e_p(n) & =\frac{S_p(n)}{p}\\
+& = \frac{T_{seq}(n)}{pT_{par}(p,n)}\\
+& = \frac{T_{seq}(n)}{C_p(n)}
+\end{align*}
+
+\note{Another definition of speed-up:} \textit{(We will not use it)}
+\begin{align*}
+S_p'(n)=\frac{T_{par}(1,n}{T_{par}(p,n)}
+\end{align*}
+
+\note{Ideal}: $S_p(n)$ close to $p$, efficiency close to 1.
+
+\subsection{A simple simulation result}
+\begin{prop}
+Let $A$ be an algorithm, whose execution time is $t$ when using $p$ PUs, then $A$ can be run on $p'\leq p$ PUs of the same type in time $O(\frac{p}{p'}t)$. The cost on $p'$ PUs is at most twice the cost on $p$ PUs.
+\end{prop}
+
+\begin{proof}
+The algorithm runs in $t$ steps. At each step we allocate (at most) $\frac{p}{p'}$ operations to each PU for the PUs to process them sequenctially in time $O(\frac{p}{p'})$.
+\begin{align*}
+C_{p'} & = p'T_{par}(p',n)\\
+& = p' t'\\
+C_{p'} & \leq p' \left( \left\lceil \frac{p}{p'}\right\rceil t \right) \\
+& \leq p'\left( \frac{p}{p'}+1 \right) t\\
+& = pt + p't\\
+& \leq 2pt=2C_p
+\end{align*}
+\end{proof}
+
+\note{Remark:} This proposition give an upper bound of what s possible, but it is sometimes possible to do better.
+
+Let us consider prefix computation: $n$ values, $n$ PUs, $O(\log_2 (n))$.
+
+\textit{Using the proposition:}
+\begin{align*}
+\text{With }p\leq n \text{PUs, } O\left(\frac{n}{p}\log(n)\right)
+\end{align*}
+
+\textit{One other solution:}
+Each processor has $\frac{n}{p}$ values (consecutive values)
+\begin{itemize}
+\item Each PU computes the prefixes for its $\frac{n}{p}$ values in time $\frac{n}{p}$.
+\item Pointer-jumping propagation over the $p$ PUs of $p$ prefixes in time $O(\log p)$.
+\item Each PU applies the prefixes computed above to its $\frac{n}{p}$ values in $O(\frac{n}{p})$.
+\end{itemize}
+
+The overall execution time is $O\left(\frac{n}{p} + \log p\right)$
+
+``Coarsening of the computation.''
+
+\note{Efficiency:} Usually, when $p$ increases the efficiency decreases
+\begin{align*}
+0 &\leq e_p(n) \leq 1\\
+0 &\leq S_p(n) \leq p
+\end{align*}
+
+\note{Super linear speed-up:}
+\begin{align*}
+s_p(n) & > p
+\end{align*}
+
+It can happen in practice if, for instance, by using more processors, all data fit in memory and the program no longer swaps.
+
+
+\subsection{Brent's theorem}
+
+\begin{thm}[Brent's theorem]
+Let $A$ be an algorithm that executes a total of $m$
+ operations and that runs in time $t$ on a PRAM (on an unspecified number of PUs).
+
+Then $A$ can be simulated of time $O\left( \frac{m}{p}+t\right)$ on $P$ PUs of a PRAM of the same time.
+\end{thm}
+
+\begin{proof}
+$A$ runs in $t$ steps, performing $m_i$ operations at step $i$.
+\begin{align*}
+\sum_{i=1}^t m_i & = m
+\end{align*}
+
+We simulate step $i$ in time $\left\lceil \frac{m_i}{p}\right\rceil$ using $p$ processors.
+
+The overall execution time is thus 
+\begin{align*}
+\sum_{i=1}^t \left\lceil \frac{m_i}{p}\right\rceil & \leq \sum_{i=1}^t \left(\frac{m_i}{p}+1\right)\\
+& = \left( \sum_{i=1}^t \frac{m_i}{p}\right) + \left( \sum_{i=1}^t 1\right)\\
+& = \frac{m}{p} + t
+\end{align*}
+\end{proof}
+
+\note{Example:}
+Computing the maximum of $n$ values on a EREW PRAM. We do that tournament-like with a binary tree of comparisons.
+
+Time: $t=O(\log n)$ ($n$ PUs), $m=O(n)$
+
+On $p$ PUs, using Brent's theorem, we know we can compute the maximum in time $O\left(\frac{n}{p} + \log n \right)$.
+
+$p=\frac{n}{\log n} \Rightarrow \text{time } O(\log n)$
+
+\section{Comparison of PRAM models}
+\subsection{Model separation}
+\textit{Is there a problem that can be solved significantly faster on a CRCW than on a CREW PRAM?}
+
+
+Choosing the fusion mode and computing a sum of $n$ values.
+
+\note{CRCW:} all PUs write to the same memory location: $O(1)$
+
+\note{CREW:} at each time step each PU can cimbine at most 2 values: $O(\log n)$ time steps.
+
+\bigskip
+\textit{Using CRCW PRAM in coherent mode?}
+
+Computing the maximum of $n$ values: 
+
+
+\begin{algorithm}[H]
+\For{all $i$ from 1 to $n$, in parallel}{
+	ismax[$i$] $\leftarrow$ true
+	\CommentSty{(initialization)}
+}
+\For{all $i,j,1\leq i \leq n, 1\leq j \leq n, i\neq j$ in parallel}{
+	\If{value[$i$]$<$value[$j$]}{
+		ismax[$i$]$\leftarrow$false
+	}
+}
+\For{all $i, 1\leq i \leq n$ in parallel}{
+	\If{$ismax[i]=true$}{
+		result$\leftarrow value[i]$
+	}
+}
+\end{algorithm}
+Time: $O(1)$ on $n$ processors
+
+On a CREW PRAM, at best a $\log n$ execution time
+
+
+
+\bigskip\textit{Separation between CREW and EREW models ?}
+
+Does the element $e$ belongs to a set $X$ of $n$ distinct values. On a CREW PRAM, each of $n$ PUs compares its values of $X$ to $e$. If equality, a boolean is sett to true $\Rightarrow$ constant time.
+
+On a EREW PRAM, it takes at least a time $\log n$ for al processors to have a copy of $e$ (at best we double at each step the number of copies of $e$).
+
+\subsection{Simulation theorem}
+
+\begin{thm}[Simulation theorem]
+Any CRCW algorithm with $p$ PUs has an execution time at most $O(\log n)$ lower than the \emph{best} EREW algorithm to solve the same problem using $p$ processors.
+\end{thm}
+
+\begin{proof}
+We assume the CRCW PRAM to be i coherent mode (different PUs writing simultaneously in the same memory cell must write the same value).
+
+We show how to execute one step of concurrent write in at most $\log p$ steps on a EREW PRAM.
+
+%TODO scheme
+
+\begin{enumerate}
+\item We take a temporary array $A$. Each processor $P_I$ writes in $A[i]$ the couple (location, value).
+\item The array $A$ is sorted by non-decreasing value of the 1st element of the couples
+\item Each processor $P_i$ compares the address in $A[i]$ to the address held by the previous processor. If the addresses differ (or if $i=1$), it performs a write, otherwise, it does nothing.
+\end{enumerate}
+
+\note{Complexity:} (1) and (3) are executed in constant time on $O(p)$ PUs. (2) We assume that there exists am EREW algorithm\footnote{Cf part \ref{sort_log}} sorting $p$ values on $p$ PUs in time $O(\log p)$ $\Rightarrow$ time $O(\log p)$
+\end{proof}
+
+\section{Cole's sorting machine}
+\label{sort_log}
+\textit{Proposed in 1986.}
+
+CREW algorithm to sort $n$ values in time $\log n$ using $n$ PUs, based on a merge sort algorithm:
+We have $\log n$ levels in the tree, and $\log n$ steps in Cole's algorithm.
+We want an algorithm running in time $O(\log n)$. The algorithm should thus be able to merge two sorted lists on any size in constant time.
+
+
+\subsection{Merge}
+\begin{defi}[Good sampler]
+A sorted sequence $L$ is said to be a good sampler (GS) of a sequence $L$ if, for any $k \leq 1$, there are at most $2k+1$ elements of $J$ \emph{between} $k+1$ (arbitrary) consecutive elements of $L \cup \{-\infty \} \cup \{+\infty\}$.
+
+\begin{itemize}
+\item If $J$ and $K$ are two sorted sequences, $J|K$ is the merge of $J$ and $K$.
+\item If $a$ and $b$ are two values with $a<b$, we say that $x$ is between $a$ and $b$ if and only if $a<x\leq b$
+\item $rank(x,J)=card \{j\in J \;|\; j<x \}$\\
+The cross-ranked of sorted sequence $A$ in the sorted sequence $B$ is:
+\begin{align*}
+R[A,B]: \; & A\to \mathbb{N}\\
+& x\mapsto rank(x,B)
+\end{align*}
+\end{itemize}
+\end{defi}
+In practice, there are at most 3 elements of the sequence $J$ in between two consecutive elements of one of its good sampler (extended with $-\infty$ and $+\infty$).
+
+\note{Example:} The subset of elements of odd ranks (or even ranks) is a good sampler.
+
+
+Two sorted sequences, $J$ and $K$, 
+\begin{align*}
+J & =[2,3,7,8,10,14,15,17,18,21]\\
+K & = [1,4,6,9,11,12,13,16,19,20]\\
+L & = [5,10,12,17] \text{ is a good sampler of \emph{both} $J$ and $K$}
+\end{align*}
+In theory we should check that $L$ is a good sampler. $k=1$, we consider the intervals $]-\infty ,5], ]5,10[, ]10,12],$ $]12,17]$ and $]17,+\infty [$ and we show that there are at most $2k+1=3$ values of $J$, and $2k+1=3$ values of $K$ in each of these intervals.
+We do know for $k=2, k=3,...$
+
+We assume we know the crossrank of $J$ and $K$ in $L$ ($R[J,L]$ and $R[K,L]$).
+
+\begin{align*}
+J(1) = (2,3) & \qquad K(1)=(1,4) \qquad\Rightarrow (1,2,3,4) \\
+J(2)=(7,8,10) & \qquad K(2)=(6,9) \qquad\Rightarrow (6,7,8,9,10)\\
+J(3)=() & \qquad K(3)=(11,12) \qquad\Rightarrow (11,12)\\
+J(4)=(14,15,17) & \qquad K(4)=(13,16) \qquad\Rightarrow (13,14,15,16,17)\\
+J(5)=(18,21) & \qquad K(5)=(19,20) \qquad\Rightarrow (18,19,20,21)\\
+\end{align*}
+
+\begin{algorithm}
+Merge with Help($J,K,L$):\\
+$J$ and $K$ are partitioned using $L$ in $L+1$ subsets.\\
+$J(i)=\{ j\in J \;|\; l_{i-1}<j<l_i\} \quad (l_0=-\infty)$\\
+\For{all i in parallel $(1\leq i \leq |L|+1)$}{
+res $\leftarrow MERGE(J(i),K(i))$}
+$J|K \leftarrow res_1.res_2. \;\hdots\; . res_{|L|+1}$
+\end{algorithm}
+
+\begin{lemma}
+If $L$ has a good sampler of both $J$ and $K$, and if crossranked $R[L,J], R[L,K],R[J,L]$ and $R[K,L]$ are known, then Merge with Help runs in $O(1)$ time with $|J|+|K|$ PUs on a CREW PRAM.
+\end{lemma}
+
+\begin{proof}
+(b) By definition of a good sampler $J(i)$ and $K(i)$ contains at most 3 values each and can be merged sequentially in $O(1)$.
+
+%TODO make it as algortihm
+(a) Each $P_m$ reads the rank $r=rank(j_m,L)$.
+
+\begin{algorithm}[H]
+\eIf{$m=1$ or ($rank(j_m,L)\neq rank(j_{m-1},L)$)}{
+	Add $j_m$ to $J(r)$ \CommentSty{//$J_{m-1}$ put $r-1$ and $r-2$}
+}{
+	\eIf{$rank(j_m,L)\neq rank(j_{m-2},L))$}{
+		Add $j_m$ to $J(r)$ \CommentSty{//$J_m$ and $J_{m-1}$ should be put $r-1$ and $r-2$}
+	}{
+		Add $j_m$ to $J(r)$ \CommentSty{//$J_{m-1}$ put $r-1$ and $r-2$}
+	}
+}
+\end{algorithm}
+We use $|J|+|K|$ PUs.
+
+(c) We need to know where to write the smallest element of $res_i=J(i)|K(i)$\\
+$rank(l_i, J|K)=rank(l_i,J)+rank(l_i,K)$. we write sequentially (at most using 6 steps) $res_i$ starting at position $rank(L_{i-1},J|K)$. We use $|L|+1$ PUs.
+\end{proof}
+
+\subsection{Sorting trees}
+We assume $n=2^m$.\\
+$\rightarrow$ binary tree used in a pipelined way\\
+$\rightarrow$ the value of a node at step $t$ will be a good sampler of the value at step $t+1$.
+
+\begin{algorithm}[H]
+Cole-Merge():\\
+Receive $X(t+1)$ from its left child\\
+Receive $Y(t+1)$ from its right child\\
+Merge: $val(t+1)\leftarrow$ Merge with Help ($X(t+1), Y(t+1), val(t)$)\\
+Send: $Z(t+1)=REDUCE(val(t+1))$ to the parent\\
+$REDUCE$: keeps only every forth value.
+\end{algorithm}
+
+A node of the tree is said to be complete when it has received all its inputs, i.e., a sorted sequence of size $2^k$ for a node at level $k$. As soon as the input sequence is no longer empty it doubles at each step, from $1$ to $2^{k-1}$
+
+If a node is complete at step $t$, then the $REDUCE$ operation changes:
+\begin{itemize}
+\item at step $t+1$: once again sends every forth element
+\item at step $t+2$: sends every other elements (even ranked elements) %CAREFULL ENGLISH !!! = 1 sur 2 !!!
+\item at step $t+3$: sends every element
+\item From step $t+4$ on, stops working, stop reading sequences.
+\end{itemize}
+
+
+\note{Example:}
+\begin{itemize}
+\item $t=0$: leaves are complete
+\item $t=1$: every fourth element out the leaves
+\item $t=2$: every other elements out of the leaves
+\item $t=3$: each leaf sends its value.\\
+all the nodes at level 1 complete
+\item $t=4$
+\item $t=5$: level 1 nodes send every other value
+\item $t=6$: all level 2 nodes are complete
+\item $t=7$: the root merges $[8]$ and $[4]$
+\item $t=8$: the root merges $[6,8]$ and $[2,4]$ using $[4,8]$ as a good sampler.
+\item $t=9$: the root merges $[5,6,7,8]$ and $[1,2,3,4]$ using $[2,4,6,8]$ as a good sampler.
+\end{itemize}
+The root is complete, we are done.
+%TODO : scheme of the exemple
+
+\note{Execution time:} Nodes at level $k$ are complete at time $3k$. Execution time is $O(3 \log n)= O(\log n)$
+
+\note{Number of processors:} To merge 2 lists of size $k$, in constant time, we need $2k$ PUs. (We have $\log n$ levels, and each requires at most $n$ PUs, so we know how to do it in $O(n \log n)$).
+
+Level $k$:\\
+There are $\frac{n}{2^k}$ nodes at level $k$.
+\begin{itemize}
+\item They are complete at time $3k$. They each have a value $val(3k)$ of size $2^k$. Overall, they use $\frac{n}{2^k}\times 2^k=n$ PUs.
+\item $3k-1$, total size of input $2^{k-1}$, need $\frac{n}{2}$
+\item $3k-2$, $\frac{n}{4}$
+\item ...
+\end{itemize}
+Level $k$ needs $\frac{n}{8}$ PUs at step $3k-3$.\\
+Level $k+1$ needs $\frac{n}{8}$ PUs at step $3k$
+
+\note{At step 3k:}
+\begin{itemize}
+\item level $k+2=\frac{n}{64}$ PUs
+\item level $k+1=\frac{n}{8}$ PUs
+\item level $k=n$ PUs
+\item level $k-1=0$ PUs
+\item ...
+\item level $0=0$ PUs
+\end{itemize}
+
+Overall: Cole's algorithm needs less than $2n$  PUs.
+
+
+\subsection{Corrections}
+\begin{lemma}
+Les $X,X',Y$ and $Y'$ be four sorted sequences. If $X$ is a GS of $X'$ and if $Y$ is a GS of $Y'$, then $REDUCE(X|Y)$ is a GS of $REDUCED(X'|Y')$
+\end{lemma}
+
+\note{Warning:} $X|Y$ is not \emph{always} a GS of $X'|Y'$. If we take $X=[2,7] \qquad X'=[2,5,6,7]$, and $Y=[1,8] \qquad Y'=[1,3,4,8]$; then between the consecutive elements 2 and 7 of $X|Y$ we have $\{3,4,5,6,7\}$ in $X'|Y'$, that is 5 values ($>3$).
+
+\begin{proof}
+
+\begin{prop}
+There are at most $2r+2$ elements of $X'|Y'$ in between $r$ consecutive elements of the $X|Y$.
+\end{prop}
+
+
+\begin{proof}
+Let $e_1, e_2, ..., e_r$ be a sequence of $r$ consecutive elements of $X|Y$. There are $h_X$ elements of $X$ in it and $h_Y$ elements of $Y$; $h_X+h_Y=r$.
+Without loss of generality, we assume $e_1\in X$.
+
+\note{Case 1:} $e_r\in X$.
+$X$ is a GS of $X'$. In between $e_1$ and $e_r$ we have at most $2(h_X-1)+1=2h_X-1$ elements of $X'$.
+Because $Y$ is a GS of $Y'$, there are at most $2(h_y+1)+1$ elements of $Y'$ between $h_y+2$ elements of $Y$. Overall there are at most $(2h_X-1)+(2(h_Y+1)+1)=2h_X+2h_Y+2=2r+2$ elements of $X'|Y'$ in between the $r$ consecutive elements $e_1,...,e_r$.
+
+
+\note{Case 2:} $e_r\in Y$.
+We add an element $e_0\in Y$ preceding $e_1$, and an element $e_{r+1}\in X$ greater than $e_r$. The elements of $X'$ that are between $e_1$ and $e_r$ are between $e_1$ and $e_{r+1}$, so between $h_X+1$ elements of $X$. Because $X$ is a GS of $X'$, there are at most $2h_x+1$ such elements. Symmetrically, there are at most $2h_y + 1$ elements of $Y'$ between $e_1,...,e_r$. Hence, overall at most $(2h_X+1)+(2h_Y+1)=2r+2$ elements.
+\end{proof}
+
+
+Let $Z=REDUCE(X|Y)$, $Z'=REDUCE(X'|Y')$. Let us consider $k+1$ consecutive values of $Z$: $z_h, z_{h+1},...,z_{h+k}$.
+
+By definition of $REDUCE$, $z_h=e_{4h}, z_{h+1}=e_{4h+4},...,z_{n+k}=e_{4n+4k}$ where $X|Y=e_1,e_2,...$.
+There are $4k+1$ elements of $X|Y$ between $z_h$ and $z_{h+k}$. We take $r=4k+1$. we know that there are at most $2r+2=8k+4$ values of $X'|Y'$ in between $z_h$ and $z_{h+k}$. The $REDUCE$ operator keeps every forth value therefore there are at most $\frac{8k+4}{4}=2k+1$ values of $REDUCE(X'|Y')$ in between $z_h,...,z_{h+k}$, that is, $k+1$ (arbitrary) consecutive values of $REDUCE(X|Y)$
+\end{proof}
+
+
+\begin{lemma}
+If we have the sorted sequences $X,Y,U=X|Y,X'$ and $Y'$, with $X$ a GS of $X'$, $Y$ a GS of $Y'$, and we know the crossranks $R[X',X]$ and $R[Y',Y]$. Then, we can compute the cross $R[X',U],R[Y',U],R[U,X'],$ $R[U,Y']$ in $O(1)$ time and using $O(|X|+|Y|)$ PUs.
+\end{lemma}

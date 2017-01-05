@@ -1,0 +1,450 @@
+\subsection{Setting}
+\paragraph{Channel}
+\begin{itemize}
+\item Input alphabet $\mathcal{X}$
+\item Output alphabet $\mathcal{Y}$
+\end{itemize}
+
+\[W_{Y|X}(y|x)=\text{ probability of outputting $y$ when the input is $x$}\]
+
+\paragraph{Our task}
+Find $E,D$ to send messages with small error probability.
+
+\begin{align*}
+\Qcircuit @C=2em @R=0.8em {
+& s \in \{1,...,M\} \qquad \quad & & \gate{E} & \qw & x & & \gate{W} & \qw & y & & \gate{D} & \qw & \qquad \quad \hat{s}\in \{1,...,M\}
+}
+\end{align*}
+
+\begin{defi}
+An $M$-code for $W$ is a pair of functions
+\begin{align*}
+E &: [M] \to \mathcal{X}\\
+D &: \mathcal{Y} \to [M]
+\end{align*}
+\end{defi}
+
+\begin{itemize}
+\item $E(s)$ is called codeword and $\{ E(1),...,E(M) \}$ is codebook.
+\item Decoding region $D_S=D^{-1}(\{s\})=\{y:D(y)=s\}$
+\end{itemize}
+%Scheme here
+
+We will talk about random variables 
+\[\underbrace{S}_{\substack{\text{original}\\ \text{message}}},
+\underbrace{X}_{\substack{\text{encoded}\\ \text{message}\\ \text{or}\\ \text{channel input}}},
+\underbrace{Y}_{\substack{\text{channel}\\ \text{output}}},
+\underbrace{\hat{S}}_{\substack{\text{decoded}\\ \text{message}}}\]
+
+For the rest of the section, we assume that the distribution on messages is uniform, i.e.:
+
+\[P_{SXY\hat{S}}(s,x,y,\hat{s})= \frac{1}{M} \mathbb{1}_{x=E(s)}.W(y|x).\mathbb{1}_{\hat{s}=D(y)}\]
+
+\begin{defi}[Error Probability]
+In that case, we define the error probability as follow:
+\begin{align*}
+P_{err} &= \mathbb{P}(S\neq\hat{S})\\
+& = 1 - \frac{1}{M}\sum_{s=1}^M \sum_{y\in \mathcal{Y}} W(y|E(s)).\mathbb{1}_{D(y)=s}
+\end{align*}
+\end{defi}
+
+\paragraph{Note} $P_{err}$ was called \emph{block error probability} in the first lectures, this is the \emph{average} error probability.
+
+\paragraph{Two others}
+\begin{itemize}
+\item $P_{err,max}=\max_{s\in[M]} \mathbb{P}(\hat{S}\neq s|S=s)$\\
+Maximum error probability
+\item If $M=2^k$, we can see $[M]=\{0,1\}^k$, and thus define $P_{bit}=\frac{1}{k}\sum_{i=1}^{k}\mathbb{P}(S_i \neq \hat{S}_i)$
+\end{itemize}
+
+\paragraph{Question} Trade-off between $M$ and $P_{err}$.
+
+\begin{defi}
+\[M^{OPT}=\max \{ M: \text{there is an $M$-code with }P_{err} \leq \delta \}\]
+\end{defi}
+
+\paragraph{Remark} $\log_2 M^{OPT}(W,\delta)=$ number of bit used
+
+\paragraph{Important thing to keep in mind} Let $W^n$ be $n$ independent copies of $W$.
+\[W^n(y_1...y_n|x_1...x_n)=W(y_1|x_1)...W(y_n|x_n)\]
+With $n\to \infty$ and want $\delta \to 0$. So we are interested in $\frac{\log M^{OPT}(W^n,\delta)}{n}$, which is the number of bits that can be send per channel use.
+
+\paragraph{Examples}
+\begin{enumerate}
+\item $\mathcal{X}=\{1,...,N\}$\\
+$\mathcal{Y}=\{1,...,N\}$\\
+$W(y|x)=\mathbb{1}_{x=y}$
+\begin{itemize}
+\item If $M\leq N$, $E=id, D=id$ so $P_{err}=0$.
+\end{itemize} If $M>N$, take $E, D$ and $M$-code for $\mathbb{N}.$
+\begin{align*}
+P_{err} & = 1 - \frac{1}{M}\sum_{s=1}^M \sum_{y\in \mathcal{Y}} W(y|E(s)).\mathbb{1}_{D(y)=s}\\
+& = 1 - \frac{1}{M}\sum_{y\in \mathcal{Y}} \underbrace{\sum_{s=1}^M W(y|E(s)).\mathbb{1}_{D(y)=s}}_{\underbrace{W(y|E(D(Y)))}_{\leq 1}}\\
+& \geq 1 - \frac{|y|}{M}=1-\frac{N}{M}
+\end{align*}
+
+\item Binary symmetric channel.
+%scheme 0 -> 0
+%         X
+%       1 -> 1
+$f<1/2$
+
+$BSC_f^{\times n}$: $n$ independent copies of $BSC_f$.
+
+\paragraph{Repetition code}
+Message set $=\{0,1\}^{n/3}$
+
+\note{Encoder:} $E(s_1...s_{\frac{n}{3}})=s_1s_1s_1...s_{\frac{n}{3}}s_{\frac{n}{3}}s_{\frac{n}{3}}$
+
+\note{Decoder:} $D(y_1...y_n)=maj(y_1y_2y_3)maj(y_4y_5y_6) ... maj(y_{n-2}y_{n-1}y_{n})$\\
+$P_{bit}=3f^2-2f^3, P_{err}=1-(1-3f^2+2f^3)^{n/3}$
+\end{enumerate}
+
+\begin{defi}
+The information capacity of a channel $W$ with input alphabet $\mathcal{X}$ and output alphabet $\mathcal{Y}$ is
+\[ C(W)=\max\limits_{\substack{P_X \\ \text{distribution over $\mathcal{X}$}}} I(X:Y) \qquad \text{with } P_{XY}(x,y)=P_X(x)W_{Y|X}(y|x)\]
+\end{defi}
+
+\paragraph{Ex}
+\begin{enumerate}
+\item $W(y|x)=\mathbb{1}_{y=x}\qquad \mathcal{X}=\{1,...,N\}, \mathcal{Y}=\{1,...,N\}$.
+For any $P_X$:
+\begin{align*}
+I(X:Y) &= H(X) - \underbrace{H(X|Y)}_{=0}\\
+&= H(X)
+\end{align*}
+
+So $C(W)=\max_{P_X}I(X:Y) = \max_{P_X} H(X)=\log N$
+
+\item 
+%scheme a -> 0
+%         /
+%       b
+%         \
+%       c -> 1
+$P_X=(1/3,1/3,1/3)$\\
+$I(X:Y)=\underbrace{H(X)}_{\log 3} - H(X|Y)$\\
+$H(X|Y)=?$
+\[P_{X|Y=0}(x)=\frac{P_X(x)W(0|x)}{1/2}=
+\begin{cases}
+2/3 & \text{if $x=a$}\\
+1/3 & \text{if $x=b$}
+\end{cases}
+\]
+$H(X|Y)=h_2(1/3)$\\
+$I(X:Y)=2/3$\\
+A better distribution is: $P_X=(1/2,0,1/2)$\\
+$I(X:Y)=\underbrace{H(X)}_{=1}-\underbrace{H(X|Y)}_{=0}=1$
+
+We cannot do better:\\
+$I(X:Y)\leq H(Y)\leq \log |\mathcal{Y}|=1$\\
+$C(W)=1$
+
+\item $BSC_f$ $P_X(0)=1-p$ and $P_X(1)=p$
+\begin{align*}
+I(X:Y) &=H(Y)-H(Y|X)\\
+H(Y|X) &=P_X(0)H(Y)_{P_{Y|X=0}}\\
+&+P_X(1)H(Y)_{P_{Y|X=0}}\\
+& = h_2(f)
+\end{align*}
+
+\[Y= \begin{cases}
+0 & \text{wp } (1-p)(1-f)+pf\\
+1 & \text{wp } p(1-f)+(1-p)f
+\end{cases}\]
+
+$H(Y)=h_2\left( (1-p)(1-f)+pf \right)$\\
+$I(X:Y)=h_2\left( (1-p)(1-f)+pf \right) - h_2(f)$\\
+This is maximized for $p=1/2$. So $C(BSC_F)=1-h_2(f)$
+\end{enumerate}
+
+
+\subsection{Converse bounds}
+\begin{thm}
+Any $M$-code for $W$ satisfies
+\[\log M \leq \frac{C(W)+h_2(P_{err})}{1-P_{err}}\]
+\end{thm}
+
+\begin{proof}
+We start with the case $P_{err}=0$. Take an $M$-code.
+\[P_{SXY\hat{S}}\]
+
+\begin{align*}
+\log M = H(S) & = I(S:\hat{S})+\underbrace{H(S|\hat{S})}_{=0 \text{ as } P_{err}=0}\\
+& = I(S:\hat{S})\\
+S\to X \to Y \to \hat{S} & \text{ is a markov chain}\\
+I(S:\hat{S}) & \leq I(X:Y)\\
+(\text{See data processing inequality in tutorial:} & \; X\to Y \to Z \; \text{Markov chain}\; I(X:Y)\geq I(X:Z))\\
+\log M & \leq I(X:Y)\leq C(W)
+\end{align*}
+
+Now general $P_{err}$:
+\begin{lemma}[Fano's inequality]
+If $S\in \{1,...,M\}$ and $\hat{S}$ such that $\mathbb{P}(S\neq\hat{S})\leq \epsilon$, then
+\[H(S|\hat{S})\leq h_2(\epsilon)+\epsilon \log M\]
+\end{lemma}
+\begin{proof}
+Introduce
+
+\[E = \begin{cases}
+1 & \text{if}\; S=\hat{S}\\
+0 & \text{if}\; S\neq \hat{S}
+\end{cases}\]
+
+\begin{align*}
+H(S|\hat{S}) & = H(E,S|\hat{S})-\underbrace{H(E|S\hat{S})}_{=0}\\
+& = H(E|\hat{S})+H(S|E\hat{S})\\
+H(E|\hat{S}) & \leq H(E) \leq h_2(\epsilon) \qquad \text{assuming $\epsilon\leq 1/2$}\\
+H(S|E\hat{S}) &= \underbrace{P_E(0)}_{\leq \epsilon} \underbrace{H(S|\hat{S})_{P_{S\hat{S}|E=0}}}_{\leq \log M}\\
+& + P_E(1)\underbrace{H(S|\hat{S})_{P_{S\hat{S}|E=0}}}_{\leq \log M}\\
+& \leq \log M
+\end{align*}
+\end{proof}
+Back to the theorem:
+\begin{align*}
+\log M & \leq I(X:Y) + H(S|\hat{S})\\
+& \leq \underbrace{I(X:Y)}_{\leq C(W)}+h_2(P_{err})+P_{err} \log M\\
+\log M & \leq \frac{C(W)+h_2(P_{err})}{1-P_{err}}
+\end{align*}
+\end{proof}
+
+\paragraph{Example} 
+\begin{enumerate}
+\item Identity channel on $\{1,...,N\}$. For any $M$-code:
+\[\log M \leq \frac{\log N+h_2(P_{err})}{1-P_{err}}\]
+We have already seen that
+\begin{align*}
+P_{err} \geq 1 - \frac{N}{M} & \Rightarrow \frac{M}{N} \leq \frac{1}{1-P_{err}}\\
+& \Rightarrow \log M \leq \underbrace{\log N + \log \left( \frac{1}{1-P_{err}} \right)}_{\substack{\text{This was better}\\\text{but very specific}}}
+\end{align*}
+\item Binary symmetric channel $BSC_f^{\times n}$
+\[\log M \leq \frac{C(BSC_f^{\times n})+h_2(P_{err})}{1-P_{err}}\]
+We know that
+\begin{align*}
+C(BSC_f)&=1-h_2(f)\\
+C(BSC_p^{\times n}) & = \max_{P_{X^n}} I(X^n:Y^n)
+\end{align*}
+Easy to find a lower bound:
+\begin{align*}
+P_{X_1...X_n} & =P_{X_1}\times ... \times P_{X_n}\\
+C(BSC_f^{\times n}) & \geq I(X^n:Y^n)\\
+\text{But there $X_i,Y_i$} & \text{ are mutually independant}\\
+&=\sum_{i=1}^n I(X_i:Y_i)\\
+\text{If take }P_{X_i}= \text{unif,} & \text{ then } I(X_i:Y_i)=C(BSC_f)\\
+&=nC(BSC_f)
+\end{align*}
+\end{enumerate}
+
+\begin{thm}
+Given two channels
+\[W_{Y_1|X_1}^1 \qquad W_{Y_2|X_2}^2\]
+Define:
+\[W_{Y_1Y_2|X_1X_2}^{12}(y_1y_2|x_1x_2)=W_{Y_1|X_1}^1(y_1|x_1) . W_{Y_2|X_2}^1(y_2|x_2)\]
+Then:
+\[C(W^{12})=C(W^1)+C(W^2)\]
+\end{thm}
+\begin{proof}
+\begin{itemize}
+\item Easy direction: $C(W^{12})\geq C(W^1)+C(W^2)$.
+Choose $P_{X_1X_2}=P_{X_1}\times P_{X_2}$\\
+Then $P_{X_1X_2Y_1Y_2}=P_{X_1Y_1}\times P_{X_2Y_2}$ using the definition of $W^2$.
+So 
+\[I(X_1X_2:Y_1Y_2) = \underbrace{I(X_1:Y_1)}_{\substack{\text{mutual information between input}\\\text{and output of $W^1$}}} + I(X_2:Y_2)\]
+By taking the sup over $P_{X_1}$ and $P_{X_2}$
+\[C(W^{12})\geq C(W^1)+C(W^2)\]
+
+\item More difficult direction: $\leq$
+Take a general $P_{X_1X_2}$, $X_1$ and $X_2$ \emph{not} independent.
+
+\begin{align*}
+I(X_1X_2:Y_1Y_2) & = H(Y_1Y_2)-H(Y_1Y_2|X_1X_2) \\
+& \leq H(Y_1)+H(Y_2)-\sum_{x_1x_2}P_{X_1X_2}(x_1x_2)H(Y_1Y_2)_{P_{Y_1Y_2|X_1X_2=x_1x_2}} \\
+P_{X_1X_2}(y_1y_2) & = W^1(y_1|x_1)W^2(y_2|x_2) \quad \text{by definition of }W^{12} \\
+H(Y_1Y_2)_{P_{Y_1Y_2|X_1X_2=x_1x_2}} & = H(Y_1)_{P_{Y_1|X_1X_2=x_1x_2}} + H(Y_2)_{P_{Y_2|X_1X_2=x_1x_2}} \\
+& = H(Y_1)_{P_{Y_1|X_1=x_1}}+  H(Y_2)_{P_{Y_2|X_2=x_2}}
+\end{align*}
+We get:
+\begin{align*}
+I(X_1X_2:Y_1Y_2) & \leq H(X_1) + H(Y_1|X_1)+H(Y_2) - H(Y_2|X_2)\\
+& = I(X_1:Y_1)+I(X_2:Y_2)\leq C(W^1)+C(W^2)
+\end{align*}
+
+
+\end{itemize}
+\end{proof}
+
+\subsection{Achievability bound}
+We had define $h_X(X)=\log_2 \frac{1}{P_X(X)}$ with $\mathbb{E}h_X(X)=H(X)$.
+
+\begin{defi}
+For $X \in \mathcal{X}$ and $Y \in \mathcal{Y}$, we define the mutual information density:
+\[\text{for $x,y \in \mathcal{X} \times \mathcal{Y}$: } i_{XY}(x:y)=\log_2 \frac{P_{X|Y}(X|Y)}{P_Y(Y)}=\log_2\left( \frac{P_{XY}(x,y)}{P_X(x)P_Y(y)} \right)\]
+
+If $P_{XY}(x,y)=0$ but $P_X(x)>0, P_Y(y)>0$, let $i_{XY}(x:y)=-\infty$; if $P_X(x)=0$ or $P_Y(y)=0$, then $i_{XY}(x:y)=+\infty$
+\end{defi}
+Observe that 
+\begin{align*}
+\underset{(X,Y)\sim P_{XY}}{\mathbb{E}} (i_{XY}(X:Y)) & = \sum_{(x,y)\in \mathcal{X}\times \mathcal{Y}} P_{XY}(x,y)i_{XY}(x:y)\\
+&= I(X:Y)
+\end{align*}
+
+\paragraph{Example} $X^n=X_1X_2...X_n\in \{0,1\}^n$ uniform; $Y^n=Y_1...Y_n \in \{0,1\}^n$ where\\
+$Y_i= \begin{cases}
+X_i & \text{wp } 1-f\\
+1 \oplus X_i & \text{wp } f
+\end{cases}$. We assume $f<1/2$.
+
+\begin{align*}
+i_{X^nY^n}(x^n y^n) & = \log_2 \frac{P_{Y^n|X^n}(y^n|x^n)}{P_{Y^n}{y^n}}\\
+& = \log_2 \frac{\prod_{i=1}^f (1-f)^{x_i \oplus y_i \oplus 1} f^{x_i \oplus y_i}}{2^{-n}}\\
+& = n + \log_2 (1-f)^{n-d_{H}(x^n,y^n}f^{d_H(x^n,y^n)}\qquad \text{with } d_H(x^n,y^n)=|\{i\in [n]:x_i\neq y_i\}|\\
+&= n + (n-d_H(x^n,y^n))\log_2(1-f)+d_H(x^n,y^n)\log_2 f\\
+i_{X^nY^n}(X^n:Y^n) & = n+(n-d_H(X^n:Y^n))\log_2(1-f)+d_H(X^n:Y^n)\log_2 f\\
+\mathbb{E}(i_{X^nY^n}(X^n:Y^n) & = n (1-h_2(f))
+\end{align*}
+
+\begin{thm}
+Let $W$ be a channel input $\mathcal{X}$ and output $\mathcal{Y}$. For any $P_X$ on $\mathcal{X}$, define $P_{XY}(xy)=P_X(x)W(y|x)$ and any $\tau > 0$, there exists an $M$-code with
+\[P_{err} \leq \mathbb{P}\big(i_{XY}(X:Y)< \log M + \tau\big)+2^{-\tau}\]
+\end{thm}
+
+This means that we can send $\log M$ bits with error probability lower than $\delta$ provided $\mathbb{P}(i_{XY}(X:Y)\leq \log M) \lessapprox \delta$ 
+
+\begin{proof}
+We need to construct a $(E,D)$.
+\begin{align*}
+P_{err} & = 1 - \frac{1}{M}\sum_{s=1}^{M}\sum_{y\in \mathcal{Y}} W(y|E(s))\mathbb{1}_{D(y)=s}\\
+& = \frac{1}{M}\sum_{y\in \mathcal{Y}} W\big(y|E(D(y))\big)
+\end{align*}
+
+If we choose $D^*(y)=\underset{s\in [M]}{\text{argmax}}\; W(y|E(s))$, then for this $D^*$,
+\[P_{err} = 1 - \frac{1}{M}\sum_{y\in \mathcal{Y}} \max_{s\in[M]} W(y|E(s))\]
+
+This is optimal but not so easy to analyse. Instead we define a threshold and let $D(y)$ be the only $s$ above the threshold.
+
+Recall that we had a distribution $P_X$ over $\mathcal{X}$. Define $P_{XY}(x,y)=P_X(x)W(y|x)$ and $P_Y(y)=\sum_{x}P_X(x)W(y|x)$. The threshold will be, if $W(y|E(s)) \lessapprox MP_Y(y)$
+
+\[D(y)=\begin{cases}
+s & \text{if there is a unique $s$ such that $i_{XY}(E(s):y)\geq \log M + \tau$} \\ x_0 & \text{otherwise} \end{cases}\]
+
+For this $D$, we analyse the eror probability $P_{err}=\frac{1}{M}\sum_{s=1}{M}\underbrace{P_{err,s}}_{\substack{\text{error prob}\\\text{for msg $s$}}}$
+
+\begin{align*}
+\underbrace{P_{err,s}}_{= \mathbb{P}(\hat(S)\neq S | S = s)} & = \sum_{y\in \mathcal{Y}} W(y|E(s))\mathbb{1}_{D(y)\neq s}\\
+& \leq \sum_{y\in \mathcal{Y}} W(y|E(s))\mathbb{1}_{(i_{XY}(E(s):y)<\log M + \tau) \text{ or } (\exists s'\neq s : i_{XY}(E(s'):y)\geq \log M + \tau)}\\
+& \leq \underbrace{ \sum_{y\in \mathcal{Y}} W(y|E(s))\mathbb{1}_{i_{XY}(E(s):y)<\log M + \tau}}_{\underset{Y\sim W(\cdot|E(s))}{\mathbb{P}} (i_{XY}(E(s):Y)<\log M + \tau | S=s)} + \sum_{s'\neq s} \underbrace{ \sum_{y\in \mathcal{Y}} W(y|E(s))\mathbb{1}_{i_{XY}(E(s):y)\geq \log M + \tau}}_{\underset{Y\sim W(\cdot|E(s))}{\mathbb{P}} (i_{XY}(E(s'):y)\geq \log M + \tau)}
+\end{align*}
+
+\paragraph{Aside on $BSC_f$} $f<1/2$\\
+In this case $i_{X^nY^n}(E(s):Y^n)=n+(n-d_H(E(s),Y^n))\log(1-f)+d_H(E(s),Y^n)\log_2 f$.
+The optimal decoder is 
+\[D^*(y^n)=\underset{s\in [M]}{d_H(E(s),y^n}\]
+And the ``threshold" decoder is 
+\[D(y^n) = \begin{cases} s & \text{if there is a unique $s$ s.t. $D_H(E(s),y)\leq \_\_\_ $} \\ \ast & \text{otherwise} \end{cases}\]
+
+Now we choose $E$. $E(1),...,E(M)$ random according to $P_X$ and independent, and we compute the expectation of the error probability.
+
+\begin{enumerate}
+\item \begin{align*}
+\underset{E(s)\sim P_X}{\mathbb{E}} \Big( \sum_{y \in \mathcal{Y}} W(y|E(s)) \mathbb{1}_{i_{XY}(E(s):y)<\log M + \tau} \Big) & = \sum_{x\in \mathcal{X}} P_X(x)\sum_{y\in \mathcal{Y}}W(y|x)\mathbb{1}_{i_{XY}(x:y)<\log M + \tau}\\
+&= \mathbb{P}(i_{XY}(x:y)<\log M + \tau)
+\end{align*}
+
+\item \begin{align*}
+\underset{\substack{E(s)\sim P_X \\ E(s')\sim P_y}}{\mathbb{E}} \Big( \sum_{y\in \mathcal{Y}} W(y|E(s))\mathbb{1}_{i_{XY}(E(s'):y)\geq \log M + \tau} \Big) & = \sum_{x,x',y} P_X(x)P_X(x')W(y|x)\mathbb{1}\underbrace{_{i_{XY}{x':y)\geq \log M + \tau}}}_{\frac{W(y|x')}{P_Y(y)}\geq M.2^{-\tau}}\\
+& = \sum_{x',y} P_{Y}(y).P_X(x')\mathbb{1}_{W(y|x')\geq P_Y(y)M.2^\tau}\\
+& \leq \sum_{x,y} W(y|x').\frac{2^{-\tau}}{M}.P_{X}(x')\\
+& = \frac{2^{-\tau}}{M}
+\end{align*}
+\end{enumerate}
+
+So overall, we have
+\[ \mathbb{E}( P_{err} ) = \frac{1}{M} \sum_{s=1}^{M}\mathbb{E}(P_{err,s})\leq \mathbb{P}(i_{XY}(X:Y)<\log M + \tau) + \underbrace{(M-1)}_{\text{sum for $s\neq s'$}}\frac{2^{-\tau}}{M}\]
+
+This implies that there exists an $M$-code with
+\[P_{err}\leq \mathbb{P}(i_{XY}<\log M + \tau) + 2^{-\tau}\]
+\end{proof}
+
+\paragraph{Important special case} Memoryless channel $W^{\times n}$\\
+Look at rate: $\frac{\log_2 M}{n}$.
+
+%scheme
+
+\begin{thm}[Shannon's noisy coding theorem]
+Let $W$ be a channel. For any $\delta \in (0,1)$
+\[C(W)\leq \lim_{n\to \infty} \frac{\log M^{OPT}(W^{\times n})}{n}\leq \frac{C(W)}{1-\delta}\]
+\end{thm}
+
+\begin{proof}
+\begin{itemize}
+\item For upper bound: Follows directly from converse and $C(W^{\times n})=nC(W)$
+\item For lower bound, let $P_X$ be a distribution on $\mathcal{X}$ achieving $\max_{P_X} I(X:Y)$ (for channel $W$). We define $X_1,...,X_n$ $n$ independent random variables with distribution $P_X$, let $Y_1,...,Y_n$ the corresponding outputs.
+
+\begin{align*}
+i_{X^n:Y^n}(X^n:Y^n) & =\sum_{i=1}^n i_{XY}(X_i:Y_i) \quad\text{i.i.d.}\\
+\mathbb{P}(i_{X^nY^n}(X^n:Y^n) \leq n(I(X:Y)-\epsilon ) & \underset{n \to \infty}{\to} 0 \qquad \text{WLLN}
+\end{align*}
+Take $M=\lceil 2^{n(I(X:Y)-2\epsilon)}\rceil$ and $\tau=n\epsilon$, then $\mathbb{P}(i_{X^nY^n}(X^n:Y^n)\leq \log M + \tau ) + 2^{-\tau} \leq 2^{-n\epsilon} + \frac{\delta}{2}\leq \delta$ for large enough $n$. 
+\end{itemize}
+\end{proof}
+
+\paragraph{Comments:\\}
+\begin{itemize}
+\item It turns out that for any $\delta \in \{0,1\}$,
+\[\lim_{n\to \infty} \frac{\log M^{OPT}(W^{\times n},\delta)}{n}=C(W)\]
+\end{itemize}
+\item One can obtain good finite $n$ bounds:
+\[\frac{\log_2M^{OPT}(W^{\times n},\delta)}{n}=C(W)+\frac{Q\delta}{\sqrt{n}}+O(\frac{\log n}{n})\]
+
+
+\paragraph{Zero error coding}
+For the binary symmetric channel:
+\[M^{OPT}(BSC^{\times n},0)=1\]
+
+
+For $W(1|1)=1/2, W(2|1)=1/2, W(2|2)=1/2, W(3|2)=1/2, W(3|3)=1$, with the codebook $\{1,3\}$, we can decode with zero error.
+
+For zero error, the relevant description of $W$ is the confusability graph.
+
+\begin{align*}
+G(W) = & \bullet \text{ vertices are channel input }\mathcal{X} \\
+& \bullet (u,v) \text{ is on an edge if } \exists y \in \mathcal{Y}, W(y|x)>0 \text{ and } W(y|v)>0
+\end{align*}
+
+Then, \[M^{OPT}(W,0)=|\text{MaxIndSet}(G(W))|\]
+
+Where an independent set of $G$ is a subset of vertices with no edge between them.
+
+We can ask the question for a memoryless channel:
+
+\[\lim_{n\to \infty} \frac{\log M^{OPT}(W^{\times n},0)}{n}\]
+
+\begin{align*}
+G(W^{\times n}) = & \text{Vertices indexed by } \mathcal{X}^n\\
+& \text{Edges: }(x_1,...,x_n)\sim(x_1',...,x_n') & \big(\text{There is an edge}\\
+& & \text{between $(x_1,...,x_n)$}\\
+& & \text{and $(x_1',...,x_n')$}\big)
+\end{align*}
+\begin{align*}
+& \exists y_1...y_n W^{\times n}(y_1...y_n|x_1...x_n)>0   \text{ and } W(y_1...y_n|x_1'...x_n')>0\\
+\Leftrightarrow  & \exists y_1...y_n W(y_1|x_1)...W(y_n|x_n) > 0 \text{ and } W(y_1|x1')...W(y_n|x_n')>0\\
+\Leftrightarrow & x_1 \sim x_1' \text{ and } x_2\sim x_2' ... \text { and } x_n\sim x_n' \text{ in graph } G(W)
+\end{align*}
+
+The question is then: given a graph $G$, how does
+\[\text{MaxIndSet}(G^{\times n})\]
+grow with n?
+
+Given an independent set $I$ for $G$, then $I^n$ is an independent set of $G^{\times n}$.
+
+\[I^n=\{(x_1,...,x_n) \text{ such that } x_i\in I\}\]
+So MaxIndSet$(G^{\times n})\geq \text{MIS}(G)^n$
+
+\paragraph{Famous example}
+Let $C_5$ be the connected graph with 5 edges and 5 vertices. $\text{MIS}(C_5)=2$ but $\text{MIS}(C_5^{\times 2})=5$.
+So $MIS(C_5^{\times 2n})\geq 5^n$.
+
+\[\lim_{n\to \infty}\frac{\log M^{OPT}(C_5^{\times n},0)}{n}\geq \frac{1}{2}\log 5\]
+
+It is possible to show that 
+\[\lim_{n\to \infty}\frac{\log M^{OPT}(C_5^{\times n},0)}{n} = \frac{1}{2}\log 5 \qquad \text{Hard}\]

@@ -1,0 +1,733 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+ 
+\usepackage{caption}
+%\usepackage{pgfplots}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{footnote}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{amsfonts}
+\usepackage{bbold}
+\usepackage[boxed,linesnumbered,noend]{algorithm2e}
+\usepackage{qcircuit}
+
+\newtheorem{thm}{Theorem}
+\newtheorem{prop}{Propriety}
+\newtheorem{coro}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{defi}{Definition}
+
+
+
+\setlength{\oddsidemargin}{0pt}
+% Marge gauche sur pages impaires
+\setlength{\evensidemargin}{0pt}
+% Marge gauche sur pages paires
+\setlength{\textwidth}{470pt}
+% Largeur de la zone de texte 
+\setlength{\topmargin}{0pt}
+% Pas de marge en haut
+\setlength{\headheight}{13pt}
+% Haut de page
+\setlength{\headsep}{10pt}
+% Entre le haut de page et le texte
+\setlength{\footskip}{40pt}
+% Bas de page + séparation
+\setlength{\textheight}{630pt}
+% Hauteur de la zone de texte 
+%\setlength\parindent{0pt}
+
+
+\title{Information Theory}
+\author{Omar Fawzi\footnote{omar.fawzi@ens-lyon.fr}\\
+http://perso.ens-lyon.fr/omar.fawzi/teaching/it/index.html\\
+\small Master 1, ENS de Lyon}
+\date{}
+
+\newcommand{\note}{\medskip\noindent\underline}
+\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+\input{src/sect1.tex}
+
+\section{Information measure}
+\input{src/sect2.tex}
+
+\section{Data compression}
+\input{src/sect3.tex}
+
+\section{Noisy channel coding}
+\input{src/sect4.tex}
+
+\section{Information and combinatorics}
+\paragraph{Simple inequality}
+
+\begin{lemma}[Shearer's lemma]
+$(X_1,...,X_n),S_1,...,S_m \subseteq [n]=\{1,...,n\}$
+Suppose that for all $i\in [n]$, $i$ appears in more ($\geq$) than $k$ sets, then:
+\[H(X_1,...,X_n)\leq \frac{1}{k}\sum_{j=1}^{m}H(X_{S_j})\]
+Where
+\[H(X_S)=H(X_{e(1)}...X_{e(|S|)}) \qquad \text{with }S=\{e_1,...,e_n\}\]
+\end{lemma}
+
+\begin{proof}
+\begin{align*}
+H(X_1,..,X_n) & =H(X_1)+H(X_2|X_1)+...+H(X_n|X_1,...,X_{n-1})\\
+S_j & =\{e_j(1),...,e_j(|S_j|)\} \qquad \text{ with } e_j(1)\leq e_j(2)\leq ...\\
+H(X_{S_j}) & =H(X_{e_j(1)})+H(X_{e_j(2)}|X_{e_j(1)})+... \geq H(X_{e_j(1)}|X_1...X_{e_j(1)-1})+H(X_{e_j(2)}|X_1...X_{e_j(2)})
+\end{align*}
+
+For each $i\in [n]$, the term $H(X_i|X_1...X_{i-1})$ appears $k$ times int h lower bound on
+\[\sum_{j=1}^m H(X_{S_j})\]
+So we get the bound.
+\end{proof}
+
+\paragraph{Application 1} Projection of points sets.
+
+$S$ set of $m$ points in $\mathbb{R}^3, S=\{a(1),...,a(m)\}, a(i)=\{a_i(1),a_i(2),a_i(3)\}$.
+Define \\ $\Pi_{XY}=\{(a_1(i),a_2(i)\; i\in [m]\}$; $\Pi_{XZ}=\{(a_1(i),a_3(i)\; i\in [m]\}$, $\Pi_{YZ}=\{(a_2(i),a_3(i)\; i\in [m]\}$
+
+Suppose $|\Pi_{XY}|,|\Pi_{XZ}|,|\Pi_{YZ}|\leq n$. How large can $m$ be?
+
+\paragraph{Claim} If $S$ has $m$ points with projections of size $\leq n$, then $m\leq n^{2/3}$
+
+\begin{proof}
+\[P_{A_1A_2A_3}(a_1a_2a_3)=
+\begin{cases}
+\frac{1}{m} & \text{if } (a_1,a_2,a_3)\in S\\
+0 & \text{otherwise}\\
+\end{cases}\]
+\[H(A_1A_2A_3)=\log m\]
+
+The condition $|\Pi_{XY}|\leq n$ says $|H(A_1A_2)\leq \log n$. Using Shannon's lemma:
+\begin{align*}
+\log m & = H(A_1A_2A_3)\leq \frac{1}{2}(H(A_1A_2)+H(A_1A_3)+H(A_2A_3))\\
+& = \frac{3}{2}\log n\\
+m\leq n^{3/2}
+\end{align*}
+\end{proof}
+
+\paragraph{Application 2} Number of independent sets in a graph
+
+Let $n$ be the number of vertices of the graph. We look at $d$-regular graphs.
+
+\begin{thm}
+If $G$ is a bipartite $d$-regular graph with $n$ vertices, then
+\[|\underbrace{I(G)}_{\text{Set of indep. sets of }G}|\leq (2^{d+1}-1)^{\frac{n}{2d}}\]
+This bound is achieved by taking copies of bipartite complete graph.
+\end{thm}
+
+\begin{proof}
+$[n]=\{1,...,n\}$ labels of vertices, $[n]=A\cup B$ with edges only on $A$ and $B$, $|A|\geq |B|$. Let $I$ be a uniformly random independent set in $I(G)$. Let $X_i=\mathbb{1}_{i\in I}$
+
+\begin{align*}
+H(X_1...X_n) & = \log | I(G) |\\
+& = H(X_A)+H(X_B|X_A)\\
+H(X_B|X_A)&\leq \sum_{b\in B}H(X_b|X_A)\\
+&\leq \sum_{b\in B} H(X_b|X_{N(b)})\\
+& \text{with }N(b)=\{ a\in A : (a,b)\in E\}
+\end{align*}
+
+Define 
+\begin{align*}
+Q_b & = \begin{cases}
+1 & \text{if } |I\cap N(b)|=0\\
+0 & \text{otherwise}
+\end{cases}\\
+& \leq \sum_{b} H(X_b | Q_b)\\
+\\
+H(X_b|Q_b) & = P_{Q_b}(0)H(P_{X_b|Q_b=0})\\
+& \; + P_{Q_b}(1)H(P_{X_b|Q_b=1})\\
+&\leq P_{Q_b}(1) = q_b\\
+H(X_B|X_A) & \leq \sum_b q_b\\
+H(X_B|X_A) & \leq \frac{1}{d}\sum_{b\in B} H(X_{N(b)}) \text{ using Shearer's lemma and degree }d
+\end{align*}
+
+Note that $H(X_{N(b)}Q_b)=H(X_{N(b)})$.
+\begin{align*}
+H(X_{N(b)}Q_b) & =H(Q_b)+H(X_{N(b)}|Q_b)\\
+& = h_2(q_b)+P_{Q_b(0)}H(P_{X_{N(b)}|Q_b=0})\\
+& \; + \underbrace{P_{Q_b(1)}H(P_{X_{N(b)}|Q_b=1})}_{=0}\\
+& \leq h_2 (q_b)+(1-q_b)\log (2^d - 1)\\
+H(X_1...X_n) & \leq \frac{1}{d} \sum_{b} h_2(q_{b})+(1-q_b)\log (2^d - 1) + \sum_{b} q_b
+\end{align*}
+It turns out that this is at most
+\[\frac{n}{2d}\log (2^{d+1}-1)\]
+For any $q_b\in [0,1]$ using fact that $|B|\leq \frac{n}{2}$
+\end{proof}
+
+\section{Error correcting code}
+Shannon’s theorem says that for any nontrivial channels there are $M$-codes with $M \approx 2^{nC(W)}$
+codewords that can be decoded with very small error probability given the output of the channel $W$. It even said that provided we pick the codewords at random with a good distribution, then most
+codes are good. Our objective now is to explicitly construct good codes. The notion of a good code depends on the channel being studied and involves both the construction of an encoder and a decoder. To simplify the study it is useful to consider a different error model than the one we considered so far and in this model the existence of a decoder is directly related to a simple property of the codebook. Recall that in the Shannon model, an encoder is good if there exists a decoder that can decode with a small error probability. In the Hamming
+model, a good encoder is one for which there is a decoder that can correct any error of weight at most $t$. The models are not exactly the same but they are related and we will see that it is possible to construct good codes in the Shannon sense using good codes in the Hamming sense.
+
+\subsection{General error-correcting codes}
+\begin{defi}
+A code $C$ of blocklength $n$ over an alphabet $\Sigma$ is a subset of $\Sigma^n$. We usually write $q = |\Sigma|$.
+The dimension of a code is defined as $k = \log_q |C|$.
+\end{defi}
+
+
+\paragraph{Remark} Note that a way to specify a code is as an injective encoding function $C$: $\Sigma^k \to \Sigma^n$ and the code corresponds to the image of the encoding function $C$. Even though they are not the same objects, we will be using the word “code” for both of these.
+As mentioned before, we consider the Hamming error model where our objective is to be able to correct all errors of weight at most $t$. Note that if you want to think it terms of channels, you should see $\mathcal{X} = \mathcal{Y} = \Sigma$ and then taking $n$ copies of the channel for example.
+
+\begin{defi}
+$C$ is $t$-error correcting if there exists a decoding map $D: \Sigma^n \to C$ such that for
+any $c \in C$ and any error pattern $e$ with at most $t$ errors $D(c + e) = c$.
+\end{defi}
+
+Let us look at simple examples
+\begin{enumerate}
+\item The repetition code $C_{rep} = \{000, 111\}$. This code has $q = 2$, $n = 3$, $k = 1$. It is $1$-error
+correcting. In fact, my decoding function can map to 000 inputs of weight at most 1 and map
+to 111 inputs of weight $\geq 2$.
+\item The binary code defined by $C_\oplus(x_1x_2) = x_1x_2(x_1 \oplus x_2)$ has $q = 2, n = 3, k = 2$. It is not 1-error correcting. In fact $C_\oplus(00) = 000$ and $C_\oplus(01) = 011$. If I apply a weight 1 error to the first codewords I can get 010, but I can also get to 010 by applying a weight 1 error to the second codeword. So I can detect that there is an error but I cannot correct for it.
+\end{enumerate}
+From this example, one sees that the relevant parameter that governs how many errors a code can correct is the Hamming distance between the codewords.
+\begin{defi}[Minimum distance of a code]
+The Hamming distance between $u,v \in \Sigma^n$ is
+defined by $\Delta(u, v) = |\{ i \in [n] : u_i \neq v_i\}|$.
+
+The minimum distance (or just distance) of a code $C$ is defined as
+\[
+d = \min_{c,c' \in C, c\neq c'} \Delta (c, c') 
+\]
+\end{defi}
+
+
+Note that in the Hamming distance, we do not have a notion of distance between two symbols in $\Sigma$ they are either the same or different. For example, if we think of $\Sigma = \{0, 1\}$ and consider the bitstrings $u = 0010$ and $v = 1110$, their Hamming distance is 2. However, if we consider $\Sigma = \{0, 1\}$ and consider $u, v \in \Sigma 2,$ then their Hamming distance is 1.
+
+Let us look at the examples we considered before
+\begin{enumerate}
+\item The repetition code $C_{rep}$ has a minimum distance of 3
+\item The code $C_{\oplus}$ has a minimum distance of 2. In fact, take two different codewords $c = C_\oplus (x_1x_2)$ and $c' = C_\oplus (y_1y_2)$. Then if $\Delta (x_1x_2, y_1y_2) = 2$, then $\Delta (c, c') \geq 2$. Otherwise, if $\Delta (x_1x_2, y_1y_2) = 1$, then $\Delta (c, c') = 2$.
+\end{enumerate}
+
+We now see that minimum distance is directly related to the number of errors that can be
+corrected. We only do here the special case of d odd, the even case will be done in the tutorial.
+\begin{prop}
+Assume $d \geq 3$ is odd. Then the following are equivalent.
+\begin{itemize}
+\item $C$ has minimum distance $d$
+\item $C$ can correct $\frac{d-1}{2}$ errors
+\end{itemize}
+\end{prop}
+
+\begin{proof}
+Suppose $C$ has minimum distance $d$. Then define the function $D : \Sigma^n \to C$ by $D(y) = \underset{c\in C}{\text{argmin}} \;\Delta(c, y)$. Then suppose $c_1$ is transmitted and $\Delta(c_1, y) \leq t$. Then let $D(y) = c$. We have $\Delta (c_1, c) \leq \Delta (c_1, y) + \Delta (y, c) \leq t + t$. This is equal to $2d$ provided $t = \frac{d-1}{2}$ . As such
+$c = c_1$.
+
+Now suppose $C$ has distance $\leq d - 1$. Then there exists $c_1, c_2 \in C$ with $\Delta (c_1, c_2) \leq d - 1$. Consider $y$ such that $\Delta (y, c_1), \Delta (y, c_2) \leq \frac{d-1}{2}$. This $y$ could be received for either $c_1$ or $c_2$ so $C$
+cannot correct $\frac{d-1}{2}$ errors.
+\end{proof}
+
+\paragraph{Notation} We use the notation $(n, k, d)_q$-code when blocklength $n$, dimension $k$, minimum distance $d$ and the alphabet $\Sigma$ has size $q$. Let us see another less trivial code that we have already encountered in the first lecture. This is the Hamming code. It is also a binary code with $q = 2$. We may define it by
+\[
+C_H(x_1x_2x_3x_4) = (x_1, x_2, x_3, x_4, x1 \oplus x_2 \oplus x_4, x_1 \oplus x_3 \oplus x_4, x_2 \oplus x_3 \oplus x_4)
+\]
+This is a $(7, 4, d)_2$ code where we still have to determine $d$. I claim that the minimum distance is 3. First $0000000 \in C_H$ and $1000110 \in C_H$ and they are at distance 3. Moreover, for two different codewords $C_H(x)$ and $C_H(y)$, we can write
+\begin{align*}
+\Delta(C_H(x),C_H(y)) & = |\{ i \in [7] : C_H(x)_i \neq C_H(y)_i\}|\\
+&= |\{i \in [7] : C_H(x)_i + C_H(y)_i \neq 0 \}|\\
+&= | C_H(x) + C_H(y)|\\
+&= |C_H(x + y)|\\
+\end{align*}
+as the mapping $C_H$ is a \emph{linear} map. So it suffices to determine $\min_{x\neq 0} |C_H(x)|$. We do this by considering the different cases for the Hamming weight of $x$. If $|x| = 1$, then two or three of the following bits evaluate to 1: $x_1 \oplus x_2 \oplus  x_4, x_1 \oplus x_3 \oplus x_4; x_2 \oplus x_3 \oplus x_4$. If $|x| = 2$, then at least one of these bits evaluates to 1 and if $|x| = 3$, we already have $|C_H(x)| \geq 3$. We conclude that $C_H$ is a $(7, 4, 3)_2$ code.
+
+Note that this code has a very nice property that we will be exploiting further. The encoding
+function is a linear function. In fact, we can see messages as elements of $\mathbb{F}^4_2$
+and codewords as elements of $\mathbb{F}^7_2$ and the transformation is given by a matrix
+\[
+G_H = \left(
+\begin{matrix}
+1& 0& 0& 0& 1& 1& 0\\
+0& 1& 0& 0& 1& 0& 1\\
+0& 0& 1& 0& 0& 1& 1\\
+0& 0& 0& 1& 1& 1& 1\\
+\end{matrix}
+\right)
+\]
+and $C_H(x) = xG_H$ where we see $x$ as a row vector in $\mathbb{F}^4_2$. One can in general define linear codes
+whenever $\Sigma$ has a field structure so that $\Sigma^n$ is a vector space over the field $\Sigma$ and $C \subseteq \Sigma^n$ is a subspace. Before getting into the detailed study of linear codes, let us determine some simple bounds on the best parameters one can achieve for codes.
+
+\subsubsection{General bounds on the best codes}
+For a fixed $n$ and $q$, we would like $k$ and $d$ to be as large as possible. For example, the Hamming code is a $(7, 4, 3)_2$ code, is it possible to improve it to a $(7, 5, 3)_2$ code for example? The answer is no by the following simple packing bound. Again, we only state here a simplified for with $q = 2$ and $d = 3$ but it is easy to generalize (see tutorial).
+
+\begin{thm}[Hamming bound (special case)]
+Every binary code with blocklength $n$, dimension
+$k$ and distance $d = 3$ satisfies
+\[
+k \leq n - log_2(n + 1)
+\]
+For $n = 7$ and $d = 3$, this gives $k \leq 4$, which means the Hamming code is optimal in this sense.
+\end{thm}
+
+\begin{proof}
+Let $C$ be such a code and $c_1, c_2$ be two codewords. For $u \in \{0, 1\}^n$, let $B(u, 1) = \{v \in \{0, 1\}^n : \Delta (u, v) \leq 1 \}$. We have $B(c_1, 1) \cap B(c_2, 1) = \emptyset$. In addition$|B(u, 1)| = 1 + n$. As a result,
+\[
+| \bigcup\limits_{c\in C} B(c, 1)| = (n + 1)2^k
+\]
+But clearly this number is at most the size of the whole space which is $2^n$. So
+\[
+k \leq n - log_2(n + 1) :
+\]
+\end{proof}
+Note that having equality in this bound means that we have perfect packing, i.e., $\bigcup_{c\in C} B(c, 1) = \{0, 1\}^n $
+Such codes are called perfect codes.
+
+
+\begin{thm}
+Let $q\leq 2$, $1\leq d \leq n$. There exists a $(n,k,d)_q$-code with $k\geq n - \log_q$ $Vol_q(d-1,n)$
+\end{thm}
+
+\begin{proof}
+Greedily construct $C$.
+
+\begin{algorithm}
+$C=\emptyset$\\
+\While{There is $x\in \Sigma^n$ with $\Delta(x,c)\geq d$ for all $c\in C$}{
+	$C\leftarrow C \cup \{x\}$
+}
+\end{algorithm}
+
+Clearly at any time $C$ has minimum distance $\geq d$.
+
+When the algorithm terminates :
+
+\begin{align*}
+\forall x \in \Sigma^n, \exists c \in C : \Delta (x,c) & \leq d-1\\
+\Sigma^n & \subseteq \bigcup_{c\in C} B(c, d-1)\\
+q^n \leq |\bigcup_{c\in C} B(c,d-1)| \leq \sum_{c\in C} |B(c,d-1)| & = |C| Vol_q(d-1, n)\\
+& = q^k Vol_q(d-1,n)
+\end{align*}
+So $k\geq n - \log_q Vol_q (d-1,n)$
+\end{proof}
+
+\subsection{Linear error correcting code}
+
+
+\begin{thm}
+The size of any finite field\footnote{fr : corps} is $q=p^s$ for some prime $p$ and integer $s\geq 1$. Moreover, there is a unique field of size $q$ denoted $\mathbb{F}_q$.
+\end{thm}
+
+\begin{itemize}
+\item For $p=q$, $\mathbb{F}_q$ can be seen as integers mod $p$ with the usual addition and multiplication.
+\item For $q=p^s$, elements of $\mathbb{F}_q$ are polynomials in $\mathbb{F}_p [X]$ modulo an irreducible polynomial $Q\in \mathbb{F}_p[X]$ of degree $s$.
+\end{itemize}
+
+\begin{defi}
+Let $q$ be a prime power.
+$C \subset\mathbb{F}_q^n$ is a linear code if it is a linear subspace of $\mathbb{F_q}^n$, i.e., if $x,y\in C$, $x+y \in C$ and $a.x\in C$ for $a\in \mathbb{F}_q$.
+\paragraph{Notation} $[n,k,d]_q$, with $k$ the dimension and $d$ the distance.
+\end{defi}
+
+\paragraph{Example} Repetition code $C=\{000,111\}$ is a linear code over $\mathbb{F}_2$. This forms a $[3,1,3]_2$ code.
+
+\begin{prop}
+Let $S$ be a linear subspace of $\mathbf{F}_q^n$.
+
+\begin{enumerate}
+\item $|S|=q^k$ for $k$ integer
+\item There exists a basis $v_1, v_2,...,v_k$ such that for any $x\in S$,there is unique $(a_1,..a_k)\in \mathbf{F}_q^k$ such that $x=\sum_{i=1}^k a_i \vec{v_i}$
+
+Then the $k\times n$ matrix
+\[G= \left( \begin{matrix}
+\leftarrow & v_1 & \rightarrow\\
+& \vdots & \\
+\leftarrow & v_k & \rightarrow\\
+\end{matrix}\right) \qquad x=(a_1,...,a_k)\]
+is called a generator matrix. Note that rows of $G$ are linearly independent and so $G$ has full rank.
+\item There exists a full rank $(n-k)\times n$ matrix called parity check matrix such that for all $x \in S$, $Hx^T=0_{n-k}$
+\end{enumerate}
+\end{prop}
+
+\paragraph{Example} for repetition code
+
+$G= \left(\begin{matrix} 1&1&1 \end{matrix}\right)$ and $H= \left(\begin{matrix} 1&1&0\\1&0&1 \end{matrix}\right)$
+
+\[ \left(\begin{matrix} 0\\0 \end{matrix}\right) = \left(\begin{matrix} 1&1&0\\1&0&1 \end{matrix}\right)
+\left(\begin{matrix} x_1&x_2&x_3 \end{matrix}\right) =
+\left(\begin{matrix} x_1+x_2\\ x_1+x_3 \end{matrix}\right)\]
+
+\begin{proof}[Sketch of proof]
+To construct a basis, can do it in a greedy way. Take $v_1 \in S$ non-zero. Then, at step $t$, $v_t \notin \left\{ \sum_{i=1}^{t-1} a_i v_i : a_i 
+\in \mathbb{F}_q \right\}$.
+
+We obtain $v_1,...,v_k$ : It is clear that $v_1,...,v_k$ generates $S$. Also by induction, it is simple to show that $\left\{ \sum_{i=1}^{t-1} a_i v_i \right\}$ contains exactly $q^t$ elements.
+
+\[N= \left\{ y \in \mathbb{F}_q^n : \sum_{i=1}^n x_iy_i=0 \; \forall x \in S \right\}\]
+
+$N$ is a linear subspace of $\mathbb{F}_q^n$. To obtain a parity check matrix, take a basis of $N$.
+\end{proof}
+
+\subsubsection*{Minimum distance of a linear code}
+
+\begin{prop}
+The minimum distance of a linear code $C$ is given by $d= \min_{c\in C|c\neq 0} |c|$ where $|c|=|\{ i \in [n] : c_i\neq 0 \}$
+\end{prop}
+
+\begin{proof}
+$0\in C$ and $\Delta(0,c)=|c|$ so the minimum distance is at most $\min_{c\in C|c\neq 0} |c|$.
+
+For $c_1\neq c_2 \; c_1,c_2 \in C$
+
+\[\Delta(c_1,c_2)=|c_1-c_2|\geq \min_{\substack{c\in C\\c\neq 0}}\]
+\end{proof}
+
+\begin{prop}
+Let $C$ be an $[n,k,d]_q$ code with parity check matrix $H=\begin{pmatrix}
+\uparrow & \uparrow & & \uparrow\\
+H^1 & H^2 & \hdots & H^n\\
+\downarrow & \downarrow & ... & \downarrow\\
+\end{pmatrix}$.
+
+Let $t=$ minimum number of linearly dependent columns.
+
+Then 
+\[d=t\]
+\end{prop}
+
+\begin{proof}
+\begin{itemize}
+\item Begin with $t\leq d$.
+
+Let $c$ be a codeword with $|c|=d$. Then $Hc^T = 0$. But $Hc^T = \sum_{i=1}^n c_i H^i$.
+
+The support of $c$ gives $d$ linearly dependent columns of $H$.
+
+\item For $t\geq d$, let $H^{i_1},...,H^{i_t}$ be linearly dependent. There exits $C_{i_1},...,C_{i_t}$ such that \\$\sum_{j=1}^t c_i H^{i_j}=0$. Define $x\mathbb{F}_q^n$ with $x_{i_j}=c_{i_j}$ for all $j$ and $x_i=0$ otherwise.
+
+Then $x\in C$ as $Hx^T=0$ and $|x|=t$ so $d\leq t$
+\end{itemize}
+\end{proof}
+
+\paragraph{Example} Generalized Hamming codes.
+
+$q=2$. For $n\geq 3$,
+
+$H = 
+\begin{pmatrix}
+H_r^1 & \hdots & H_r^{2^r - 1}
+\end{pmatrix}
+$ where $H_r^i$ is the binary representation of $i$ of length $r$.
+
+$H_3=
+\begin{pmatrix}
+0 & 0 & 0 & 1 & 1 & 1 & 1\\
+0 & 1 & 1 & 0 & 0 & 1 & 1\\
+1 & 0 & 1 & 0 & 1 & 0 & 1\\
+\end{pmatrix}
+$
+
+$H_r$ has rank $r$ because $\begin{pmatrix}
+0\\
+\vdots\\
+0\\
+1\\
+\end{pmatrix},
+... ,
+\begin{pmatrix}
+1\\
+0\\
+\vdots\\
+0\\
+\end{pmatrix}
+$ are linearly independent.
+
+$H_r$ defined a $[2^r -1, 2^r - 1 - r, ?]_2$-code.
+
+For $r=3$, we know the min distance is 3.
+
+\paragraph{Claim} $H_r$ defines a $[2^r-1, 2^r-1-r,3]_2$-code.
+
+
+\begin{proof}
+\begin{itemize}
+\item $H_r^1, H_r^2$ and $H_r^3$ satisfy $H_r^1+H_r^2+H_r^3 = 0$. So $d\leq 3$.
+\item In addition, a distance of 2 would mean that there is a pair $i\neq j$ with $H_r^i + H_r^j = 0$. But this would implies that $i=j$. So $d\geq 3$.
+\end{itemize}
+\end{proof}
+
+Rate of this code = $\frac{2^r-r-1}{2^r-1}$ very close to 1 but min distance 3 is poor.
+
+\subsubsection*{Dual code of a linear code}
+\begin{defi}
+Let $C$ be a linear code with parity check matrix $H$. The code with generator matrix $H$ is called $C^\perp$ dual code. 
+\end{defi}
+
+If $C$ is an $[n,k]_q$-code, $C^\perp$ is an $[n,n-k]_q$-code.
+
+Dual code of Hamming code $C_{Ham,r}$
+
+
+\[\begin{pmatrix}
+x_1 & x_2 & x_3
+\end{pmatrix}
+\begin{pmatrix}
+0 & 0 & 0 & 1 & 1 & 1 & 1\\
+0 & 1 & 1 & 0 & 0 & 1 & 1\\
+1 & 0 & 1 & 0 & 1 & 0 & 1\\
+\end{pmatrix}
+\]
+
+Let's call $C_{Sim,r}=C^\perp_{Ham,r}$. One encoding function $f \; C_{Sim,r}$ is given by $C_{Sim,r}(x)=xH_r$. We define $C_{Had,r}(x)=x
+\begin{pmatrix}
+0 & & & \\
+\vdots & h_r^1 & \hdots & H_r^{2^r - 1}\\
+0 & & &\\
+\end{pmatrix}
+$ Hadamard code.
+
+
+\begin{prop}
+The minimum distance of codes $C_{Sim,r}$ and $C_{Had,r}$ is $2^{r-1}$
+\end{prop}
+
+\begin{proof}
+Sufficient to prove it for $C_Had,r$.
+\paragraph{Claim} For any $c\in C_{Had, r}, c\neq 0, |c|=2^{r-1}$. For any $c\in C_{Had,r}, c\neq 0$, there exists $x\neq 0 \in \mathbb{F}_q^r$ such that $c=(xH_r^0,...,xH_r^{2^r-1})$.
+We can write $c=(<x,u>)_{u\in \{0,1\}^n}$
+As $x\neq 0$, $\exists i, x_i=1$. Let $e_i=(0...0 \underbrace{1}_i 0...0) \in \mathbb{F}_q^r$.\\
+$v=u+e_i$\\
+$<x,v>=<x,u>+<x,e_i>=<x,u>+1$\\
+So components $<x,v>$ and $<x,u>$ are distinct.
+\end{proof}
+
+
+\subsubsection*{Encoding and decoding a linear code}
+\paragraph{Encoding} To an $[n,k,d]$-code $C$, we can associate a neutral encoding function.
+
+Take $G$ a generator matrix for $C$. Let the set of messages be $\mathbb{F}_q^k$.
+
+The encoding function is 
+\begin{align*}
+C: &\mathbb{F}_q^k \to \mathbb{F}_q^n\\
+&a \mapsto aG\\
+\end{align*}
+Which can be computed in $n.k$ operations in $\mathbb{F}_q$
+
+\paragraph{Decoding}
+\begin{itemize}
+\item Error detection: with parity check matrix $H$, costs $n.(n-k)$ operation in general
+\item Detection:\\
+Start with $x \in C$\\
+Error $e\in \mathbb{F}_q^n$\\
+Receive: $y=x+e\in \mathbb{F}_q^n$\\
+But
+\begin{align*}
+\underbrace{Hy^T}_{\text{syndrome}} = \underbrace{Hx^T}_{=0} + He^T = He^T\\
+\end{align*}
+\end{itemize}
+
+\paragraph{Algorithm} Generic decoding linear code
+
+
+\begin{algorithm}
+\Input{$y \in \mathbb{F}_q^k$}
+\Output{$x\in C$}
+\For{$i=0$ to $t$}{
+	\For{$e \in \mathbb{F}_q^k$ of weight $i$}{
+		\If{$He^T=Hy^T$}{
+			return $y-e$\\
+		}
+	}
+}
+\end{algorithm}
+
+\[ \text{Number of steps}=\sum_{i=0}^t  \binom{n}{i} (q-1)^i\]
+
+Polynomial for $t$ constant, but exponential in $t$.
+
+\paragraph{Ex of Hamming code} $[2^r-1,2^r-1-r,3]_2$-code, Parity check matrix $H_r$.
+\begin{itemize}
+\item Start by computing syndrome: $s=H_ry^T$
+\item Want to find $e$ of weight $\leq 1$ such that $s=H_re^T$
+\end{itemize}
+If we have an error in position $i$, $e_i=(0...0\underbrace{1}_{i}0...0)$
+
+\begin{align*}
+H_re_i^T & = H_r^i \qquad \text{$i$-th column of $H_r$}\\
+&= i \text{written in binary}\\
+\; \\
+H_r &= 
+\underbrace{
+\begin{pmatrix}
+\; & \; \\
+\; & \; \\
+\end{pmatrix}}_{2^r -1 } \Bigg\} r\\
+\end{align*}
+
+\paragraph{Decoding} Interpret $s\in \{0,1\}^r$ as a number between 1 and $2^r-1$ and flip corresponding bit.
+
+In general, the problem of decoding is : Find $e\in \mathbb{F}_q^k$ of smallest weight s.t.
+\[He^T=s\]
+
+\subsection{Reed-Solomon codes}
+Based on univariate polynomials.
+
+\begin{align*}
+f_m(X) & =\sum_{i=0}^d m_iX^i \in \mathbb{F}_q[X] \qquad m_i\in \mathbb{F}_q \\
+\text{deg}\; f_m & = d \text{ if }m_d\neq 0\\
+\end{align*}
+
+\begin{defi}
+We assume $1\leq k \leq n \leq q$. Let $\alpha_1, \alpha_2, ..., \alpha_n \in \mathbb{F}_q$ distinct.
+
+The Reed-Solomon code is :
+\begin{align*}
+RS &: \mathbb{F}_q^k \to \mathbb{F}_q^m\\
+RS(\underbrace{m}_{m=(m_0,...,m_{k-1})}) & = (f_m(\alpha_1),...,f_m(\alpha_n) )\\
+\end{align*}
+\end{defi}
+
+For $n^0, n^1 \in \mathbb{F}_q^k$:
+\[f_{n^0}(X) + f_{n^1}(X) = f_{n^0 + n^1}(X)\]
+
+So 
+\begin{align*}
+RS(m^0) + RS(m^1) & = RS(m^0 + m^1)\\
+\text{For $a\in \mathbb{F}_q$ } RS(am) &= aRS(m)\\
+\end{align*}
+
+RS is a linear code.
+
+\begin{prop}
+The minimum distance of RS is
+\[n-k+1\]
+\end{prop}
+
+\begin{proof}
+\begin{align*}
+RS(n) & = \big( f_m(\alpha_1),...,f_m(\alpha_n) \big)\\
+\text{Weight: } |RS(m)|&= | \{ i\in [n] : f_n(\alpha_i)\neq 0 \} |\\
+& = n - |\{ i \in [n]: f_m(\alpha_i) = 0\}|
+\end{align*}
+But if $m\neq 0$ then $f_m$ is a non-zero polynomial of degree $\leq k-1$. So $|\{ i \in [n]: f_m(\alpha_i) = 0 \} | \leq k-1$. So $|\{i \in [n] : f_m(\alpha_i)=0\}|\leq k-1$
+
+\paragraph{Important fact} A nonzero polynomial of degree $k-1$ has at most $k-1$ roots.
+
+So $|RS(m)|\geq n-k+1$ : RS are $[n,k,n-k+1]_q$-codes.
+\end{proof}
+
+This minimum distance is optimal as it achieves the Singleton bound (see tutorial).
+
+Ex of generator matrix for RS: Take basis: $1,X,...,X^{k-1}$
+\[ G =
+\begin{pmatrix}
+1 & 1 & ... & 1\\
+\alpha_1 & \alpha_2 & ... & \alpha_n \\
+\alpha_1^2 & \alpha_2^2 & ... & \alpha_n^2 \\
+\vdots & \vdots & \vdots & \vdots \\
+\alpha_1^{k-1} & \alpha_2^{k-1} & ... & \alpha_n^{k-1} \\
+\end{pmatrix}\]
+
+
+\paragraph{Efficient decoding of RS-codes} Message to be send: $P$. Given $y$, We want to find $P$ such that:
+\[\Delta \left( \big( P(\alpha_1),...,P(\alpha_n) \big) , y  \right) \leq t\]
+
+Where $t=\left\lfloor \frac{d-1}{2} \right\rfloor $ where $d = n - k + 1 =$ minimum distance.
+
+This is a polynomial interpolation problem with errors.
+
+Introduce 
+\[E(X)= \prod_{\substack{i=1 \\ y_i \neq P(\alpha_i)}}^n (X-\alpha_i) \tag{error locator poly}\]
+\[\text{deg }E\leq t\]
+
+\paragraph{Claim} We have for all $i\in [n]$
+\[ y_i E(\alpha_i)=P(\alpha_i)E(\alpha_i) \]
+
+Reason: If $E(\alpha_i)=0$, clearly satisfied, if $E(\alpha_i)\neq 0$, there is no error at position $i$ and so $P(\alpha i)=y_i$.
+
+We have $n$ equations, and the number of variable is:
+\begin{align*}
+\text{\# variables}\; & = \;\text{at most $t$ for $E$ and at most $k$ for $P$}\\
+& \leq t + k\\
+& \leq \frac{(n-k+1)-1}{2}+k\\
+& = \frac{n+k}{2}\\
+\end{align*}
+
+But these equations are \emph{not} linear in the variables.
+
+\paragraph{Idea} Relax the equation to
+\[ y_i E(\alpha_i) = N(\alpha_i) \;\text{with $N$ polynomial of degree $\leq k-1+t$}\]
+
+\begin{algorithm}
+\caption{Decoding of RS}
+\Input{ $(y_1,...,y_n) \in \mathbb{F}_q^n$ with promise $\min_m \Delta(y,RS(m))\leq t$}
+\Output{ $P$ polynomial of degree $\leq k-1$}
+Solve $y_iE(\alpha_i) = N(\alpha_i) \;(\star)$ where variables are $e_0,...,e_{t-1}$ and $E(X)=e_0+e_1X+...+e_{t-1}X^{t-1}+X^t$ and $n_0,...,n_{t+k-1}$ and $N(X)=n_0+n_1X +...+n_{t+k-1}X^{t-k+1}$.\\
+\If{no solution or $E$ does not divides $N$}{
+	Fail\\
+}
+Return $P(X)=\frac{N(X)}{E(X)}$
+\end{algorithm}
+
+\paragraph{Running time} Solving the linear system can be done in $O(n^3)$
+
+\begin{proof}{Correctness:} First, we show that $(\star)$ has a valid solution.
+\begin{align*}
+RS(m) & = \Big( f_m(\alpha_1,...,f_m(\alpha_n) \Big)\\
+\Delta(RS(m),y) & \leq t\\
+\end{align*}
+Define
+\begin{align*}
+E^*(X) & = \prod_{i:y_i \neq f_m(\alpha_i)} (X-\alpha_i).X^{t-\Delta 9y,RS(m))}
+\text{and}\; N^*(X) & = f_m (X) E^*(X)\\
+\text{We have}\; y_iE^*(\alpha_i) & = N^*(\alpha_i)\\
+\end{align*}
+For this solution $E^*$ divides $N^*$ and we output $f_m$.
+
+Let's show that this solution is unique. Let $(N_1, E_1)$ and $(N_2, E_2)$ be solutions of $(\star)$.
+
+\begin{align*}
+R(X) & = N_1(X)E_2(X)-N_2(X)E_1(X)\\
+\deg R & \leq (k+t-1) + t = 2t + k - 1\\
+\text{recall}\; t= \left\lfloor \frac{n-k+1-1}{2} \right\rfloor\\
+2t+k-1 & = n-k+k-1 = n-1 \;\text{(if $n-k$ even)}\\
+\end{align*}
+In all cases
+\[2t + k -1 < n\]
+On the other hand
+\begin{align*}
+N_2(\alpha_i) & = y_i E_2(\alpha_i)\\
+N_1(\alpha_i) & = y_i E_1(\alpha_i)\\
+\end{align*}
+
+So $E_1(\alpha_i)N_2(\alpha_i)=E_2(\alpha_i)N_1(\alpha_i)$, so $R_1(\alpha_i)=0$ for all $i$, $\Rightarrow$ has $n$  distinct roots, so $R=0$.
+
+So $\frac{N_2(X)}{E_2(X)}=\frac{N_1(X)}{E_2(X)}$ 
+
+\end{proof}
+
+
+\paragraph{Objective}
+``Good" binary codes: $k=\Omega (n)$, $d=\Omega (n)$, explicit and efficient encoding/decoding. As the Reed-Solomon codes, $[n,k,n-k+1]_q$, they are optimal (achieving the singleton bound).
+
+\paragraph{Issue}$q\geq n$, the alphabet size should be large.
+
+
+\subsection{Concatenation of codes}
+
+Code $C$ on alphabet $[q]=\{1,...,q\}$ with blocklength $(x_1,...,x_n \in C)$. Assume $q=2^t$. We can interpret $(x_1,...,x_n)$ as $(x_{11},x_{12},...,x_{1t},x_{21},...,x_{n,1},...,x_{nt})\in \{0,1\}^{nt}$.
+
+This procedure gives a binary code with blocklength $nt$ and dimension $kt$ ($2^{kt}$ codewords).
+
+
+
+\end{document}

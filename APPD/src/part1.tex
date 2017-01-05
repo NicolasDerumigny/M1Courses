@@ -1,0 +1,259 @@
+\section{Sorting networks}
+\textit{They aim at sorting values.}
+
+Comparators:
+
+\begin{align*}
+    \Qcircuit @C=2em @R=0.8em { 
+& a &  & \multigate{1}{} & \qw & \min (a,b) \\
+& b &  & \ghost{} & \qw & \min (a,b)
+}
+\end{align*}
+%input outputs
+
+\note{Question:} How to arrange comparators to quickly sort a large number of values?
+
+
+\subsection{Odd-even merging network}
+\textit{Odd-even merge sort: Algorithm due to Batcher}\\
+Arbitrary sequence $c_1,c_2,...,c_n$ $SORT(c_1,...,c_n$ denotes the sorted sequence: $c_1\leq c_2 \leq ... \leq c_n$
+
+\note{Warning:} Non-decreasing = "croissant" and increasing = "strictement croissant" (same for positive and non-negative).
+
+\begin{itemize}
+\item If $c_1\leq c_2 \leq ... \leq c_n$\\
+$SORTED(c_1,...,c_n)$
+\item Merged operator:\\
+If $SORTED(a_1,...,a_n)$ and $SORTED(b_1,...,b_n)$,\\
+then $MERGE((a_1,...,a_n),(b_1,...,b_n))=SORT(a_1,...,a_n,b_1,...,b_n)$
+\end{itemize}
+
+Two list of size 1:
+\begin{align*}
+    \Qcircuit @C=2em @R=0.8em { 
+& a &  & \multigate{1}{} & \qw &  \\
+& b &  & \ghost{} & \qw & 
+}
+\end{align*}
+
+Two lists of size 2:
+
+%TODO
+
+$MERGE_2$
+\bigskip
+
+
+Merge 2 lists of size 4:
+
+$MERGE_3$
+\bigskip
+
+Merging networks $MERGE_m$ to merge two sorted lists of size 2.
+
+%TODO
+
+1st merging sub-network takes as input the odd elements of the two input lists.
+
+\begin{prop}
+Let $A=(a_1,a_2,...,a_{2n})$ and $B=(b_1,b_2,...,b_{2n})$ be two sorted sequences ($SORTED(A)$ and $SORTED(B)$).
+\begin{align*}
+(d_1, ..., d_{2n} ) & = MERGE((a_1, a_3, a_5, ..., a_{2n-1}), (b_1, b_3, b_5, ..., b_{2n-1})\\
+(e_1, ..., e_{2n} ) & = MERGE((a_2, a_4, a_6, ..., a_{2n}), (b_2, b_4, b_6, ..., b_{2n})\\
+\end{align*}
+
+Then, we have
+\begin{align*}
+SORTED((d_1,\min (d_2,e_1),\max (d_2,e_1),..., \min (d_{2n}, e_{2n-1}), \max (d_{2n}, e_{2n-1}), e_{2n}))
+\end{align*}
+\end{prop}
+
+\begin{proof}
+Without loss of generality, we assume all values to be distinct.
+\begin{itemize}
+\item $d_1$ is the overall minimum, being the minimum of the minimum elements of the two lists.
+\item $e_{2n}$ is the overall maximum.
+\end{itemize}
+\note{General case:} We look at $d_i$ and $e_{i-1}$ (for $2\leq i\leq 2n$) which are, each, either in position $2i-2$ or $2i-1$.
+
+The result is going to be correct if $d_i$ and $e_{i-1}$ dominate $2i-3$ values and are dominated by $4n-2n+1$ values.
+
+We have to prove for $2\leq i \leq 2n$ that 
+\begin{enumerate}
+\item $d_i$ dominates $2i-3$ values
+\item $e_{i-1}$ dominates $2i-3$ values
+\item $d_i$ is dominated by $4n+ 2i + 1$ values
+\item $e_{i-1}$ is dominated by $4n - 2i + 1$ values
+\end{enumerate}
+
+\begin{enumerate}
+\item $d_i$ dominates $2i-3$ values $(d_1,d_2,...,d_i)$
+
+We assume (wlog) that $d_i$ belongs to $A$. There are $k$ elements of $A$ in $(d_1,...,d_i)$. $d_i=a_{2k-1}$. $d_i$ dominates $a_1, a_2,...,a_{2k-2}$, that is $2k-2$ elements of $A$.
+
+$d_1,...,d_i$ contains $i-k$ elements of $B$. The largest of these element is $b_{2(2-k)-1}$. $d_i$ dominates $2(2-k)-1$ elements of $B$. Therefore $d_i$ dominates (at least) $(2k-2) + (2 (i-k)-i) = 2i - 3$ elements.
+\item Same principal as above
+\item Same principal as above
+\item $e_{i-1}$ is dominated by $4n - 2i + 1$ elements $(e_1,e_2,...,e_{i-1})$. We assume $e_{i-1}$ belongs to $B$.
+
+Let $k$ be the number of $B$ in $e_1,...,e_i$, $e_{i-1}=b_{2k}$.
+
+Hence, $e_{i-1}$ is dominated by $2n-(2k+1)+1$, that is, $2n-2k$ elements of $B$.
+
+$(e_1,...,e_{i-1})$ includes $(i-1-k)$ elements of A. The largest of these elements is $a_{2(i-1-k}$.
+
+Therefore $e_{i-1}$ is dominated by $a_{2(i-1-k)+2}=a_{2(i-k}$. 
+
+$e_{i-1}$ is dominated by $a_{2(i-k}$ through $a_{2n}$ and so by $2n-2(i-k+1)$ elements.
+
+Overall $e_{i-1}$ is dominated by $(2n-2k)+(2n-2i+2k+1)=4n-2i+1$ elements
+\end{enumerate}
+\end{proof}
+
+
+\note{Performance evaluation:}
+\begin{itemize}
+\item Unit time to traverse a comparator
+\item Execution time of the network: largest number of comparators on a path from an input to an output
+\end{itemize}
+
+\begin{lemma}
+The processing time $t_m$, and the number of comparators, $p_m$, of $MERGE_m$, satisfy the recursion:
+\begin{align*}
+t_1=1 & t_m=t_{m-1}+1 & t_m=m\\
+p_1=1 & p_m=2p_{m-1} +2^{m-1}-1 & p_m=2^{m-1}(m-1)+1
+\end{align*}
+
+Let n be the size of the input lists.
+So, $n=2^{m-1}$, $t_n'=o(\log (n))$ $p_n' = o(n\log n)$
+
+Work = $t_n'\times p_n'=O(n\log^2 n)$
+\end{lemma}
+
+
+\subsection{Sorting network}
+Recursive construction:
+
+%TODO
+
+\begin{lemma}
+The processing time $t_m''$ and the number of comparators $P_m''$ of $SORT_m$ satisfy the recursions:
+\begin{align*}
+t_1''=1 & t_m''=t_{m-1}+t_m & t_m''=O(m^2)\\
+p_1''=1 & p_m''=2p_{m-1}''+p_m & p_m''=O(2^m m^2)
+\end{align*}
+For inputs of size $n$, the time is $O(\log^2 n)$ and the number of comparators in $O(n\log^2 n)$.
+
+Work is in $O(n \log^4 n)$.
+
+\end{lemma}
+
+\subsection{The 0-1 principle}
+\begin{prop}
+A network is a sorting network if and only if it is a sorting network for 0-1 sequences.
+\end{prop}
+
+\begin{proof}
+If a network sorts arbitrary sequences, it sorts 0-1 sequences.
+
+We now show that a network that does not sort arbitrary sequences does not sort 0-1 sequences. we assume that there exists a sequence $(x_1, x_2, ..., x_n)$ that is not sorted correctly.
+
+Let $R$ be the network. The output is $R(x)$. There exists some index $k$ such that $R(x)_k>R(x)_{k+1}$. Let is consider a non decreasing function $f$. Applying the input of the network does not change the paths followed by the different values inside the network (because what matters is the relative position of values in the overall sequence).
+
+\begin{align*}
+f(y)=\begin{cases}
+0 & $if $ y<R(x)_k \\
+1 & $otherwise$\\
+\end{cases}
+\end{align*}
+
+I fed the sequence $f(x)$ to $R$.
+\begin{align*}
+R(f(x))_k = f(R(x)_k)=1 \qquad R(f(x))_{k+1}=0\\
+\end{align*}
+$R$ does not sort all 0-1 sequences.
+\end{proof}
+
+
+\section{Sorting on a one dimensional network}
+\subsection{Odd-even transposition sort}
+
+%TODO scheme comparator 
+% a   b
+% |   |
+%|-----|
+%|     |
+%|-----|
+% |   |
+%min  max
+
+Version to sort 8 inputs:
+%TODO
+
+In total: $n$ rows of comparators for $n$ inputs.
+
+\newpage
+
+\note{Performance:}
+\begin{itemize}
+\item 1st row: $\frac{n}{2}$ comparators
+\item 2nd row: $\frac{n}{2}-1$ comparators
+\end{itemize}
+
+A pattern contains (n-1) comparators, and we have $\frac{n}{2}$ patterns.
+
+Overall $\frac{n(n-1)}{2}$ comparators.
+
+\note{Execution time:} $n$
+
+\note{Cost:} $o(n^3)$ \textit{(\#{comparators} $\times$ execution time)}
+
+\begin{proof}[Correction]
+0-1 principle.
+
+Correct output if all zeroes on the left.
+
+Let $a_1,...,a_n$ a 0-1 sequence. Let $k$ be the number of 1's in this sequence. et $k_0$ be the initial position of the right-most of these 1's. 
+\begin{itemize}
+\item During the first step, this 1 moves one position to the right if and only if $k_0$ was odd. After step 1, this 1 is at least at position 2.
+\item Then, for each step, starting at step 2, it moves one position to the right, for the $(n-1)$ remaining steps.
+\end{itemize}
+Eventually, it reaches the $n$-th position.
+
+We now look at the second right-most 1. It moves one position to the right at each step, as soon as the right-most 1 move one position to the right at each step. Ti has one fewer move possible, but has to move to position $(n-1)$.
+\end{proof}
+
+
+\subsection{Odd-even sorting on a one dimensional network}
+
+\begin{itemize}
+\item A one dimensional network of \underline{processors}
+\item Neighbour processors can exchange values.
+\item Mimic the sorting network on the row of processors.
+\item At step $2i-1$, processors $P_{2k-1}$ and $P_{2k}$ exchange their data $P_{2k_1}$ will keep the smallest of their data.
+\item At step $2i$, processor $2k$ and $2k+1$ exchanges data.
+\end{itemize}
+
+%TODO scheme example
+
+We have $n$ values, $p$ processors. $n>p$, and each processor initially holds $\frac{n}{p}$ data.
+
+\note{Complexity:}
+
+Step 0 (local sort): $O(\frac{n}{p}. \log(\frac{n}{p}))$
+
+Step 1: $O(\frac{n}{p})$
+
+There are twice as many steps as there are processors.
+
+\note{Overall complexity:} 
+\begin{align*}
+O(\frac{n}{p}(\log n) +n )
+\end{align*}
+If $p\leq \log n$ we have $\frac{\log n}{p}\geq 1$. The complexity become $O(\frac{n}{p}\log n)$.
+$\Rightarrow$ if $p\leq \log n$ the algorithm has an optimal running time.
+
+\note{Cost:} 
+\begin{align*}
+O(n\log n + np)
+\end{align*}

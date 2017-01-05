@@ -1,0 +1,539 @@
+\subsection{Settings}
+Also called \emph{source coding}.
+
+In interesting data: not all possible sequences are expected.
+
+\paragraph{Setting} Source $X\in \mathcal{X}$ with distribution $P_X$
+\begin{align*}
+C:\mathcal{X}\to \{0,1\}^*
+\end{align*}
+
+Two variants:
+\begin{itemize}
+\item Variable length compression\\
+$|C(x)|$ might be different from $|C(x')|$.
+Want to minimize, e.g., \emph{expected} length $\mathbb{E}(|C(X)|)$
+\item Fixed-length compression, allow a probability of error $\delta$ and minimize the length.
+\end{itemize}
+
+\subsection{Variable length compression}
+\subsubsection{General compressors}
+
+\begin{defi}
+A variable length lossless compressor  is a function $C:\mathcal{X}\to \{0,1\}^*$ such that there is a decompressor $D: \{0,1\}^* \to \mathcal{X}$ with $D\circ C(x)=x$ for all $x\in \mathcal{X}$
+\end{defi}
+
+\paragraph{Note}
+\begin{itemize}
+\item Equivalent condition: $C$ is injective
+\item For $x\in \mathcal{X}$, $C(x)$ is called a code word
+\\$\{C(x):x\in \mathcal{X}\}$ is called code or codebook.
+\end{itemize}
+
+\paragraph{Objective} Find $C$ that minimizes $\mathbb{E}(|C(X)|)$
+
+\begin{thm}
+Let $P_X$ be a distribution on $\mathcal{X}$ and $x_1,...,x_{|\mathcal{X}|}$ such that $P_X(x_1)\geq P_X(x_2)\geq ... \geq P_X(x_{|\mathcal{X}|})$
+
+Then define $C^*(x_i)=w_i$ (the i-th bitstring in shortlex order).
+
+$C^*$ is an optimal compressor i.e.,
+\begin{equation*}
+\mathbb{E}(|C^*(X)|) \leq \mathbb{E}(C(X))
+\end{equation*}
+for any lossless compressor $C$. We have
+\begin{equation*}
+H(X) - \log_2(1+ \lfloor \log_2 |X| \rfloor) \leq \mathbb{E}(|C^*(X)|) \leq H(X)
+\end{equation*}
+\end{thm}
+
+\begin{proof}
+Let $C$ be a lossless compressor, $C$ is injective
+\begin{align*}
+|\{x\in \mathcal{X}:|C(x)|\leq k \}| & \leq \sum_{l=0}^{k} 2^l\\
+& = |\{x\in \mathcal{X}: |C^*(x)|\leq k\}|
+\end{align*}
+as $C^*$ uses all the possible strings of length $k$.
+Because in addition, these codewords (bitstrings length $\leq k$) are assigned to the $2^{k+1} - 1$ elements with largest probability, we have
+\begin{align*}
+\sum_{x\in \mathcal{X} : |C(X)|\leq k} P_X(x) & \leq \sum_{x\in \mathcal{X} : |C^* (x)|\leq k} P_X(x)\\
+\mathbb{E}(|C^*(X)|) & = \sum_{k=0}^\infty \mathbb{P}(|C^*(X)|>k)\\
+\Big( \text{\underline{Aside:} Ex:}\quad \mathbb{E}X &= \sum_{n\geq 1} \mathbb{P}(Y\geq n)\Big)\\
+& = \sum_{k=0}^\infty \sum_{x\in \mathcal{X}:|C^*(x)|>k}P_X(x)\\
+& = \sum_{k=0}^\infty \left( 1- \sum_{x : |C*(x)|\leq k} P_X(x) \right)\\
+& \leq \sum_{k=0}^\infty \left( 1 - \sum_{x: |C(x)|\leq k} P_X(x) \right)\\
+& = \mathbb{E} (|C(X)|)
+\end{align*}
+\begin{itemize}
+\item To relate to entropy:\\
+Observe that $|C^*(x_i)|=\lfloor \log_2 (i) \rfloor$\\
+Note also that $P_X(x_i)\leq 1-\sum_{j=1}^{i-1} P_X(x_j)\leq 1-(i-1)P_X(x_i)$\\
+We get $P_X(x_i)\leq \frac{1}{i}$
+
+\begin{align*}
+\mathbb{E}(|C^*(X)|) & = \sum_{i=1}^{|\mathcal{X}|} P_X(x_i) \lfloor \log (i) \rfloor\\
+ & \leq - \sum_{i=1}^{|\mathcal{X}|}P_X(x_i) \log \left( \frac{1}{i} \right)\\
+ & \leq - \sum_{i=1}^{|\mathcal{X}|} P_X(x_1) \log P_X(x_j)\\
+ &\leq H(X)
+\end{align*}
+
+\item Lower bound\\
+Let $L=|C^*(X)|\in \{0,1,...,\lfloor \log |\mathcal{X} | \rfloor\}$
+\begin{align*}
+H(X,L) & =H(X)+\underbrace{H(L|X)}_{\substack{= \sum_x P_X(x)H(P_{L|X=x}) \\ =0}}\\
+& = H(X)\\
+\text{As a result: } H(X)=H(X,L) & =H(L)+ H(X\; | \;L)\\
+& \leq \log_2 (1+ \lfloor \log|\mathcal{X}|\rfloor) + \sum_{k=0}^{\lfloor \log |\mathcal{X}|\rfloor} P_L(k)H(X|L=k)\\
+& \leq \log_2(1+\log_2 |\mathcal{X}|)+ \underbrace{\sum_{k=0}^{\lfloor \log |\mathcal{X}|\rfloor} P_L(k).k}_{=\mathbb{E}L=\mathbb{E}(|C^*(X)|)}\\
+\end{align*}
+
+\end{itemize}
+\end{proof}
+
+
+\subsubsection{Uniquely decodable and prefix-free compression}
+
+Let $C:\mathcal{A}\to \{0,1\}^*$, we can naturally define its extension on $\mathcal{A}^*=\bigcup\limits_{n\leq 1} \mathcal{A}^n$ by $C^+(a_1...a_n)=C(a_1).C(a_2)...C(a_n)$.
+
+For $C^+$ to be lossless, we need $C$ to be lossless, but it is not sufficient in general. Let $\mathcal{A}=\{a,b,c\}$
+\begin{align*}
+C(a) & =0\\
+C(b)&=010\\
+C(c) &= 01\\
+C^+b &=010\\
+C^+(ca)&=010
+\end{align*}
+
+\begin{defi}[Uniquely decodable compressor]
+A compressor $C$ is uniquely decodable if its extension $C^+$ is injective.
+\end{defi}
+
+\begin{defi}[Prefix-free compressor]
+$C$ is a prefix-free compressor if no codeword is a prefix of any other.
+\end{defi}
+
+$Code=\{C(a):a\in \mathcal{A}\}$
+
+\paragraph{Ex} $\mathcal{A}=\{a,b,c\}, C(a)=0, C(b)=10, C(c)=110$
+
+\begin{prop}
+Prefix-free $\Rightarrow$ uniquely decodable.
+\end{prop}
+
+\begin{proof}
+To decompose $C(a_1)...C(a_n)$, $C(a_1)$ is the unique prefix of $C(a_1)...C(a_n)$ which is a codeword.
+\end{proof}
+
+\paragraph{Remark} $C$ might be uniquely decodable without being prefix-free.
+\begin{align*}
+C(a) & = 10\\
+C(b) & = 11\\
+C(c) & = 110
+\end{align*}
+
+Uniquely decodable is more general than prefix-free, but not very useful, because there is a correspondence between prefix-free code and uniquely decodable code.
+
+\begin{thm}
+Let $A\in \mathcal{A}$ be a random variable. The Huffman algorithm computes $O(|\mathcal{A}|\log|\mathcal{A}|)$ a prefix-free compressor $C_H:\mathcal{A}\to \{0,1\}^*$ with minimum expected length $\mathbb{E}|C_H(A)|$ among all possible prefix-free compressor.
+
+Moreover,
+\begin{equation*}
+\mathbb{E}(|C_H(A)|) < H(A)+1
+\end{equation*}
+\end{thm}
+
+The key observation is to find a correspondence between prefix-free code and a binary tree.
+
+%TODO figure of tree
+
+
+Bitstrings labelling leaves form a prefix-free code. In this representation, the expected length is $\sum_{a\in \mathcal{A}}P_A(a).depth(C(A))$.
+
+\begin{proof}
+Huffman: in tutorial and HW
+\end{proof}
+
+
+\begin{lemma}[Kraft's inequality]
+\begin{itemize}
+\item For any prefix-free compressor $C$ with codeword lengths $l_a=|C(a)|$, we have \begin{equation*}
+\tag{*}
+\label{*low}
+\sum_{a\in \mathcal{A}} 2^{-l_a}\leq 1
+\end{equation*}
+\item Conversely, given a set of length $\{l_a\}$ satisfying \eqref{*low}, we can construct a prefix compressor with $|C(a)|=l_a$.
+\end{itemize}
+\end{lemma}
+
+\begin{proof}
+$\Rightarrow$ In terms of binary tree $T$, $l_a=depth(\underbrace{C(A)}_{\text{leaf}})$. I have exactly $\sum_{a\in \mathcal{A}} 2^{l_{max}-l_a}$ nodes at level $l_{max}$, but at most $2^{l_{max}}$ nodes at depth $l_{max}$, so 
+\begin{align*}
+\sum_{a \in \mathcal{A}} 2^{l_{max}-l_a} & \leq 2^{l_{max}}\\
+\sum_{a\in \mathcal{A}} 2^{-l_a} & \leq 1\\
+\end{align*}
+$\Leftarrow$ Let $\{l_a\}$ satisfy $\sum_a 2^{-l_a}\leq 1$. We order the elements of $\mathcal{A}, \{a_1,...,a_n\}$ so that $l_{a1}\leq...\leq l_{a_{|\mathcal{A}|}}$
+
+\begin{align*}
+C(a_i) & =\text{binary expansion of length $l_{a_i}$ of } \sum_{j=1}^{i-1} 2^{-l_{a_i}} <1\\
+& = 0.\underbrace{01...0}_{l_{a_i}}
+\end{align*}
+Want to show that $C$ is prefix-free. Consider $C(a_i)=b_i$ and $C(a_k)=b_k$ for $k>i$.
+\begin{align*}
+b_k-b_i=\sum_{j=i}^{k-1}2^{-l_{a_j}}\geq 2^{-l_{a_i}}
+\end{align*}
+Any codeword that has $C(a_i)$ as a prefix is a binary expression of a number that is at most
+\begin{align*}
+b_i+\sum_{p=l_{a_i}+1}^{l_{max}}2^{-p}<b_i + 2^{-l_{a_i}}
+\end{align*}
+So $C(a_i)$ cannot be a prefix of $C(a_k)$. So $C$ is prefix-free.
+\end{proof}
+
+Using lemma, we can write the minimum expected length as the following optimization program:
+
+\begin{align*}
+OPT=\text{ minimize } & \sum_{a\in \mathcal{A}}P_A(a)l_a\\
+\text{subject to } & l_a\in \mathbb{N}_+\\
+& \sum_{A\in \mathcal{A}} 2^{-l_a}\leq 1
+\end{align*}
+
+\begin{proof} of the theorem.\\
+$\mathbb{E}(|C_H(A)|)=OPT$. We start by proving that $H(A)\leq OPT$. For that, we relax the condition $l_a \in \mathbb{N_+}$ to $l_a \in \mathbb{R}$. We change variables: $Q(a)=2^{-l_a}$.
+
+The program becomes:
+\begin{align*}
+OPT=\text{ minimize } & \sum_{a\in \mathcal{A}}P_A(a). (-\log_2 Q(a) ) \\
+\text{subject to } & \sum_{A\in \mathcal{A}} Q(a)\leq 1
+\end{align*}
+
+Recall that $D(P||Q)=\sum_a P(a)\log_2 P(a) - \sum_a P(a)\log_2 Q(a)$. So the objective function can be written as:
+\begin{equation*}
+-\sum_a P_A(a)\log_2 P_A(a) + \sum_a P_A(a)\log_2 P_A(a) - \sum_a P_A(a)\log_2 Q(a) = H(P_A) + D(P_A||Q)
+\end{equation*}
+
+To show that $D(P_A||Q)\geq 0$, we consider $Q'(a)=\frac{Q(a)}{\sum_{a'} Q(a')}$ be the normalized version of $Q$.
+
+\begin{align*}
+D(P_A||Q) & = \sum_a P_A(a)\log_2 P_A(a) - \sum_a P_A(a)\log_2 (Q'(a).\sum_{a'} Q(a'))\\
+& = \sum_a P_A(a)\log_2 P_A(a) - \sum_a \Big( P_A(a)\log_2 Q'(a) \Big) - \log_2(\sum_{a'} Q(a') )\\
+& \geq D(P_A||Q')\\
+& \geq 0 \text{ by propriety of the relative entropy}
+\end{align*}
+So the value for the relaxed program is exactly $H(P_A)$.
+
+Now we want to show that $OPT<H(A)+1$.
+
+From the lower bound proof, we choose $l_a=-\log_2 P_A(a)$, but might not be an integer. Let's choose $l_a=\lceil - \log_2 P_A(a) \rceil$. We have $\sum_a 2^{-l_a}\leq \sum_{a} P_A(a)=1$, and the objective function has thus the value 
+\[
+\sum_a P_A(a).l_a = \sum_a P_A(a) \lceil - \log_2 P_A(a) \rceil < \sum_a P_A(a)\big( -\log_2P_A(a) + 1 \big) =H(P_A)+1
+\]
+\end{proof}
+
+\begin{prop}
+For any uniquely decodable compressor $C$ with codeword lengths $\{l_a\}_{a\in \mathcal{A}}$, we have 
+\[\sum_{a\in \mathcal{A}} 2^{-l_a}\leq 1\]
+\end{prop}
+
+\begin{proof}
+For a string $a^n=a_1...a_n$, define 
+\[C(a^n)=C(a_1)...C(a_n)\]
+and length \[l_{a_n}=l_{a_1}+...+l_{a_n}\]
+
+\begin{align*}
+\Big( \sum_{a\in \mathcal{A}} 2^{-l_a}\Big)^n & = \sum_{a\in \mathcal{A}} 2^{-l_{a^n}}\\
+& = \sum_{m=1}^{n.l_{max}} N_m.2^{-m}\\
+\text{where } N_m & = |\{a^n\in \mathcal{A}^n:L_{a^n}=m\}|\\ 
+\end{align*}
+By unique decodability, $N_m\leq 2^m \leq n.l_{max}$.
+
+So for all $n\geq 1$,
+\[\sum_{a\in \mathcal{A}} 2^{-l_a} \leq \underbrace{(n.l_{max})^{1/n}}_{\xrightarrow [n \rightarrow \infty]{} 1}\]
+\end{proof}
+
+\subsection{Fixed-length almost lossless compression}
+\begin{defi}
+A fixed-length compressor for some $x\in \mathcal{X}$ of length $l$ is a function $C:\mathcal{X}\to \{0,1\}^l$. It has an error probability $\leq \delta$ if there exists $D:\{0,1\}^l \to \mathcal{X}$ such that $\mathbb{P}(D \circ C(X)=X)\geq 1-\delta$.
+\end{defi}
+
+We would like to determine
+\begin{defi}
+\[ l^{OPT}(X,\delta)=\min\{l:\text{there is a length $l$ compressor with error probability $\leq \delta$}\}\]
+\end{defi}
+
+\newpage
+
+One natural encoding strategy is:
+\begin{algorithm}
+Sort elements in $\mathcal{X}=\{x_1,x_2,...,x_{|\mathcal{X}|}\}$\\
+so that $P_X(x_1)\geq P_X(x_2)\geq ... \geq P_X(x_{|\mathcal{X}|})$\\
+$S_\delta^*=\emptyset$\\
+\For{i=1 to $|\mathcal{X}|$}{
+	$S_\delta^*\leftarrow S_\delta^*\cup \{x_i\}$\\
+	\If{$\sum_{x\in S_\delta^*} P_X(x) \geq 1-\delta$}{
+		stop
+	}
+}
+\end{algorithm}
+
+\begin{thm}
+\[ l^{OPT}=\lceil \log_2 |S_\delta^* | \rceil\]
+\end{thm}
+
+\begin{proof}
+$\bullet$ Start with "$\leq$"\\
+$S_\delta^*=\{x_1,...,x_k\}$ for some $k$.\\
+$l=\lceil \log_2 |S_\delta^* | \rceil$, we have $k=|S_\delta^*|\leq 2^e$.
+\[C(x_i)=
+\begin{cases}
+\underbrace{bin^l(i-1)}_{\substack{\text{binary representation}\\ \text{of $i-1$ with $l$ bits}}} & \text{if $i\leq k$}\\
+\qquad \quad \; \; 0^l & \text{if $i>k$}
+\end{cases}\]
+
+Define $D(y)=x_i$ if $i-1$ is the number in $\{0,1,...,2^l-1\}$ with binary representation $y$ ($y$ is a bitstring of length $l$).
+\begin{align*}
+\mathbb{P}(D\circ C(X)=X) & \geq \sum_{i=1}^{l}P_X(x_i)\\
+& \geq 1-\delta
+\end{align*}
+
+$\bullet$ Ineq "$\geq$"\\
+Let $C$ be a compressor with length $l$ and error probability $\leq \delta$.\\
+Define $S=\{ x\in \mathcal{X}:D(C(X))=x \}$\\
+$\bullet S\subset D(\{0,1\}^l)$ so $|S|\leq 2^l$\\
+$\sum_{x\in S} P_X(x)=\mathbb{P}(D\circ C(X)=X)=1-\delta$
+
+So $|S_\delta^*|\leq |S| \leq 2^l $ and so $\log |S_\delta^*|\leq l$ using the fact that $S_\delta^*$ is the smallest set with probability $\geq 1 - \delta$.
+\end{proof}
+
+\paragraph{Remark} $\lceil \log_2 |S_\delta^* | \rceil$ can be very different from $H(X)$.
+
+As an example: $\mathcal{X}=\{0,1,...,m\}$
+\[
+X=\begin{cases}
+0 & \text{with prob $1-\epsilon$}\\
+i & \text{with prob $\frac{\epsilon}{m}$}
+\end{cases}
+\]
+
+For $\delta=0$, $\log_2 |S_\delta^* | = \log_2 (m+1)$
+
+But \begin{align*}
+H(X) & = -(1-\epsilon)\log_2 (1-\epsilon) - \sum_{i=1}^{m}\frac{\epsilon}{m}\log_2\frac{\epsilon}{m}\\
+& = \underbrace{ -(1-\epsilon )\log_2(1-\epsilon )-\epsilon\log_2 \epsilon}_{h_2(\epsilon)}+ \epsilon \log_2 m
+\end{align*}
+
+But $\log_2 |S_\delta^* |$ is an entropic quantity in itself.\\
+Define
+\[\tag{Hartley entropy}
+H_0(X)=\log_2(|\sup P_X|) \]
+
+Note that $H_0$ has shared some proprieties with $H$:
+\begin{itemize}
+\item $H_0=0$ iff $X=x_0$ wp $1$
+\item $H_0=\log |\mathcal{X}|$ if $X$ is uniform
+\item $H_0(X)\geq H(X)$ (Ex)
+\end{itemize}
+
+If allow "error probability" $\delta$, we define \emph{another} version
+\[H_0^\delta = \min_{\sum_{x\in s_\delta}P_X(x)\geq 1-\delta} \log_2 |S_\delta|\]
+
+Smoothing can have a strange effect on entropy. For $X$ defined before,
+\[H_0(X)=\log(1+m) \qquad H_0^\epsilon=0\]
+
+We also saw in homework an example:
+$X_i\hookrightarrow \mathcal{B}(p) \quad X^n=X_1...X_n \in \{0,1\}^n: H_0 (X^n)=n$, but $H_0^\delta (X^n)\leq n\log p$
+
+Recall that
+\[H(X)=\mathbb{E}(\underbrace{h_X(X)}_{surprisal})\]
+\[ \text{with }  h_X(X)=-\log_2(P_X(X))\]
+
+\paragraph{Examples of $h_X(X)$}
+\begin{itemize}
+\item $X\hookrightarrow \mathcal{U}(\mathcal{X})$\\
+$h_X(X)=\log |\mathcal{X}|$ with probability $1$,\\
+In particular $H(X)=\mathbb{E(h_X(X))=\log |\mathcal{X}|}$
+\item $\mathcal{X}=\{1,2,...,2t\}$
+\[
+P_X(X)=
+\begin{cases}
+\frac{3}{4t} & \text{for } X\in\{1,...,t\}\\
+\frac{1}{4t} & \text{for } X\in\{t+1,...,2t\}
+\end{cases}
+\]
+\begin{align*}
+\mathbb{P}(-\log_2P_X(X)=\log_2 \frac{4t}{3}) &  = \sum_{\log\frac{1}{P_X(x)}=\log\frac{4t}{3} \Leftrightarrow P_X(x)=\frac{3}{4t}} P_X(x)=\frac{3}{4}\\
+\mathbb{P}(-\log_2P_X(X)=\log_2 4t) &  = \sum_{x:P_X(x)=\frac{1}{4t}} P_X(x)=\frac{1}{4}\\
+H(X) & = t \frac{3}{4t}\log_2 \frac{4t}{3} + t\frac{1}{4t}\log 4t\\
+& = \frac{3}{4} \log \frac{4}{3}t + \frac{1}{4}\log 4t
+\end{align*}
+\end{itemize}
+
+%missing graph
+
+%In general
+
+%missing graph
+
+\begin{prop}
+\[l^{OPT}(X,\delta)\leq \min \{ l\in \mathbb{N}_+ : \mathbb{P}(h_X(X)>l)\leq \delta\}\]
+
+\emph{"achievability"}: There is a compressor with length $l$ and error probability $\leq \mathbb{P}(h_X(X)>l)$
+
+Moreover, for any $\tau > 0$
+\[l^{OPT}(X,\delta)\geq \min \{ l\in \mathbb{N}_+: \mathbb{P}(h_X(X)>l+\tau) - 2^{-\tau}\leq \delta\}\]
+
+\emph{"converse"}: For any compressor and any $\tau > 0$, the probability of error is at least $P(h_X(X)>l+\tau)-2^{-\tau}$
+\end{prop}
+
+\begin{proof}
+$\bullet$ Let $l$ satisfy $\mathbb{P}(h_X(X)>l)\leq \delta $. Take $S=\{x\in \mathcal{X}: P_X(x)\geq 2^{-l})\}$.\\
+Note that $|S|\leq 2^l$\\
+Moreover
+\begin{align*}
+\mathbb{P}(X\in S) & = \mathbb{P}(P_X(X)\geq 2^{-l})\\
+& = \mathbb{P}(-\log_2 P_X(X) \leq l)\\
+& = 1 - \mathbb{P}(h_X(X)>l)\\
+& \geq 1-\delta
+\end{align*}
+
+
+$\bullet$ Converse
+
+Given $C$ with length $l$ and error probability $\leq \delta$.
+\begin{align*}
+S & = \{ x\in \mathcal{X}: D(C(X))=x \}\\
+S & \subset D(\{0,1\}^l) \text{ so } |S|\leq 2^l\\
+\text{We have } \mathbb{P}(X\in S) & = \mathbb{P} (D(C(X))=X)\\
+& \geq 1 - \delta
+\end{align*}
+
+\begin{align*}
+1-\delta & \leq \sum_{x\in S} P_X(x)\\
+& = \sum_{x\in S: \underbrace{P_X(x)\geq 2^{-l-\tau}}_{-\log_2 P_X(x)\leq l+\tau}} P_X(x)+\sum_{x\in S:P_X(x)<2^{-l-\tau}} P_X(x)\\
+& \leq \sum_{x:-\log_2 P_X(x)\leq l+\tau}P_X(x) + 2^{l}.2^{-l-\tau}\\
+& = \underbrace{\mathbb{P}(h_X(X)\leq l+\tau)}_{=1-\mathbb{P}(h_X(X)>l+\tau)} + 2^{-\tau}
+\end{align*}
+
+
+So $l$ satisfies
+\[\mathbb{P} ( h_X(X)>l+\tau) - 2^{-\tau} \leq \delta\]
+\end{proof}
+
+\paragraph{Important special case}
+\begin{align*}
+X^n & =X_1X_2...X_n\\
+& \text{with $X_i$ independent and identically distributed}\\
+& \text{with same distribution as $X$}
+\end{align*}
+
+
+\begin{thm}[Shanon's source coding theorem]
+For any $\delta \in (0,1), 0<\delta<1$
+\[\lim_{n\to \infty} \frac{l^{OPT}(X^n,\delta)}{n} = H(X)\]
+\end{thm}
+
+\begin{proof}
+Need to get a handle on $\mathbb{P}(h_{X^n}>l)$
+
+\begin{align*}
+h_{X^n}(X^n)=-\log_2 P_{X^n}(X^n) & = -\log_2 P_X(X_1)P_X(X_2)...P_X(X_n)\\
+& = \sum _{i=1}^n \log_2 P_X(X_i)\\
+\mathbb{E} \big(h_{X^n}\big) & = n \mathbb{E}\big( h_X(X_i)\big)\\
+& = nH(X)\\
+\mathbb{P} (|h_{X^n}(X^n)-nH(X)|\geq t) & \leq \frac{\mathbb{V}\big(h_{X^n}(X^n)\big)}{t^2}\\
+\mathbb{V}(h_{X^n}(X^n)) & = \mathbb{V} \left( -\sum_{i=1}^n \log_2 P_X(X_i) \right)\\
+& = n \mathbb{V}(h_X(X))\\
+\text{So } \mathbb{P} (|h_{X^n}(X^n)-nH(X)|\geq t) & = \frac{n\mathbb{V} (h_X(X))}{t^2}
+\end{align*}
+
+Set $t=\sqrt{\frac{n\mathbb{V}(h_X(X))}{\delta}}$, we get:
+\begin{align*}
+\mathbb{P}(h_{X^n}(X^n)) & > nH(X)+ \sqrt{\frac{n\mathbb{V}(h_X(X))}{\delta}} \leq \delta\\
+\text{So } l^{OPT}(X^n,\delta) & \leq nH(X)+\sqrt{\frac{n\mathbb{V}(h_X(X))}{\delta}}\\
+\text{So } \lim_{n\to\infty} \frac{l^{OPT}(X^n,\delta)}{n} & \leq H(X)
+\end{align*}
+For the lower bound, let $\alpha > 0$ take $t=\sqrt{\frac{n\mathbb{V}(h_X(X))}{\alpha}}$
+\[\mathbb{P}(h_{X^n}(X^n))\leq \underbrace{nH(X)-\sqrt{\frac{n\mathbb{V}(h_X(X))}{\alpha}}}_{l+\tau} \leq \alpha\]
+
+Now take $l=nH(X)-2\sqrt{\frac{n\mathbb{V}(h_X(X))}{\alpha}}$ and $\tau = \sqrt{\frac{n\mathbb{V}(h_X(X))}{\alpha}}$.
+
+Choose $\alpha$ small enough such that $1-\delta> \alpha + 2^{-\tau}$
+
+\begin{align*}
+\mathbb{P}(h_{X^n}(X^n)>l+\tau) & \leq 1 - \alpha > \delta + 2^{-\tau}\\
+\text{So } l^{OPT}(X,\delta) &\geq l = nH(X)-2\sqrt{\frac{n\mathbb{V}(h_X(X))}{\alpha}}
+\end{align*}
+\end{proof}
+
+In tutorial, we showed that $S$, chosen here as $\{x\in \mathcal{X} : P_X(X)\geq 2^{-l}\}$ can be picked at random, but gives therefore a good code (the bound is almost the same).
+In practice:
+\begin{itemize}
+\item Stream of symbols
+\item But not independent (ex: informati\textbullet\textbullet $\rightarrow$ information) so the rest of the word depends on the context\\
+Hoffman with larger blocks may be inefficient
+\item Do not even know usually the distribution $\rightarrow$ universal compressor
+\end{itemize}
+
+\subsection{Universal compression}
+Consider a stream $X^n$ with $n$ symbols in $\mathcal{X}$. We do not have access to $P_{X^n}$.
+
+
+\subsubsection{Arithmetic code}
+Idea: learn a model for data.
+
+\paragraph{Ex} $P_1(a)=\frac{1}{|\mathcal{X}|}$. Then, when we see $x_1,...,x_{i-1}$, 
+\[P_i(a|x_1,...,x_{i-1})=\frac{1+|\{ j\in \{ 1,..., i-1 \}, x_j=a \}|}{|\mathcal{X}|+(i-1)}\]
+
+\paragraph{Remark} Simple to compute, only need to keep $|\mathcal{X}|$ counters.
+
+It is useful to interpretate a bitstring as an interval in $[0,1]$
+\begin{align*}
+01 & \mapsto [0.01;0.1]\\
+y & \mapsto [0.y;0.y+0.\underbrace{0...01}_{|y|}]
+\end{align*}
+
+\paragraph{Idea} encode stream as intervals. Each new symbol: choose a subinterval of current interval with length proportional to the probability given by model.
+
+$\mathcal{X}=\{ a_1, a_2,...,a_n\}$
+
+\paragraph{Algorithm} For a new symbol \emph{$x_i=a_k$}, chose subinterval given by
+\[ \left[ \underbrace{\sum_{p=1}^{k-1} P_i(a_p | x_1 ... x_{i-1})}_{\alpha}, \underbrace{\sum_{p=1}^{k} P_i(a_p|x_1 ... x_{i-1})}_{\beta}\right]\]
+
+
+In absolute terms: if current interval is $[u_{i-1}, v_{i-1}]$:
+\begin{align*}
+u_i & = u_{i-1} + (v_{i-1}-u_{i-1})\alpha\\
+v_{i} & = u_{i-1} + (v_{i-1}-u_{i-1})\beta
+\end{align*}
+
+\paragraph{Problem} From interval to bitstrings?
+
+\paragraph{Solution} Find largest dyadic interval included in it.
+
+Overall,
+\[x_1,...,x_n \to I_{x_1,...,x_n} \to \text{Find } \underbrace{I_y}_{\text{dyadic interval}} \subset I_{x_1,...,x_n} \to \text{output } \underbrace{y}_{\text{bitstring}} \]
+
+\paragraph{Remark} Decoding is easy if agree on model $P_i$.
+
+
+\subsubsection{Lempel-Ziv coding}
+No probabilistic model, based on dictionary of words that appeared. Read sequence into words:
+\[m_0,m_1,...,m_L\]
+
+\begin{itemize}
+\item $m_0=\emptyset$
+\item $m_i=m_{j}.x$ for some $x\in \mathcal{X}$
+\item $m_i$ are distinct for $0\leq i < L$
+\item $m_L=m_j$ for some $j<L$
+\end{itemize}
+
+\[\underbrace{\;}_{m_0}
+\underbrace{a}_{\substack{m_1 \\ j=0\\x=a}}
+\underbrace{b}_{\substack{m_2 \\ j=0\\x=b}}
+\underbrace{aa}_{\substack{m_3 \\ j=1\\x=a}}
+\underbrace{aaa}_{\substack{m_4 \\ j=3\\x=a}}
+\underbrace{b}_{\substack{m_1 \\ j=2}}\]
+
+
+Each word encoded in a pair (pointer to $j$, additional letter $x$). Encoding word $m_i$ cost $\lceil \log i \rceil + 1$.
+
+\paragraph{Lossy compression} \textit{Will not talk about it.}\\
+For images, audio, we don't need exact recovery $\rightarrow$ rate \emph{distortion}.

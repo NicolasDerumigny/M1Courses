@@ -1,0 +1,607 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+ 
+\usepackage{caption}
+%\usepackage{pgfplots}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{footnote}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{multirow}
+\usepackage{amsfonts}
+\usepackage[boxed,linesnumbered,noend]{algorithm2e}
+\usepackage{qcircuit}
+\usepackage{enumerate}
+
+\newtheorem{thm}{Theorem}
+\newtheorem{prop}{Propriety}
+\newtheorem{lemma}{Lemma}
+\newtheorem{defi}{Definition}
+\newtheorem{coro}{Corollary}
+
+
+
+\setlength{\oddsidemargin}{0pt}
+% Marge gauche sur pages impaires
+\setlength{\evensidemargin}{0pt}
+% Marge gauche sur pages paires
+\setlength{\textwidth}{470pt}
+% Largeur de la zone de texte 
+\setlength{\topmargin}{0pt}
+% Pas de marge en haut
+\setlength{\headheight}{13pt}
+% Haut de page
+\setlength{\headsep}{10pt}
+% Entre le haut de page et le texte
+\setlength{\footskip}{40pt}
+% Bas de page + séparation
+\setlength{\textheight}{630pt}
+% Hauteur de la zone de texte
+
+\title{}
+\author{Frederic Vivien\footnote{frederic.vivien@ens-lyon.fr}\\
+\small ENS de Lyon}
+\date{}
+
+\newcommand{\note}{\medskip\noindent\underline}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+
+\note{Bibliography:}
+\begin{itemize}
+\item \textit{Parallel Algorithms}, H. Casanova, A. Legrand, Y. Robert
+\item \textit{Introduction to distributed algorithms}, G. Tel
+\item \textit{Scheduling and automatic parallelization}, A. Darte, Y. Robert, F. Vivien
+\end{itemize}
+
+
+\note{Final grade:} 50\% Finale exam + 25\% mid-term exam + 25\% programming project
+
+\part{Theoretical models}
+\input{src/part1.tex}
+
+\newpage
+\setcounter{section}{0}
+\part{PRAMs}
+\input{src/part2.tex}
+
+\newpage
+\setcounter{section}{0}
+\part{Algorithm for rings and grid of processors}
+\input{src/part3.tex}
+
+\setcounter{section}{0}
+\part{Introduction to distributed systems: the model}
+\input{src/part4.tex}
+
+\setcounter{section}{0}
+\part{Task-graph scheduling}
+\section{Introduction}
+\subsection*{Where do task graphs come from?}
+Linear system $Ax=B$. $A$ is a lower triangular matrix ($b$ and $x$ are two vectors), $b$ is known. $A$ is a $n \times n$ matrix.
+
+\begin{algorithm}[H]
+\For{$i=1$ to $n$}{
+	$T_{ii}:x_i\leftarrow \frac{b_i}{a_{ii}}$\\
+	\For{$j=i+1$ to $n$}{
+		$T_{ij}: b_j\leftarrow b_j-a_{j,i}.x_i$\\
+	}
+}
+\end{algorithm}
+
+
+Original algorithm is sequential.
+
+
+Total ordering of the tasks:
+\[T_{1,1} <_{seq} T_{1_2} <_{seq} T_{1,3} <_{seq} ... <_{seq} T_{1,n} <_{seq} T_{2,2} <_{seq} 2,3 <_{seq} ... <_{seq} T_{n,n}\]
+
+Some parallelism: $T_{1,2}$ and $T_{1,3}$ are independent.
+
+Condition for two tasks $T$ and $T'$ to be a dependence relation:
+\begin{itemize}
+\item both access the same variable and at least one access is a \emph{write} access.
+\item $In(T)$: the set of variables read by task $T$
+\item $Out(T)$: the set of variable written by task $T$
+\end{itemize}
+
+$T$ and $T'$ are independent ($T \perp T'$)
+
+\[T \perp T' \Leftrightarrow
+\begin{cases}
+In(T)\cap Out(T')\neq \emptyset & \text{or}\\ 
+Out(T)\cap In(T') \neq \emptyset &\text{or}\\
+Out(T)\cap Out{T'} \neq 0
+\end{cases}
+\]
+
+We define a partial order $\prec$ by:\\
+if $T\perp T'$ and $T<_{seq} T'$ then $T\prec T'$
+
+$\prec$ is $(<_{seq}\cap \perp)^+$ (transitive closure)
+
+Representation of dependencies with a graph:
+\[G=(\underbrace{V}_{\text{set of tasks}},\underbrace{E}_{oriented edges})\]
+With
+\begin{align*}
+e=(T,T')\in E & \Leftrightarrow T \prec T'\\
+\big(\text{and } \nexists V \text{ s.t. } T\prec T' & \text{ and } V \prec T' \big)\\
+\end{align*}
+
+(we do not include transitive edges for the sake of readability)
+
+\section{Scheduling task graph}
+\begin{defi}
+A task graph is a directed weighted graph $G=(V,E,\omega )$
+
+Where:
+\begin{itemize}
+\item The set $V$ represent the tasks
+\item The set $E$ of edges represents the dependences: $e=(u,v) \in E $ if and only if $u\prec v$.
+\item A weight function $\omega : V \to \mathbb{N} $ gives the weight or execution time of a test.
+\end{itemize}
+\end{defi}
+
+\begin{defi}
+A schedule of a task graph $G(V,E,\omega)$ is a function
+$\sigma : V\to \mathbb{N}$ such that if $e=(u,v) \in E$ then $\sigma (u) + \omega (v) \leq \sigma (v)$. $\sigma$:starting time of the tasks.
+\end{defi}
+
+If we have a limited number $p$ of processor (if $p<|v|$), $alloc$: $v\to \{1,...,p\}$ states on which processor a task is executed.
+
+\[alloc(u) = alloc (v) \Leftrightarrow 
+\begin{cases}
+\sigma(u) + \omega{v} \leq \sigma(v) & \text{or}\\
+\sigma(v) + \omega(v) \leq \sigma(u)
+\end{cases}\]
+
+\begin{thm}
+Let $G$ be a task graph. There exists a schedule for $G$ if and only if $G$ does not contain any cycle.
+\end{thm}
+
+\begin{proof}
+\begin{itemize}
+\item There is a cycle $T_1 \to T_2 \to ... \to T_k \to T_1$, so  $T_1 \prec T_2 \prec ... \prec T_k \prec T_1$, and $T_1\prec T_1$, $\sigma(T_1) + \omega(T_1) \leq \sigma(T_1)$ impossible.
+\item There is no cycle
+\item Topological order
+\end{itemize}
+\begin{algorithm}
+pick a task $T$ without predecessor\\
+$\sigma(T) \leftarrow t$\\
+$t\leftarrow t + \omega(T)$\\
+remove $T$ from $G$\\
+repeat\\
+\end{algorithm}
+\end{proof}
+
+\begin{defi}[Makespan]
+Task graph $G=(V,E,\omega )$
+\begin{enumerate}
+\item Let $\sigma$ be a schedule for $G$ using $p$ processors. The makespan of $G$ is the total execution time.
+\[MS(\sigma, p) = \max_{v\in V} \{\sigma (v) + \omega (v) \} - \min_{v\in V}\{\sigma ( v)\}\]
+Usually we assume that $\min_{v\in V}\{\sigma ( v)\}=0$
+
+\item $Pb(p)$: Problem of finding a best scheduling (i.e. a schedule of minimum makespan) using $p$ processors. Let $MS_{opt}(p)$ be the makespan of an optimal scheduling using $p$ processors.
+
+$\omega : V \to \mathbb{N}^*$. We extend it on paths $\Phi : T_1,T_2,...,T_k$ where $T_1 \prec T_2 \prec ... \prec T_k$ by $\omega ( \Phi) =\sum_{T_i \in \Phi} \omega (T_I)$
+\end{enumerate}
+\end{defi}
+
+\begin{prop}
+Let $G=(V,E,\omega)$ be a DAG (directed acyclic graph) and $\sigma$ a schedule for $G$ with $p$ processors.
+
+Then $MS(\sigma, p)\geq \omega (\Phi) \geq \omega (\Phi)$ for all paths $\Phi$ in $G$.
+\end{prop}
+
+\begin{proof}
+Let $\Phi$ be any path. 
+\[\Phi=T_1 \prec T_2 \prec ... \prec T_k\]
+\[T_i \prec T_{i+1} \Rightarrow \sigma (T_i) + \omega ( T_{i+1} \leq \sigma (T_{i+1})\]
+
+Sum for $i$ to $d-1$:
+\[\sigma (T_1) + \sum_{i=1}^{k-1} \omega(T_i) \leq \sigma(T_k) \]
+\[MS(\sigma, p) \geq \sigma (T_k) + \omega (T_1) \geq \omega (\Phi)\]
+\end{proof}
+
+
+\begin{defi}
+$G=(V,E,\omega)$, $\sigma$ on $p$ procc.
+\begin{enumerate}
+\item Speedup ratio:
+\[s(\sigma, p)=\frac{seq}{MS(\sigma,p)} = \frac{\sum_{v\in V} \omega (v)}{MS(\sigma,p)}\]
+\item Efficiency:
+\[e(\sigma, p)=\frac{s(\sigma, p)}{p} = \frac{\sum_{v\in V} \omega (v)}{p.MS(\sigma,p)}\]
+\end{enumerate}
+\end{defi}
+
+
+\begin{thm}
+Let $G=(V,E,\omega)$ for any schedule $G$ on $p$ process $0\leq e(\sigma, p) \leq 1$
+\end{thm}
+
+\begin{proof}
+The area of a rectangle on the scheduling timetable is $p.MS(\sigma, p)=Idle+work=Idle+seq$ and $l=Idle + \frac{Seq}{p.MS(\sigma,p)}=Idle+e(\sigma,p)$
+\end{proof}
+
+\begin{thm}
+Let $G=(V,E,\omega)$ a task graph.
+\[seq=MS_{opt}(1)\geq ... \geq MS_{opt}(n)\]
+\end{thm}
+
+Let $MS'(p)$ be the minimum makespan of all schedule that use exactly $p$ processors. Then for all $1\leq p \leq |V| \; MS'(p)=MS_{opt}(p)$, because there is no communication (implicit hypothesis).
+
+
+
+\section{Solving problems ($\infty$)}
+We have an unbounded number of resources ($p\geq |V|$). Let $G=(V,E,\omega)$ be a task system.
+
+\begin{defi}
+\begin{enumerate}
+\item 
+$\forall v \in V$:
+\begin{itemize}
+\item $Pred (v)=$ set of immediate predecessors of a task $v$.
+\item $Succ(v)=$ set of immediate successors.
+\end{itemize}
+
+\item 
+
+\begin{itemize}
+\item $v$ is an entry task if $Pred(v)=\emptyset$
+\item $v$ is an exit task if $Succ(v)=\emptyset$
+\end{itemize}
+
+\item The top level $tl(v)$ is the maximum weight of a path from an entry task to the task $v$, excluding the weight of $v$.\\
+$tl(v)$: lower bound on the time elapsed in any schedule between the start of the execution of $G$ and the start of $v$.
+
+\item The bottom level $bt(v)$ is the maximum weight of a path from the task $v$ (included) to an exit task (included).\\
+$bt(v):$ lower bound on the execution time on any schedule once the execution of $v$ has started.
+\end{enumerate}
+
+\[tl(v) = \max \{ tl(v) + \omega (v) \; | \; v \in Pred(v) \}\]
+computed through a traversal of $G$ ($O(|V|+|E|)$)
+\end{defi}
+
+\begin{thm}
+Let $G=(V,E,\omega)$ be a task system. We define $\sigma_{free}$ as follow:
+\begin{itemize}
+\item $\sigma_{free}=tl(v) \quad \forall v \in V$
+\item $\sigma_{free}$ is an optimal schedule for $G$
+\end{itemize}
+\end{thm}
+\begin{proof}
+This is a schedule (dependences are satisfied by definition).
+
+We show by induction (through a topological sort) that each task starts as soon, as possible.
+
+ASAP schedule.
+\end{proof}
+
+\paragraph{Another optimal schedule:} as late as possible schedule: $\sigma_{ALAP}(v)=MS_{OPT}(\infty) - bt(v)$
+
+\section{Solving Pb(p)}
+\subsection{NP-completeness of Pb(p)}
+
+\paragraph{(2-)partition:} given a set of $n$ (strictly) positive integers $a_1,...,a_n$, is there a subset $I$ of $\{1,...,n\}$ such that $\sum_{i\in I} a_i=\sum_{i\notin I}a_i$
+
+NP-hard (weak sense, there is a pseudo polynomial algorithm to solve it)
+
+
+\paragraph{3-partition:} we have a set of $3n$ (strictly) positive integers $b_1,...,b_n$. Let $B$ be such that $\sum_{i=1}^{3n}b_i=nB$. We assume that for each $i\leftarrow \{ 1,...,3n\}$, $\frac{b}{4}\leq b_i \leq \frac{B}{2}$. Can we partition the $3n$ $b_i$'s in $n$ subsets $I_1, ..., I_n$ such that $\sum_{i\in I} b_i = B$?
+
+\begin{defi}
+Let $Dec(p)$ the problem; let $G=(V,E,\omega)$ be a tsk system, let $p$ be the number of processors, and let $k\in \mathbb{N}^*$, is there a schedule for $G$ using at most $p$ processors, whose makespan is no greater than $k$?\\
+If $E=\emptyset$ (no dependencies) we denote the problem by $Indep(p)$.
+\end{defi}  
+
+\begin{thm}
+\begin{itemize}
+\item $Indep(2)$ is NP-complete but can be solved in pseudo-polynomial time
+\item $Indep(p)$ is NP-complete in the strong sense
+\item $Dec(2)$ is NP-complete in the strong sense
+\end{itemize}
+\end{thm}
+
+\begin{proof}
+\begin{itemize}
+\item $Indep(2)$:
+\begin{itemize}
+\item Problem belongs to NP, for each proc, check that the sum of the weights of the tasks associated to it does not exceed $k$.
+\item Reduction from 2-partition:\\
+$k=\frac{1}{2} \sum_{i=1}^{n}a_i$, we have an identical problem.
+\end{itemize}
+\item $Indep(p)$:\\
+Reduction from 3-partition: $b_1,...,b_{3n}$ of 3-partition, we take $p=n$ and $k=B$.
+
+\item $Dec(2)$:\\
+Reduction from 3-partition
+\begin{itemize}
+\item $I_1$ is an instance of 3-partition $b_1,...,b_{3n}$ with $B=\frac{1}{n}\sum_{i=1}^n b_i$
+\item $I_2$ an instance of $Dec(2)$\\
+We have $3n$ tasks: $T_1,...,T_{3n}$, independent with $\omega (T_i)=b_i$\\
+We take $3n$ tasks $X_1,...,X_n$, $Y_1,...,Y_n$ and $Z_1,...,Z_n$, with $\forall i \in \{1,...,n\} \; \omega (X_1) = \omega (Y_i) = \omega (Z_i) = B_i$.\\
+$X_i$ depends on $Y_{i-1}$ and $Z_{i-1}$, both depending from $X_{i-1}$.
+\item $|I_2|$ is polynomial in $|I_1|$
+\item Let us assume that $I_1$ has a solution $I_1,...,I_n$ such that $\sum_{j\in I_j} b_j=B$. On processor $P_1$, I execute $X_1,Y_1,...,X_n,Y_n$; on processor $P_2$, I execute $Z_i$ when $P_1$ executes $X_i$.\\
+It works because $\omega (X_i)=\omega (Y_i) =\omega (Z_i) = B$ and because $\sum_{T\in I_i} \omega(T) = B$
+\item Assume we have a solution to the scheduling problem $\Phi_1=X_1 \to Y_1 \to X_2 \to Y_2 \to ... \to X_n \to Y_n$. Then $\omega(\Phi_1)=2nB$, so there is no freedom on the execution time of these tasks. So $\sigma (X_i)=2(i-1)B$, and $\sigma (Y_i)=(2i-1)B$.
+Besides, $\Phi_2=X_1 \to Z_1 \to X_2 \to Z_2 \to ... \to X_n \to Z_n$, with $\omega(\Phi_2)=2nB$ and $\sigma(z_i)=(2i-1)B$. Without loss of generality, we can assume that $P_1$ executes all the $X_i$'s and $Y_i$'s and $P_2$ executes all the $T_i$'s and the $Z_i$'s.
+
+We have exactly $n$ disjoint intervals of size $B$ to execute the $T_i$'s on $P_2$.
+
+Let $I_j=$ the subset of the $T_i$'s that are executed by $P_2$ while $P_1$ executes $X_j$.
+
+This schedule is satisfying the bound $k=2nB \Rightarrow \bigcup_{i=1}^n I_i = \{ 1,...,3n\}, \; \sum_{j\in I_i} \omega(T_j)\leq 3$, which gives a solution to the partition.
+\end{itemize}
+\end{itemize}
+\end{proof}
+
+\subsection{List scheduling heuristics}
+\paragraph{Historically:} set priorities to tasks, put the tasks in a list ordered by these priorities and greedily schedule the tasks.
+
+\paragraph{Principle:} do not voluntarily let a process idle.
+
+\begin{defi}
+Let $G=(V,E,\omega)$ be a task system, let $\sigma$ be a schedule and let $v$ be a task ($v\in V$). The task $v$ is free at time $t$ if and only if the processing of $v$ has started but all its predecessors have completed.
+\end{defi}
+
+\begin{thm}
+Let $G=(V,E,\omega)$ be a task system, and let $\sigma$ be any list schedule for $G$, then 
+\[
+\tag{Graham's bound}
+MS(\sigma , p) \leq \left(2 - \frac{1}{p}\right) MS_{OPT}(p)
+\]
+\end{thm}
+
+\begin{proof}
+
+\begin{lemma}
+There exists a dependence path $\Phi$ in $G$ such that $Idle \leq (p-1)\omega (\Phi )$ with $Idle=\sum $ Idle times.
+\end{lemma}
+\begin{proof}
+Let $T_1$ be a task that completes last: $\sigma (T_1) + \omega (T_1) = MS(\sigma , p)$. Let $t_1$ be the last time before $\sigma (T_1)$ such that at least one processor was idle. $T_1$ could not be started at time $t_1$ because at least one task $T_1$ depends upon was still proceed at that time.
+
+Let $T_2$ be one such task. Let $t_2$ be the last time before the start $\sigma ( T_2)$ of $T_2$ at which one processor was idle.
+
+I end up with a path $\Phi : \; T_k \to T_{k-1} \to ... \to T_2 \to T_1$. I can only have idle times while a task of $\Phi$ is executed: $Idle \leq \underbrace{(p-1)}_{\substack{\text{execution of the}\\\text{tasks of $\Phi$}}}\omega (\Phi)$.
+\end{proof}
+
+\begin{align*}
+pM(\sigma,p)& = Idle + \sum_{i=1}^n \omega (T_i) \leq (p-1) \omega ( \Phi ) + \sum_{i=1}^n \omega ( T_i )\\
+MS(\sigma,p) & \leq \left(1-\frac{1}{p}\right) \omega (\Phi) + \sum_{i=1}^n (\omega (T_i))\frac{1}{p} \leq \left(1-\frac{1}{p}\right) MS_{OPT}(p) + MS_{OPT}(p) = \left(2-\frac{1}{p} \right) MS_{OPT}(p)
+\end{align*}
+\end{proof}
+
+\begin{prop}
+Let $MS_{list}(p)$ be the shortest possible makespan produced by a list scheduling algorithm.
+
+Then the following bound is tight:
+\[MS_{list} (p) \leq \left( 2 - \frac{1}{p}\right) MS_{OPT}(p)\]
+\end{prop}
+
+\begin{proof}
+Let $2p+1$ task such that $T_1,...,T_{p}$ are independent, and $T_{p+1},...,T_{2p}$ depending from $T_p$; and $T_{2p+1}$ depending from the latter.
+
+Consider a list schedule $\Rightarrow$ all entry task start at time 0. Let us say that task $T_i$ for $1\leq i\leq p-1$ is executed by $P_i$ during $[0,k(p-1)]$. Then $T_p$ is executed by $P_p$ in $[0,1]$. Wlog, $P_p$ executes $T_{p+1}$ during $[1, k+1]$, and wlog, $P_p$ executes $T_{p+i}$ during $[1+(i-1)k;k+i+1]$ for $i\geq 1$. (Sanity check: what would be the starting time of $T_{2p}$: $1+(p-1)k$)
+
+Hence: processor $P_p$ executes $(p-1)$ of the tasks $T_{p+1},...,T_{2p}$ in the time interval $[1,1+(p-1)k]$. At time $(p-1)k$, all the processors $P_1,...,P_{p-1}$ where available. One of them executes the list of the tasks $T_{p+1},...,T_{2p}$ during $[(p-1)K,pK]$.
+
+
+Then one of the $p$ processors starts task $T_{2p+1}$ at time $pk$ and completes at time $k(2p-1)$, so $MS_{list}(p)=k(2p-1)$. 
+\end{proof}
+
+\paragraph{Optimal}
+\begin{itemize}
+\item At time 0, $P_1$ executes $T_p$
+\item From 1 to $1+k$, each processor executes a task among $T_{p+1},...,T_{2p}$
+\item From $1+k$ through $1+k+k(p-1)=1+kp$ each processor executes a task among $T_1,...,T_{p-1}$ and $T_{2p-1}$
+\end{itemize}
+
+
+\paragraph{Performance ratio of list schedule:}
+\[\frac{k(2p-1)}{1+kp}\underset{k \to + \infty}{\longrightarrow} \frac{2p-1}{p}=2-\frac{1}{p}\]
+
+
+\subsection{Critical path scheduling}
+\begin{defi}[Critical path]
+The critical path of a task is its bottom-level, i.e. the lower bound on the remaining execution time of the graph from the state of the execution of the considered tasks.
+\end{defi}
+
+\paragraph{Example:}
+$T_1$ has no dependencies, $T_2$ is required for $T_4, T_5, T_6$ and $T_7$, $T_8$ depends on $T_3$.
+
+\begin{center}
+\begin{tabular}{l | c | c |c|c|c|c|c|c}
+task & $T_1$ & $T_2$ & $T_3$ & $T_4$ & $T_5$ & $T_6$ & $T_7$ & $T_8$ \\
+\hline
+weight & 3 & 2 & 1& 3 & 4 & 4 & 3 & 6\\
+\hline
+critical path & 3 & 6 & 7 & 3 & 4 & 4 & 3 & 6\\
+\end{tabular}
+\end{center}
+
+With the heuristic of doing first the task with the maximum critical path, we end up with a schedule of 10. This is not optimal, as the optimal schedule weights only 9.
+
+\paragraph{Lower bound on the makespan:}
+\[ \left\lceil \frac{\sum_{i}\omega (T_i)}{p}\right\rceil = \left\lceil \frac{26}{3} \right\rceil = 9\]
+
+
+\section{Taking communication into account}
+Macro-dataflow model: let two tasks $T$ and $T'$ with $T \to T'$ ($\to$ meaning that some data produced by $T$ is used by $T'$):
+\begin{itemize}
+\item If $alloc(T)=alloc(T')$, then there is no communication cost
+\item If $alloc(T)\neq alloc(T')$, then there is some communication cost $= c(T,T')$: does not depend on the choice of $alloc(T)$ and $alloc(T')$.
+\end{itemize}
+
+\paragraph{Assumptions (implicit ones}
+\begin{itemize}
+\item Complete graph
+\item There are no contention between communications, i.e. the time of the communication is the same if there is one or $n$ simultaneous input communications for a unique processor ($\simeq$ infinite input bandwidth)
+\end{itemize}
+
+\paragraph{Scheduling and communications:} A communication DAG in a four-uplet $G=(V,E,\omega,c)$ with:
+\begin{itemize}
+\item $V$: tasks
+\item $E$: set of dependencies between tasks
+\item $\omega$: execution times of the tasks $\omega: V \to \mathbb{N}^*$
+\item $c:$ communication costs: $c:E\to \mathbb{N}$
+\end{itemize}
+
+
+A schedule $\sigma$ must respect the dependences:
+\[
+\forall e \in E \quad e=(T,T') 
+\begin{cases}
+\sigma(T)+\omega(T)\leq \sigma(T') & $If $alloc(T)=alloc(T')\\
+\sigma(T) + \omega(T)+c(T,T')\leq \sigma(T') & $otherwise$
+\end{cases}\]
+
+\section{Pb($\infty$) with communications}
+%exemple here
+Problem:
+\begin{itemize}
+\item Sequential execution: we pay the cost of each task
+\item Each task on its own processor: we pay all the communications
+\end{itemize}
+
+\subsection{NP-completeness of Pb($\infty$)}
+\paragraph{Decision problem}
+Given a communication DAG $G=(V,E,\omega,c)$, and an execution bound $k$, is it possible to execute/schedule $G$ in a time no greater than $k$?
+
+\begin{proof}[Reduction from 2-Partition]
+$n$ positive integers $a_1,a_2,...,a_n$ with $\sum_{i=1}^n a_i = \alpha$. Is there a subset $I$ of $\{1,...,n\}$ such that $\sum_{i\in I} a_i = \sum_{i \notin I} a_i$?
+
+We build an instance $I_2$ from the scheduling problem: tasks $T_1,...,T_n$ (weights $2a_i$) depends on $T_0$ (weight $A$); and task $T_{n+1}$ depends on $T_1,...,T_n$.
+
+The $2n$ edges has the same communication cost: $C$, any integer in the interval $]\alpha - \min_{1\leq i ]leq n} 2a_i, \alpha[$. $\forall i \; a_i>0 \Rightarrow a_i \geq 1$ length of the open interval $\geq 2$, so $C$ exists. Let $K=2A+C+\alpha$. The size of $I_2$ is polynomial in the size of $I_1$.
+
+If $I_1$ has a solution $I$, then $I_2$ has a solution of makespan $\leq k$ by taking on $P_0$ the task of $I$ and $T_0$, and on $P_1$ the tasks not in $I$ and $T_{n+1}$.
+
+\begin{lemma}
+$T_0$ and $T_{n+1}$ are not executed on the same processor.
+\end{lemma}
+
+\begin{proof}
+By contradiction: $T_0$ and $T_{n+1}$ are executed on the same processor, say $P_0$. Can all tasks be executed on $P_0$? $M=\omega(T_0)+\sum_{i=1}^n \omega(T_i) + \omega(T_{n+1}=2A+2\alpha$.
+
+By definition $\alpha > C$. $M=2A+2\alpha> 2A+\alpha+C=k \; \Rightarrow$ at least one task $T$ is not executed on $P_0$. As $T_0 \to T \to T_{n+1}$, we have to pay both communication costs.
+
+
+\begin{align*}
+M & \geq A + C + \omega(T) + C + A\\
+& \geq 2A + 2C + \min_{1\leq i\leq n}2a_i\\
+M & > 2A + 2C+(\alpha-C)=2A+C+\alpha=K
+\end{align*}
+Contradiction.
+\end{proof}
+
+Let $P_0$ execute $T_0$ and $P_1$ execute $T_{n+1}$.
+
+\begin{lemma}
+Each task is executed either by $P_0$ or $P_1$.
+\end{lemma}
+\begin{proof}
+By contradiction. There is a task $T$ executed neither by $P_0$ nor $P_1$. But $T_0 \to T \to T_{n+1}$, the two communication take place, and $M\geq 2A+2C+\omega(T)>K$.
+\end{proof}
+
+\begin{itemize}
+\item Each task is executed either on $P_0$ (like $T_0$) or $P_1$ (like $T_{n+1}$). Let $I$ be the set of indices of task among $T_0,...,T_n$ executed on $P_0$, let $I$ be the set of indices of task among $T_0,...,T_n$ executed on $P_1$.
+$I\cup J=\{1,...,n\}$
+\item Consider $I$:
+\begin{align*}
+K\geq M & \geq \omega(T_0) + \omega(I)+C+\omega(T_{n+1})\\
+& = 2A + \omega(I)+C\\
+\end{align*}
+
+\item Consider $J$:
+\begin{align*}
+K & \geq \omega(T_0) + C + \omega(J) + \omega(T_{n+1})\\
+K & \geq 2A + C + \omega (J)\\
+K= & 2A+\alpha+C\\
+\alpha & \geq \omega(I)\\
+\alpha & \geq \omega(J)\\
+\omega(I)+\omega(J)=2\alpha
+\end{align*}
+Hence, $\omega(I)=\alpha$ and $I$ defines a solution to $I_1$.
+\end{itemize}
+\end{proof}
+
+In fact, it is NP-complete in the strong sense, even if all executions times are equal to 1 and all communication costs times are equal to 1 (UET-UCT).
+
+\section{List heuristics for Pb($p$) with communications}
+\paragraph{Question}
+How to extend the notion of critical path?
+\paragraph{Solution}
+Compute critical paths assuming that all communication take place.
+
+\subsection{Naive critical path}
+List schedule with bottom-levels \emph{including} communications and processes are always considered on the same order.
+
+
+\subsection{Modified critical path}
+\paragraph{Principle}
+Schedule the tasks of the processor that will enable to start it (= complete it) the earliest.
+
+
+\subsection{Two-step clustering heuristics}
+\paragraph{Clustering}
+partitioning of the tasks
+
+\paragraph{Given a clustering}
+we compute bottom-levels and top level levels including a communication cost between two tasks if and only if they belong to 2 different clusters.
+
+The task in a same cluster will be executed on the same processor.
+
+Let $\mathcal{C}$ be a clustering.\\
+$EPT(\mathcal{C})=$ estimated parallel time of $\mathcal{C}=\max tl(v) + bl(v)$ for $v\in V$.
+
+I behave as if $I$ had an infinite number of processors.
+
+\subsubsection*{Kim and Browne linear clustering}
+\begin{itemize}
+\item Take one longest dependence path in the graph; define a cluster from it; obtain a new cluster $\mathcal{C}'$; keep $\mathcal{C}'$ if and only if $EPT(\mathcal{C})\leq EPT(\mathcal{C})$
+\item Iterate with the remainder of the graph
+\end{itemize}
+
+
+\subsubsection*{Sarkan's greedy clustering}
+\begin{itemize}
+\item Sort edges by non-increasing communication costs
+\item For each edge on that order, merge the clusters containing the two extremities of the edges if this does not increase the $EPT$ (initialise $\mathcal{C}_0=\{\{T_1\},...,\{T_n\}\}$).
+\end{itemize}
+
+
+In the case of $\{T_3,T_4,T_5\}$ with $T_3 \to T_4$ and $T_3 \to T_5$, to compute the $EPT$, we need to sequentialize $T_4$ and $T_5$ (add virtual edge) because in the end they are going to be executed ont he same processor.
+
+\subsubsection*{Dominant Sequence clustering} 
+\begin{itemize}
+\item Initially: all the edges are marked non-examined
+\item While there remain non-examined tasks:
+\begin{itemize}
+\item Pick a dominate sequence (DS)
+\item Zero an edge in the DS
+\begin{itemize}
+\item The edge that decrease the $EPT$ the most (expensive)
+\item an edge of maximum weight
+\item the first edge
+\end{itemize}
+We keep the clustering if $EPT$ does not increase
+\end{itemize}
+\end{itemize}
+
+Once we have clusters, we need to decide on which processors to map the clusters (and still some scheduling problem to solve if 2 clusters are mapped on the same processor).
+
+
+\end{document}

@@ -1,0 +1,609 @@
+\section{Transition system and algorithms}
+\subsection{Transition systems}
+Discrete algorithms, algorithm being described by events.
+The processes communicate through messages (message passing), messages are asynchronous (no shared memory).
+
+\begin{defi}[Transition system]
+A transition system $S$ is a triplet $(C,\to,I)$, with 
+\begin{itemize}
+\item $C$: a set of configurations
+\item $\to$: a binary transition relation on $C$
+\item $I$: ($I\subset C$) the subset of the initial      configurations
+\end{itemize}
+\end{defi}
+
+Each process has a \emph{state}. The set of all the states of the processes is called a \emph{configuration}.
+
+\begin{defi}[Execution]
+Let $S=(C,\to,I)$. An execution of $S$ is a maximal sequence $E=(\gamma_0,\gamma_1,\gamma_2,...)$ where $\gamma_0 \in I$, and for all $i\geq 0$, $\gamma_i \to \gamma_{i+1}$
+\end{defi}
+
+A terminal configuration is a configuration $\gamma$ such that there does not exist $\delta \in C$ 
+such that $\gamma \to \delta$.
+
+\begin{defi}
+A configuration $\gamma$ is reachable if there exists $\delta_0 \in I$, and an execution $(\gamma_0,\gamma_1,\gamma_2,...,\gamma_k)$ such that $\gamma_k = \gamma$.
+\end{defi}
+
+\subsection{Systems with asynchronous message passing}
+
+A distributed system: A set of processes and a communication subsystem.
+
+Each of the processes is a transition system by itself.
+
+We use the words : \emph{transition} and \emph{configuration} for the whole system, and \emph{event} and \emph{state} for a single process.
+
+Three types of events:
+\begin{itemize}
+\item Internal event
+\item Send event
+\item Receive event
+\end{itemize}
+
+\begin{defi}
+The local algorithm of a process is a quintuple $(Z,I,\vdash^i,\vdash^s,\vdash^r)$ where:
+\begin{itemize}
+\item $Z$ is the set of states
+\item $I\subset Z$ is the set of initial states\
+\item $\vdash^i$ is a relation on $Z\times Z$
+\item $\vdash^s$ and $\vdash^r$ are relations on $Z\times M \times Z$ where $M$ is the set of possible messages.
+\end{itemize}
+The binary relation $\vdash$ on $Z$ is defined 
+
+\[c \vdash d \Leftrightarrow c \vdash^i d \vee \exists m \in M \; ((c,m,d)\in \;\vdash^s \cup \; \vdash^r) \]
+\end{defi}
+
+A configuration of the system is defined by the state of each of the processes and the message present in the system.
+
+\begin{defi}
+The transition system induced, under asynchronous communications, by a distributed algorithm for processes $p_1, ...,p_n$ where the local algorithm for process $p_i$ is $(Z_{p_i},I_{p_i},\vdash^i_{p_i},\vdash^s_{p_i},\vdash^r_{p_i})$ is $S=(C,\to,I)$ where
+\begin{enumerate}
+\item $C=\{(c_{p_1},...,c_{p_n},M)\}$ with $\forall p \in \underbrace{\{p_1,...,p_n\}}_{=\mathbb{P}}, c_p\in Z_p$, and $ M \in \underbrace{\mathbb{M}}_{\text{multiset}}(\underbrace{\mathcal{M}}_{\text{set of messages}})$
+\item $I=\{ c_{p_1},...,c_{p_n},M), \forall p \in \{ p_1,...,p_n\},  c_p \in I_p \text{ and } M=\emptyset \}$
+\item $\to \; = \; \bigcup_{p\in \mathbb{P}} \to_p$\\
+$\to_{p_i}$ the set of pairs $(c_{p_1},...,c_{p_i},...,c_{p_n},M_1),(c_{p_1},...,c_{p_{i-1}},c_{p_i}'c_{P_{i+1}},...,c_{p_n},M_2)$ for which one of these conditions hold:
+\begin{itemize}
+\item $(c_{p_i},c_{p_i}')\in \; \vdash^i_{p_i}$ and $M_1=M_2$
+\item for some $m\in \mathcal{M}, (c_{p_i},m,c_{p_i}') \in \;\vdash_{p_i}^s$ and $M_2=M_1 \cup \{m\}$
+\item for some $m\in \mathcal{M}, (c_{p_i},m,c_{p_i}') \in \;\vdash_{p_i}^r$ and $M_1=M_2 \cup \{m\}$
+\end{itemize}
+\end{enumerate}
+\end{defi}
+
+\section{Proving properties}
+\subsection{Safety property}
+
+A safety property $P$ is a property that is true in each configuration of each execution of the algorithm ($P$ is always true). A safety property is called an invariant.
+
+If $\gamma$ is a configuration and $P$ is a propriety, $P(\gamma)$ is the boolean value of $P$ on the configuration $\gamma$.
+
+We write $\{P\}\to\{Q\}$ to denote that for each transition $\gamma \to \delta$, if $P(\gamma)$ then $Q(\delta)$. Hence, $\{P\}\to\{Q\}$ means that if $P$ holds before the transition, then $Q$ holds afterwards.
+
+\begin{defi}
+An assertion $P$ is an invariant if
+\begin{enumerate}
+\item $\forall \gamma \in I, P(\gamma)$
+\item $\{P\}\to\{P\}$
+\end{enumerate}
+\end{defi}
+
+\begin{thm}
+If $P$ is an invariant of $S$, then $P$ holds for each configuration of each execution.
+\end{thm}
+
+\subsection{Liveness property}
+Let $P$ be an assertion true in some configuration of each execution of the algorithm (property $P$ will eventually be true).
+
+Let $S$ be a system, and $P$ a property. Let $term$ be a predicate true in all terminal configuration and false otherwise.
+
+\begin{defi}
+The system $S$ terminates properly (or is deadlock-free) if the predicate $(term \Rightarrow P)$ is always true.
+\end{defi}
+
+\begin{defi}
+A partial order $(W,<)$ is well founded if there is no infinite decreasing sequence.
+\end{defi}
+
+\begin{defi}
+Let $S$ be a transition system, and $P$ an assertion. A function $f$ from $C$ to a well-founded set $W$ is called a norm function (with respect to $P$) if for each transition $\gamma \to \delta$, then $f(\gamma) > f(\delta)$ or $P(\gamma)$
+\end{defi}
+
+\begin{thm}
+Let $S$ be a transition system, and $P$ be an assertion. If S terminates properly and a norm function $f$ (with respect to $P$) exists, then $P$ is true in some configuration of each execution of $S$.
+\end{thm}
+
+
+\section{Causal order of events and logical clocks}
+The view of execution as sequences of transitions naturally induces a notion of time. Events of an execution (of a distributed system) can \emph{sometimes} be interchanged.
+
+\subsection{Independence and dependence of events}
+Two consecutive events that influence disjoint parts of the system are independent and can occur in reversal order (you can interchange them).
+
+\begin{thm}
+Let $\gamma$ be a configuration, and let $e_p$ be events of different processes $p$ and $q$, both applicable in $\gamma$. Then $e_p$ is applicable in $e_q(\gamma)$ and $e_q$ is applicable in $e_p(\gamma)$ and $e_p(e_q(\gamma))=e_q(e_p(\gamma))$.
+\end{thm}
+
+The premise of this theorem applies to any pair of events $e_p$ and $e_q$ except if \textit{(i)} $p=q$ and except if \textit{(ii)} $e_p$ is a send event and $e_q$ is the corresponding receive event.
+
+\begin{defi}
+Let $E$ be an execution. The relation $\prec$, called the casual order, on the events of the execution is the smallest relation that satisfies:
+\begin{enumerate}
+\item if $e$ and $f$ are events of the same process and $e$ occurs before $f$, then $e\prec f$
+\item if $e$ is a send and $f$ is the corresponding receive, then $e \prec f$
+\item $\prec$ is transitive
+\end{enumerate}
+
+$a\preceq b$ if $a\prec b$ or $a=b$. $\preceq$ is a partial order. There may be event $a$ and $b$ such that neither $a \preceq b$ nor $b\preceq a$. Such events are called \emph{concurrent}.
+\end{defi}
+
+
+\subsection{Equivalence of executions}
+Let $f=(f_0,f_1,f_2,...)$ be a sequence of events. It is related to an execution $F=(\delta_0,\delta_1,\delta_2,...)$ if for each $i$, $f_i$ is applicable to $\delta_i$ and $f(\delta_i)=\delta_{i+1}$. $F$ is called the implicit execution of $f$. Let us consider a permutation $\sigma$ of the events. The permutation $(f_{\sigma(0)},f_{\sigma(1)},f_{\sigma(2)},...)$ of the events is consistent with the casual order if 
+\[f_{\sigma (i)} \prec f_{\sigma(j)} \Rightarrow i \leq j\]
+
+\begin{thm}
+Let $f'=(f_{\sigma(0)},f_{\sigma(1)},f_{\sigma(2)},...)$ be a permutation of the events of $f$ that is consistent with the casual order. Then $f$'defines a unique execution $F'$ starting in the execution of $F$. $F'$ has as many events as $F$, and if $F$ is finite, then $F'$ has the same last configuration.
+\end{thm}
+
+Executions $F$ and $F'$ have the same collection of events, and the causal order of these events are the same. We say that execution $F$ and $F'$ are equivalent, and we denote $F\sim F'$.
+
+\begin{defi}
+A computation if a distributed algorithm is an equivalence class under $\sim$ of executions of the algorithms.
+\end{defi} 
+
+
+\subsection{Logical clocks}
+\begin{defi}
+A clock is a function $\Theta$ from the events to an order set such that
+\[a \prec b \Rightarrow \Theta(a)<\Theta(b)\]
+\end{defi}
+
+\subsubsection{Order in sequence}
+Execution $E$ defined by a sequence of events $(e_0,e_1,e_2,...)$. Set $\Theta_g (e_i)=i$. This \emph{cannot} be computed within the system, this cannot be computed by a distributed algorithm.
+
+\subsubsection{Lamport's logical clock}
+Event $a$.
+Let $k$ be the length of the longest sequence such that $e_1 \prec e_e\prec ... \prec e_k=a$ then $\Theta_L(a)=k$. Obviously, $a\prec b \Rightarrow \Theta_L(a) < \Theta_L(b)$
+\begin{enumerate}[a.]
+\item if $a$ is an internal event or a send event and $a'$ is the previous event of the same process then $\Theta_L (a)=\Theta_L(a')+1$
+\item If $a$ is a receive event, $a'$ the previous event in the same process and $b$ the corresponding send event, $\Theta_L(a) = 1 + \max (\Theta_L (a'), \Theta_L (b) )$. In order to compute $\Theta_L$, we add to each message the clock of the sending event.
+\end{enumerate}
+
+\newpage
+\setcounter{section}{0}
+\part{Wave and traversal algorithms}
+
+Wave algorithms cover broadcasting, synchronisation, compute some global function (e.g., maximum of values stored among the processes).
+
+\section{Definition and use of the wave algorithm}
+\begin{itemize}
+\item Topology is fixed (no communication link will appear during the execution of the algorithm)
+\item Communication links/channels are undirected: for two processes $p$ and $q$, if $p$ can send a message to $q$, then $q$ can send a message to $p$.
+\item the set of processes is connected: $\forall p,q \in \mathbb{P}$, there is a path from $p$ to $q$, where $\mathbb{P}$ is the set of processes and $E$ a set of communication channels/links
+\item Asynchronous messages
+\item No global link
+\end{itemize}
+
+\subsection{Definition of wave algorithms}
+\begin{itemize}
+\item A special type of internal event: \emph{decide}.
+\item If $C$ is a computation, $|C|$ is the number of event in $C$.
+\end{itemize}
+
+\begin{defi}
+A wave algorithm is a distributed algorithm that satisfies 3 properties:
+\begin{enumerate}
+\item Termination: each computation $C$ is finite, i.e. $|C|<+\infty$
+\item Decision: each computation contains at least one decide event, i.e. $\forall C, \exists e \in C$, $e$ is a decide event
+\item Dependence: in each computation, \emph{each} decide event is causally preceded by an event of \emph{each} process, i.e. $\forall C, \forall e\in C : \text{$e$ is a decide event } \Rightarrow \forall p \in \mathbb{P}, \; \exists f \in C_p,\; f\preceq e$ where $C_p$ is the set of events of computation $C$ happening on process $p$)
+\end{enumerate} 
+\end{defi}
+
+We call \emph{wave} one computation of a wave algorithm; \emph{indicators (or starters)} the processes that spontaneously start the algorithm and \emph{non-initiate (or followers)} the processes that start their algorithm on reception of a message.
+
+\subsubsection*{Differences among wave algorithms}
+\begin{enumerate}
+\item \emph{Centralized}: algorithm that always has exactly one initiator (the opposite is \emph{decentralised}). Centralized = single-source
+\item \emph{Topology}: algorithm may be design for a special topology for any topology
+\item \emph{Initialisation}: 
+\begin{enumerate}
+\item Process identity = each process knows its unique name
+\item Neighbour's identity
+\end{enumerate}
+\item \emph{Number of decisions}: In all cases we are going to consider: at most one decision per process. However, one processor or all processors can take a decision (or in one case two decisions)
+\item \emph{Complexity}: 
+\begin{itemize}
+\item The number of messages exchanged
+\item The number of bit exchanged
+\item (The time of a computation)
+\end{itemize}
+\end{enumerate}
+Often messages will be empty (signals)
+
+\subsection{Elementary results on wave algorithms}
+\subsubsection{Structural properties}
+\begin{lemma}
+$\forall e \in C$, there exists an initiator $p$ and an event $f\in C_p$ such that $f \preceq e$
+\end{lemma}
+
+\begin{proof}
+Let $f$ be any minimal predecessor of $e$ $f \preceq e$ and $\neg (\exists g, g\prec f)$. Let $p$ be the process where $f$ happens. If $p$ is not an initiator, the first event $g$ on $p$ was a received event. Let $h$ be the corresponding send event
+\[\underbrace{h}_{\text{send}} \prec \underbrace{g}_{\text{receive}}\preceq f \]
+which contradicts the definition of $f$.
+\end{proof}
+
+\begin{lemma}
+Let $C$ be a wave with one initiator $p$, then for each non-initiator $q$, let $father_{q}$ be the neighbour of $q$ which $q$ received a message in its first event. Then the graph defined by $(\mathbb{P}, E_T)$ where $E_T = \{(q,father_q) \;| \; q\in \mathbb{P}\smallsetminus \{ p \} \}$ is a spanning tree.
+\end{lemma}
+
+\begin{proof}
+wave $\Rightarrow$ at least one decide event $\Rightarrow$ at least one event in each process $\Rightarrow$ all processes (except maybe $p$) have received at least one message $\Rightarrow$  $father_q$ was defined for all $q\in \mathbb{P} \smallsetminus \{p\}$ we have exactly $N-1$ edges ($N=|P|-1$). We must show that there is no cycle in the graph. By definition, if $(q,father_q)\in E_T$, then $father_q \prec q$ $\Rightarrow$ no cycle possible.
+\end{proof}
+
+\begin{lemma}
+Let $C$ be a wave and $d_p \in C$, $d_p$ being a decide event. Then $\forall q \neq p$: $\exists f \in C_q $ ($f\preceq d_p \land f$ is a send event)
+\end{lemma}
+
+\begin{proof}
+Let $q \neq p$ be any process. By definition of wave algorithms, there exists an event $g \in C_q$ such that $q\preceq d_p$. We consider on (arbitrary chosen) causality path(?) between $g$ and $d_p$.
+$g=g_0 \prec g_1 \prec g_2 \prec ...\prec g_n = d_p \quad g_0\in C_q$. We consider the last event in $g_0,...,g_{n-1}$ that is an event of $q$ (say $g_i$). $g_i\in C_q, g_{i+1} \notin C_q \Rightarrow g_i$ is a send event.
+\end{proof}
+
+\subsubsection{Lower bounds on the complexity of waves}
+(Lower bound on the number of messages)
+
+Corollary of previous lemma: at least $N-1$ messages (sends) in any execution.
+
+\begin{thm}
+Let $C$ be a wave with only one initiator $p$, such that a decide event occurs in $p$. Then at least $N$ messages are exchanged in $C$.
+\end{thm}
+
+\begin{thm}
+Let $A$ be a wave algorithm, for arbitrary networks without any initial knowledge of the neighbour identities. Then $A$ exchanges at least $|E|$ messages.
+\end{thm}
+
+\begin{proof}
+By contradiction, there is a wave algorithm $A$ and a graph $G=(\mathbb{P},E)$ such that there exists a computation $C$ for which $A$ take a decision using at most $|E| - 1$ messages. $\Rightarrow$ There is at least one edge $e=(p,q)$ such that no message is exchanged through that link.
+
+Let $G'=G$ except I remove edge $(p,q)$ and add a process $z$ and two edges $(p,z)$ and $(z,q)$. I execute on $G'$ all the events on $C$. This is possible because nothing on $C$ dealt with the edge $(p,q)$ I removed. As in $G$, $A$ reaches a decision on $G'$. However, no events had place on process $z$, which contradicts the \emph{dependence} property of wave algorithms.
+\end{proof}
+
+\section{Some wave algorithm}
+\subsection{Ring algorithm}
+The topology is a ring. Each process $p$ has a dedicated neighbour $next_p$. We note $<tok>$ a token.
+
+\paragraph{Algorithm}
+\begin{itemize}
+\item For the initiator:\\
+send $<tok>$ to $next_p$\\
+receive $<tok>$\\
+decide
+\item For the non initiators:\\
+receive $<tok>$\\
+send $<tok>$ to $next_p$
+\end{itemize}
+
+\begin{thm}
+The ring algorithm is a wave algorithm.
+\end{thm}
+
+\begin{proof}
+\begin{itemize}
+\item Each execution has a finite number of events ($|C|\leq 2N+1$)
+\item We must show that there is at least one decide event and that the decide event is preceded (causally) by an event in each other process. We look at a terminal configuration $\gamma$. Let $p_0$ be the initiator.
+\begin{itemize}
+\item In $\gamma$, $p_0$ has sent a token (otherwise it can do it and $\gamma$ is not terminal)
+\item In $\gamma$ there is no $<tok>$ message in the system (because it could be received and $\gamma$ would not be terminal).
+\item Each non initiators that received the token has sent it (otherwise $\gamma$ non terminal) $\Rightarrow$ All non initiator processes has received the token, then $p_0$ has received the token, and $p_0$ has taken a decision, and this decision depends on a send in each other process.
+\end{itemize}
+\end{itemize}
+\end{proof}
+
+\subsection{The tree algorithm}
+\begin{itemize}
+\item The topology of the network is a spanning tree (can be applied on arbitrary network with a spanning tree).
+\item All the leaves of the tree are initiators.
+\end{itemize}
+
+\begin{algorithm}
+$rec_p[$number of neighbour of $p]$ initialised to false\\
+\While{$|\{q\; | \; rec_p[q] = \text{false} \}|>1$}{
+	Receive $<tok>$ from any $q$\\
+	$rec_p[q]=$ true\\
+}
+send $<tok>$ to $q_0$ such that $rec_p[q_0]$=false\\
+receive $<tok>$ from $q_0$\\
+$rec_p[q_0]=$ true\\
+decide\\
+(\For{all $q \in Neighbour(p) \neq q_0$}{
+	send $<tok>$ to $q$
+}) \tcp{Propagation on decision}
+\end{algorithm}
+
+
+\subsection{The echo algorithm}
+Centralized wave algorithm for any arbitrary network. The algorithm floods the network with $<tok>$ messages.
+
+\begin{algorithm}
+$rec_p\leftarrow 0$ \tcp{\# of received message}
+$father_p \leftarrow$ undefined\\
+\For{The initiator}{
+	\For{all $q \in Neighbourhood(p)$}{
+		send $<tok>$ to $q$\\
+	}
+	\While{ $rec_p < \# Neighbourhood(p)$}{
+		receive $<tok>$\\
+		$rec_p \leftarrow rec_p + 1$\\
+	}
+	decide\\
+}
+\For{non initiators}{
+	receive $<tok>$ from some neighbour $q$\\
+	$father_p \leftarrow q$\\
+	$rec_p \leftarrow rec_p +1$\\
+	\For{all $q\in Neighbourhood(p) \smallsetminus \{father_p\}$}{
+		send $<tok>$ to $q$\\
+	}
+	\While{$rec_p < \# Neighbourhood(p)$}{
+		receive $<tok>$\\
+		$rec_p\leftarrow rec_p + 1$\\
+	}
+send $<tok>$ to $father_p$
+}
+\end{algorithm}
+
+
+The set of values of $faher_p$ define a spanning tree. One can prove that the decide event is causally preceded be an event in each process: We do that by induction on the spanning tree, starting by the leaves.
+
+Each process holds a value (integer). How can I compute the minimum ?
+
+\subsection{Usage of wave algorithms}
+\subsubsection{Computation of infinimum functions}
+
+If $(X,\leq)$ is a partial order. $c$ is the infinimum of $a$ and $b$ if $c\leq a$ and $c\leq b$ and $\forall a (d\leq a \text{ and } d\leq b, \text{ then } d \leq c)$ infinimum of $a$ and $b$ $a\land b$
+
+\paragraph{Infinimum computation:} Each process $q$ holds an input $j_q$, in a partially ordered set. Some processes compute the value of infinimum of $\{j_1\}_q$ and the processes knows when the computation has completed. They write the outcome of the computation as a variable out and are not allowed to changed it afterwards.
+
+\begin{thm}
+Every Infinimum computation algorithm is a wave algorithm.
+\end{thm}
+
+
+\begin{thm}
+Every wave algorithm can be used to compute an infinimum.
+\end{thm}
+
+\begin{thm}
+If $\star$ is a binary operator on a set $X$ such that
+\begin{enumerate}[1.]
+\item $\star$ is commutative
+\item $\star$ is associative
+\item $\star$ is idempotent ($a \star a = a$)
+\end{enumerate}
+Then there is a partial order $\leq$ on $X$ such that $\star$ is an infinimum function.
+\end{thm}
+
+\begin{coro}
+We can compute $\land, \lor, gcd, lcm, \min, \max, \cup, \cap$ of local values using wave algorithms
+\end{coro}
+
+\subsubsection{Synchronisation}
+Synchronization algorithm: In each process $q$ an event $a_q$ must be executed and, in some process, an event $b_p$ must be executed such that the execution of all $a_q$ events must take place temporarily before any event $b_p$.
+
+\begin{thm}
+Every synchronization algorithm is a wave algorithm.
+\end{thm}
+
+\begin{thm}
+Every wave algorithm can be employed as a synchronization algorithm.
+\end{thm}
+
+\subsubsection{Propagation of information with feedback (PIF)}
+A subset of processes have a same message $M$ which must be broadcast (all processes must receive it and acknowledge it). Certain processes must be notified of termination of the broadcast (they must execute a notify statement), but only after al processes have received the message. There is a finite number of messages exchanged.
+
+\begin{thm}
+Any PIF algorithm is a wave algorithm.
+\end{thm}
+
+\begin{thm}
+Every wave algorithm can be used as a PIF algorithm.
+\end{thm}
+
+\section{Traversal algorithm}
+\begin{defi}
+A traversal algorithm is a wave algorithm with the following time proprieties
+\begin{enumerate}[i.]
+\item In each computation, there is a single initiator. The first time the initiator sends some messages, it sends a signle message and does not send any more message before receiving a message.
+\item A process upon reception of a message, either sends out one message or decides.
+\item The algorithm terminates in the initiator and when this happens each process has sent a message at least once
+\end{enumerate}
+\end{defi}
+
+At any time there is at most one message in the system: there is a single token that is passed around processes. Traversal algorithms are wave algorithms in which all events are totally ordered by the causality relation.
+
+
+\subsection{Traversing cliques}
+Clique = complete graph
+
+
+\begin{algorithm}
+$rec_p \leftarrow 0$\\
+\For{the initiator}{
+	\While{$rec_p < \#Neighbourhood(p)$}{
+		send $<tok>$ to $q_{rec_p}$\\
+		receive $<tok>$\\
+		$rec_p\leftarrow rec_p +1$\\
+	}
+	decide\\
+}
+\For{the non-initiator}{
+	receive $<tok>$ form some process $q$\\
+	send $<tok>$ to $q$\\
+	(the sequential polling algorithm)\\
+}
+\end{algorithm}
+
+
+\subsection{Traversing connected network}
+
+\begin{algorithm}[H]
+$used_p[q]\leftarrow false\; (\forall q \in Neighbourhood(p))$\\
+$father_p \leftarrow$ undefined\\
+\For(execute one){the initiator}{
+	$father_p \leftarrow p$\\
+	choose $q\in Neighbourhood(p)$\\
+	$used_p[q]\leftarrow$ true\\
+	send$<tok>$ to $q$\\
+}
+\For{each process, upon reception of $<tok>$ from $q_0$}{
+	\If{$father_q$ is undefined}{
+		$father_p \leftarrow q_0$\\
+	}
+	\eIf{$\forall q \in Neighbourhood(p) \text{such that} q\neq father_p \text{ and } used_p[q] is false$}{
+		choose $q\in Neighbourhood(p) \smallsetminus \{father_p\}$ such that $used_p[q]$ is false\\
+		$used_p[q]\leftarrow$true\\
+		send $<tok>$ to $q$
+	}{
+		$used_p[father_p]=$ true\\
+		send $<tok>$ to $father_p$\\
+	}
+}
+\end{algorithm}
+
+\section{Election algorithms}
+
+
+\paragraph{Problem:} Start form a configuration where all processes are in the same state, and arrive in a configuration where exactly one process is in the state leader and all the other are in state lost.
+
+\begin{defi}
+An election algorithm is an algorithm that satisfies the following proprieties:
+
+\begin{enumerate}[i.]
+\item Each process has the same local algorithm
+\item The algorithm is decentralized (an arbitrary number of initiators)
+\item The algorithm reaches a terminal configuration in each computation, and in each computation, and each reachable terminal configuration, there is exactly one process in the state leader and all the other ones in the state lost.
+\end{enumerate}
+\end{defi}
+
+\paragraph{Assumptions:}
+\begin{enumerate}
+\item System is fully asynchronous.
+\item Each process is identified by a unique name which it initially knows.
+\end{enumerate}
+
+\begin{itemize}
+\item We design election algorithms such that the process with the smallest name (identifier) is elected.
+\item We can use a wave algorithm to compute the minimum of the names.
+\item Our previous solution was the echo algorithm, a centralized algorithm. We can add to it a preliminary wake-up phase.
+\end{itemize}
+
+
+\paragraph{Election algorithm based on the tree algorithm.}
+\begin{itemize}
+\item Boolean $ws_p$: whether process $p$ has woken up.
+\item Integer $wr_p \leftarrow 0$: number of wake up message received.
+\item boolean $rec_p[q]$: whether process $p$ receive a message (after the wake-up phase) from process $q$.
+\item $v_p$: temporary variable to store the id of the current minimum
+\item $state_p$: (sleep, leader, lost)
+\end{itemize}
+
+
+\begin{algorithm}[H]
+\If{$p$ is the initiator}{
+	$ws_p \leftarrow$ true\\
+	\For{all $q\in Neighbourhood(p)$}{
+		send $<wake\; up>$ to $q$\\
+	}
+}
+\While{$wr_p < \# Neighbouhood(p)$}{
+	receive $<wake\; up>$\\
+	$wr_p\leftarrow wr_p+1$\\
+	\If{not $ws_p$}{
+		\For{all $q\in Neighbourhood(p)$}{
+			send $<wake\; up>$ to $q$\\
+		}
+	}
+}
+\tcp{Start of the tree algorithm}
+\While{$\# \{q\;|\; \neg rec_p[q]\}>1$}{ 
+	receive $<tok, r>$ from $q$\\
+	$rec_p[q]\leftarrow$ true\\
+	$v_p\leftarrow \min(v_p,r)$\\
+}
+send $<tok, v_p>$ to $q_0$ such that $rec_p[q_0]=$ false\\
+receive $<tok, r>$ from $q_0$\\
+$v_p\leftarrow \min(v_p,i)$ \tcp{decide}
+\eIf{$v_p=p$}{
+	$state_p\leftarrow$leader\\
+}{
+	$state_p\leftarrow$lost\\
+}
+\For{all $q\in Neighbourhood(p) \smallsetminus \{q_0\}$}{
+	send $<tok, v_p>$ to $q$\\
+}
+\end{algorithm}
+
+
+\section{Extinction principle and the echo algorithm}
+\begin{itemize}
+\item We extend a wave algorithm
+\item All initiators are starting a wave
+\item We tag each wave by its initiator
+\item We distinguish messages and only forward those corresponding to the smallest initiator
+\end{itemize}
+
+
+$caw:$ currently active wave.
+
+\begin{algorithm}[H]
+\tcp{Variables:}
+$caw_p\leftarrow$ undefined (minimum of the identifiers of encountered waves)\\
+$rec_p\leftarrow 0$ \# of messages received for the wave $caw_p$\\
+$father_p\leftarrow$undefined (father in $caw_p$)\\
+$lrec_p\leftarrow 0$ \# of leader messages received\\
+$win_p\leftarrow$undefined (identity of the leader)\\
+\If{$p$ is initiator}{
+	$caw_p\leftarrow p$\\
+	\For{all $q \in Neighbourhood(p)$ }{
+		send $<tok, caw_p>$ to $q$\\
+	}
+}
+\While{$lrec_p < \# Neighbourhood(p)$}{
+	receive $msg$ from $q$\\
+	\eIf{$msg = <leader, r>$}{
+		\If{$lrec_p=0$}{
+			\For{all $q'\in Neigbhourhood(p)$}{
+				send $<leader, r>$ to $q$\\
+			}
+		}
+		$lrec_p\leftarrow lrec_p+1$\\
+		$win_p\leftarrow r$\\
+	}{
+		\tcp{$msg=<tok,r>$}
+		\If{$r<caw_p$}{
+			$caw_p\leftarrow r$\\
+			$rec_p\leftarrow 1$\\
+			$father_p\leftarrow q$\\
+			\For{all $s\in Neighbourhood(p)\neq q$}{
+				send $<tok, r>$ to $s$\\
+			}
+		}\ElseIf{$r=caw_p$}{
+			$rec_p\leftarrow rec_p+1$\\
+			\If{$rec_p=\# Neighbourhood(p)$}{
+				\If{$caw_p=p$}{
+					\For{all $s\in Neighbourhood(p)$}{
+						send $<leader, p>$ to $s$\\
+					}
+				}\Else{
+					send $<tok, caw_p>$ to $father_p$\\
+				}
+			}
+		}
+	}
+}
+\If{$win_p=p$}{
+	$state_p=$ leader\\
+}\Else{
+	$state_p=$ lost\\
+}
+\end{algorithm}
