@@ -175,13 +175,15 @@ $\forall v \in V$:
 
 \item The top level $tl(v)$ is the maximum weight of a path from an entry task to the task $v$, excluding the weight of $v$.\\
 $tl(v)$: lower bound on the time elapsed in any schedule between the start of the execution of $G$ and the start of $v$.
+\[tl(v) = \max_{ v' \in Pred(v)} \{ tl(v') \}\]
 
 \item The bottom level $bt(v)$ is the maximum weight of a path from the task $v$ (included) to an exit task (included).\\
 $bt(v):$ lower bound on the execution time on any schedule once the execution of $v$ has started.
+\[bl(v) = \max_{v' \in Succ(v)} \{ bl(v') \} + \omega(v')\]
+
 \end{enumerate}
 
-\[tl(v) = \max \{ tl(v) + \omega (v) \; | \; v \in Pred(v) \}\]
-computed through a traversal of $G$ ($O(|V|+|E|)$)
+Both can be computed through a traversal of $G$ ($O(|V|+|E|)$)
 \end{defi}
 
 \begin{thm}
@@ -442,7 +444,7 @@ K & \geq 2A + C + \omega (J)\\
 K= &\; 2A+\alpha+C\\
 \alpha & \geq \omega(I)\\
 \alpha & \geq \omega(J)\\
-\omega(I)+\omega(J)=2\alpha
+\omega(I)+\omega(J)&=2\alpha
 \end{align*}
 Hence, $\omega(I)=\alpha$ and $I$ defines a solution to $I_1$.
 \end{itemize}
@@ -475,7 +477,22 @@ we compute bottom-levels and top level levels including a communication cost bet
 The task in a same cluster will be executed on the same processor.
 
 Let $\mathcal{C}$ be a clustering.\\
-$EPT(\mathcal{C})=$ estimated parallel time of $\mathcal{C}=\max tl(v) + bl(v)$ for $v\in V$.
+$EPT(\mathcal{C})=$ estimated parallel time of $\mathcal{C}=\max_{v\in V} (tl(v) + bl(v))$.
+
+\paragraph{Recall} (case of a clustering)
+\begin{itemize}
+\item $tl(u)=\max (max_{in},max_{out})$ with
+\begin{align*}
+max_{in}&=\max_{\substack{v\in Pred(v)\\\mathcal{C}(u)=\mathcal{C}(v)}} \{ tl(v)+\omega (v) \}\\
+max_{out}&=\max_{\substack{v\in Pred(v)\\\mathcal{C}(u)\neq\mathcal{C}(v)}} \{ tl(v)+\omega (v) + C(u,v) \}
+\end{align*}
+
+\item $bl(u)=\max (max_{in},max_{out}) + \omega(u)$ with
+\begin{align*}
+max_{in}&=\max_{\substack{v\in Succ(v)\\\mathcal{C}(u)=\mathcal{C}(v)}} \{ bl(v) \}\\
+max_{out}&=\max_{\substack{v\in Succ(v)\\\mathcal{C}(u)\neq\mathcal{C}(v)}} \{ bl(v) + C(u,v) \}
+\end{align*}
+\end{itemize}
 
 I behave as if $I$ had an infinite number of processors.
 
