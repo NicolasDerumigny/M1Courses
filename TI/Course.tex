@@ -614,7 +614,7 @@ The minimum distance of RS is
 
 \begin{proof}
 \begin{align*}
-RS(n) & = \big( f_m(\alpha_1),...,f_m(\alpha_n) \big)\\
+RS(m) & = \big( f_m(\alpha_1),...,f_m(\alpha_n) \big)\\
 \text{Weight: } |RS(m)|&= | \{ i\in [n] : f_n(\alpha_i)\neq 0 \} |\\
 & = n - |\{ i \in [n]: f_m(\alpha_i) = 0\}|
 \end{align*}
@@ -682,14 +682,14 @@ Return $P(X)=\frac{N(X)}{E(X)}$
 
 \begin{proof}{Correctness:} First, we show that $(\star)$ has a valid solution.
 \begin{align*}
-RS(m) & = \Big( f_m(\alpha_1,...,f_m(\alpha_n) \Big)\\
+RS(m) & = \Big( f_m(\alpha_1),...,f_m(\alpha_n) \Big)\\
 \Delta(RS(m),y) & \leq t\\
 \end{align*}
 Define
 \begin{align*}
-E^*(X) & = \prod_{i:y_i \neq f_m(\alpha_i)} (X-\alpha_i).X^{t-\Delta 9y,RS(m))}
-\text{and}\; N^*(X) & = f_m (X) E^*(X)\\
-\text{We have}\; y_iE^*(\alpha_i) & = N^*(\alpha_i)\\
+E^*(X) & = \prod_{i:y_i \neq f_m(\alpha_i)} (X-\alpha_i).X^{t-\Delta (9y,RS(m))} \\
+\text{and } N^*(X) & = f_m (X) E^*(X)\\
+\text{We have}\; y_i.E^*(\alpha_i) & = N^*(\alpha_i)\\
 \end{align*}
 For this solution $E^*$ divides $N^*$ and we output $f_m$.
 
@@ -698,20 +698,20 @@ Let's show that this solution is unique. Let $(N_1, E_1)$ and $(N_2, E_2)$ be so
 \begin{align*}
 R(X) & = N_1(X)E_2(X)-N_2(X)E_1(X)\\
 \deg R & \leq (k+t-1) + t = 2t + k - 1\\
-\text{recall}\; t= \left\lfloor \frac{n-k+1-1}{2} \right\rfloor\\
+\text{recall}\; t &= \left\lfloor \frac{n-k+1-1}{2} \right\rfloor\\
 2t+k-1 & = n-k+k-1 = n-1 \;\text{(if $n-k$ even)}\\
 \end{align*}
 In all cases
 \[2t + k -1 < n\]
 On the other hand
 \begin{align*}
-N_2(\alpha_i) & = y_i E_2(\alpha_i)\\
-N_1(\alpha_i) & = y_i E_1(\alpha_i)\\
+N_2(\alpha_i) & = y_i. E_2(\alpha_i)\\
+N_1(\alpha_i) & = y_i. E_1(\alpha_i)\\
 \end{align*}
 
-So $E_1(\alpha_i)N_2(\alpha_i)=E_2(\alpha_i)N_1(\alpha_i)$, so $R_1(\alpha_i)=0$ for all $i$, $\Rightarrow$ has $n$  distinct roots, so $R=0$.
+So $E_1(\alpha_i)N_2(\alpha_i)=E_2(\alpha_i)N_1(\alpha_i)$, so $R_1(\alpha_i)=0$ for all $i$, $\Rightarrow$ $R$ has $n$  distinct roots, so $R=0$.
 
-So $\frac{N_2(X)}{E_2(X)}=\frac{N_1(X)}{E_2(X)}$ 
+So $\frac{N_2(X)}{E_2(X)}=\frac{N_1(X)}{E_1(X)}$ 
 
 \end{proof}
 
@@ -836,14 +836,14 @@ $D_{C_{in}}$, $D_{C_{out}}$ for $(y_1,...,y_n)\in (\mathbb{F}_q)^N$
 
 
 \paragraph{Running time}
-\[N\cdot \underbrace{Cost(D_{C_{in}}}_{\substack{\text{generic decoder runs in}\\ O(2^{2k}poly(k))=O(N^2poly(\log(N)))}} + \underbrace{Cost(D_{C_{out}})}_{\text{For RS, } O(N^3)} \]
+\[N\cdot \underbrace{Cost(D_{C_{in}})}_{\substack{\text{generic decoder runs in}\\ O(2^{2k}poly(k))=O(N^2poly(\log(N)))}} + \qquad \underbrace{Cost(D_{C_{out}})}_{\text{For RS, } O(N^3)} \]
 
 \begin{prop}
 The algorithm $D_{C_{out \,\circ\, in}}$ can correct $<\frac{Dd}{4}$ errors.
 \end{prop}
 \begin{proof}
 Let $m$ be such that 
-\[\Delta( C_{out \,\circ \, in (m),y) < \frac{dD}{4}}\]
+\[\Delta( C_{out \,\circ \, in (m)},y) < \frac{dD}{4}\]
 We want to show that we return $m$.
 
 We define $B=\{i\in [N] \; D_{C_{in}}(y_i) \neq C_{out}(m)_i\}$.
@@ -851,7 +851,7 @@ We define $B=\{i\in [N] \; D_{C_{in}}(y_i) \neq C_{out}(m)_i\}$.
 \begin{itemize}
 \item If $|B|<\frac{D}{2}$ then $D_{C_{out}}$ can correct the errors and returns $m$
 \item Otherwise, if $|B|\geq \frac{D}{2}$, if $i\in B$, $\Delta(y_i,C_{in}(C_{out}(m)_i))\geq \frac{d}{2}$\\
-So $\Delta \Big( (y_1,...,y_N),C_{in}(C_{out}(m)_1),...,C_{in}(C_{out}(m)_N) \Big) \geq \frac{Dd}{4} \; \to \; $ contradiction
+So $\Delta \Big( (y_1,...,y_N),C_{in}(C_{out}(m)_1)...C_{in}(C_{out}(m)_N) \Big) \geq \frac{Dd}{4} \; \to \; $ contradiction
 \end{itemize}
 \end{proof}
 

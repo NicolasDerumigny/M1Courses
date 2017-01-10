@@ -486,14 +486,14 @@ I behave as if $I$ had an infinite number of processors.
 \end{itemize}
 
 
-\subsubsection*{Sarkan's greedy clustering}
+\subsubsection*{Sarkar's greedy clustering}
 \begin{itemize}
 \item Sort edges by non-increasing communication costs
 \item For each edge on that order, merge the clusters containing the two extremities of the edges if this does not increase the $EPT$ (initialise $\mathcal{C}_0=\{\{T_1\},...,\{T_n\}\}$).
 \end{itemize}
 
 
-In the case of $\{T_3,T_4,T_5\}$ with $T_3 \to T_4$ and $T_3 \to T_5$, to compute the $EPT$, we need to sequentialize $T_4$ and $T_5$ (add virtual edge) because in the end they are going to be executed ont he same processor.
+In the case of $\{T_3,T_4,T_5\}$ with $T_3 \to T_4$ and $T_3 \to T_5$, to compute the $EPT$, we need to sequentialize $T_4$ and $T_5$ (add virtual edge) because in the end they are going to be executed on the same processor.
 
 \subsubsection*{Dominant Sequence clustering} 
 \begin{itemize}
