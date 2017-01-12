@@ -61,6 +61,7 @@
 \newpage
 
 
+\part{Queueing theory}
 \section{Introduction}
 \subsection{Generalities}
 
@@ -494,6 +495,123 @@ Graphical proof, interpreting integrals as areas.
 \end{align*}
 \end{proof}
 
+\setcounter{section}{0}
+\part{Statistics}
+
+\section{Framework}
+From data samples(s), statistical tools aims at:
+\begin{enumerate}
+\item Clarify/Sum up/Compress the information (indicators, graphics) $\to$ \emph{descriptive statistics}
+\item Modelize the ``randomness" underlying the generation of the data sample(s) $\to$ \emph{inferential statistics}
+\end{enumerate}
+
+\section{Descriptive statistics}
+\paragraph{Example of indicators} (to describe/summarize data)
+\begin{itemize}
+\item \emph{Position:} give a ``central" value
+\item \emph{Dispersion:} dispersion around a ``central value
+\item \emph{Shape:} how data is distributed up to shifting the ``central" values
+\end{itemize}
+
+\paragraph{Two versions} ``statistical", for a sample sorted $x_1<...<x_n \in \mathbb{R}$; and ``probabilistic", for a real random variable $X$.
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+Position & Stat version & Proba version\\
+\hline
+Mean $\mu$ & $\frac{1}{n}(x_1+...+x_n)$ & $\mathbb{E}(X)$\\
+Median $m$ & $x_{\left\lfloor \frac{n+1}{2}\right\rfloor}$ & $\mathbb{P}(X<m)leq \frac{1}{2}, \; \mathbb{P}(X>m)\leq \frac{1}{2}$\\
+Mode & largest value & value maximizing the law\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+Dispersion & Stat version & Proba version\\
+\hline
+$\alpha$-quantile $q_\alpha$ ($\alpha\in [0,1]$) & $x_{\lfloor\alpha(n+1)\rfloor}$ & $\mathbb{P}(X<q_\alpha)leq \alpha, \; \mathbb{P}(X>q_\alpha)\leq 1-\alpha$\\
+Variance $\sigma^2$ & $\frac{1}{n}\sum_{i=1}^n (x_i-\mu)^2$ & $\mathbb{E}((X-\mathbb{E}(X))^2)$\\
+\hline
+\end{tabular}
+\end{center}
+
+Link between the two versions: For instance for data $\in \mathbb{R}$, data $= x_1,...,x_n \; \to$ ``empirical" distribution/law discrete with possible repetitions with mass function $f(x)=\frac{card\{i\;|\;x_i=i\}}{n}$
+
+
+\paragraph{Example of graphic item}
+\begin{itemize}
+\item box plot (``boîte à moustache")
+\item histogram
+\end{itemize}
+
+
+Objective: Avoid hiding some unpleasant bad cases by only analysing the mean of some results.
+
+
+\paragraph{Complexity of computing indicators (input data not sorted)} ``easy", linear time and space for the classical indicators
+
+\section{Inferential statistics}
+\subsection{General question}
+\begin{itemize}
+\item Data: sample$(x_1,...,x_n)\in E^n$
+\item Models:
+\begin{itemize}
+\item Parametric: models from a family of \emph{laws} parametrized by one or several parameters $\theta$
+\item Non-parametric: no restriction on the family of laws
+\end{itemize}
+\item Question: finding the model(s) \emph{fitting the best} the \emph{generation} of the sample
+\end{itemize}
+
+\subsection{An example}
+A device producing valid messages (0) or invalid ones (1).
+
+$n=20$ messages $\to$ experimental sample:
+\[00010\;01100\;01010\;00000\]
+
+Modelization test: consider that the validity of each message is independent of the other, and only depends on the device which generates invalid messages with probability $p$.
+
+$\to$ model: product of independent Bernoulli laws with some parameter $p$
+
+\paragraph{Question:} what is the value of $p$?
+
+\paragraph{Formalize ``the generation of the sample"}$\to$ ``the sample is a realization for a law of the model", i.e. $(x_1,...,x_n)=(X_1(\omega),...,X_n(\omega)$ for $\omega\in \Omega$, $X_1,...,X_n$ iid Bernoulli($p$).
+
+\begin{itemize}
+\item intuitively, $p<\frac{1}{2}$ because the number of $1<$ number of 0
+\item law of large numbers: 
+\[
+\underbrace{\frac{1}{n}(X_1+...+X_n)}_{\mathbb{P}(\omega \in \Omega \;|\;\frac{1}{n}(X_1(\omega),...)\to p )=1} \overset{\text{a.s.}}{\to} \mathbb{E}(X_1)\] 
+(We know $\mathbb{E}(X_1)\leq \infty$)
+$\Rightarrow$ looking at $\frac{1}{n}(x_1+...+x_n)$ should approximate $p$.
+\item Weak law of large numbers states something about convergence speed, or Bienaymé-Chebytchev $\mathbb{P}(|\frac{1}{n}(X_1+...+X_n)-p|>\epsilon)\leq \frac{\mathbb{V}X_1}{n\epsilon^2}\to p(1-p)$
+\item $p\neq 0, p\neq 1 \to$ otherwise no 1, no 0
+\item Let $0<p<1 \to$ the experimental sample may occur with proba $>0$. 
+
+With B-C inequality:
+\[\mathbb{P}(\frac{1}{n}(X_1+...+X_n)-\epsilon < p , \frac{1}{n}(X_1,...,X_m)+\epsilon)\geq 1-\frac{p(1-p)}{n\epsilon^2}\]
+\end{itemize}
+
+
+I would like to say: ``$p$ lies in this interval with good probability"
+\[\mathbb{P}(p\in [I_n^-,I_n^+])\geq \alpha_n \]
+(Several versions exist depending the choice of $\epsilon$). Beware that $I_n^+$ and $I_n^-$ are random variables !
+
+If $(x_1,...,x_n)$ is a realisation of $(X_1,...,X_n)$, one can compute $\frac{1}{n}(x_1+...+x_n)=\frac{5}{20}=0.25$. Choosing $\epsilon$ to get an interesting statement from B-C is not easy here, because $n$ is rather small (B-C is a bit too loose here). It is easier e.g. for the sample $n=100=$concatenation of the previous sample 5 times
+
+$\alpha_n=1-\frac{1}{4n\epsilon^2}=1-\frac{1}{400\times0.001}=0.75$ if $\epsilon = 0.1$\\
+$\frac{1}{n}(x_1+...+x_n)-\epsilon=0.25-0.1=0.15$\\
+$\frac{1}{n}(x_1+...+x_n)+\epsilon=0.25+0.1=0.35$
+
+
+\paragraph{WARNING} Do \emph{never} write
+\["\mathbb{P}(p\in [0.15,0.35])\geq 0.75 "\]
+Because $p$ is \emph{not} a random variable, it is a fixed value (unknown).
+
+
+A proper way to state something is: ``The interval $[0.15,0.35]$ is a confidence interval for $p$ with confidence/guarantee 0.75"
 
 
 \end{document}

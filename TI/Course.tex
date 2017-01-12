@@ -858,8 +858,11 @@ So $\Delta \Big( (y_1,...,y_N),C_{in}(C_{out}(m)_1)...C_{in}(C_{out}(m)_N) \Big)
 
 \subsection{An application of ECC}
 
-\paragraph{Communication complexity}
+\subsubsection*{Communication complexity}
 \[\underset{x\in \{0,1\}^n}{\text{Alice}} \qquad \qquad \underset{y\in \{0,1\}^n}{\text{Bob}} \]
+
+
+\paragraph{Objective} Compute $f(x,y)$ (the communication ) with minimum communication
 
 \paragraph{Example}
 \begin{itemize}
@@ -872,8 +875,20 @@ Alice sends parity $\sum_i x_i \mod 2$ to Bob, and bob computes $\Big( \sum_i x_
 \end{cases}$
 
 Alice sends $x$ to Bob, Bob compute $EQ(x,y)$ and sends back the result to Alice.
-\[Cost = n+1 \text{ bits}\]
 \end{itemize}
+
+\begin{defi}[Communication cost]
+\begin{align*}
+Cost(\mathcal{P}) & = \text{total number of bits communicated}\\
+& = |a_1|+|b_1|+...+|a_k|+|b_k| \tag{Worst case over all input $x,y$}
+\end{align*}
+
+\end{defi}
+
+\begin{defi}[Protocol (rough definition, not easy to formalized)]
+A labelled tree where each node is either a Alice node or a Bob node, and each label of a node can only depend on the node of the latest communication and the other nodes of the same person.
+\end{defi}
+
 
 \begin{defi}[Communication complexity of $f$]
 \[D(f)=\min_{\mathcal{P}\text{ protocol compting } f} Cost( \mathcal{P}) \]
@@ -887,9 +902,25 @@ We have seen $D(PAR)\leq 2$ and $D(EQ) \leq n+1$
 \[D(EQ)\geq n+1\]
 \end{prop}
 
+\begin{proof} We will only prove $D(EQ)\geq n$
+
+Assume by contradiction that $\mathcal{P}$ computes $EQ$ and $Cost(\mathcal{P})\leq n-1$. At most $2^{n-1}$ possible transcripts. So there exists two inputs $(x,x)$ and $(x',x')$ ($x\neq x'$) that lead to the same communication.
+Let us call the transcript 
+\[\Big(a_1 \big(=A_1(x)=A_1(x')\big),b_1\big(=B_1(x_1,a_1)=B_1(x_1',a_1)\big), a_2,b_2,...,a_k,b_k \Big)\]
+(for input $(x,x)$ and $(x',x')$). Analyse the protocol on $(x,x')$:
+Alice communicates $A_1(x)=a_1$\\
+Bob communicates $B_1(x',a_1)=b_1$
+
+So the communication transcript is the same for $(x,x')$, so $\mathcal{P}$ outputs 1 on input $(x,x')$, but as $x\neq x'$, $EQ(x,x')=0\neq \mathcal{P}(x,x')$.
+\end{proof}
+
+
+
+
 \subsubsection*{Randomized protocol}
 \paragraph{Require}
 For all inputs $\mathbb{P}(\mathcal{P}(x,y)\neq f(x,y))\leq \epsilon$.
+\paragraph{Warning} The randomness is inside the protocol, not over the input (as for randomized algorithms)
 
 \begin{defi}
 \[R_\epsilon (f) = \min_{\mathcal{P}:\mathbb{P}\{ \mathcal{P}(x,y)\neq f(x_{ij}\} \leq \epsilon } Cost(\mathcal{P})\]
@@ -899,5 +930,192 @@ For all inputs $\mathbb{P}(\mathcal{P}(x,y)\neq f(x,y))\leq \epsilon$.
 \[R_{1/3}(EQ)=O(\log n)\]
 \end{prop}
 
+\paragraph{Remark} Can reduce the error probability $\frac{1}{3}$ to very small by repeating
+
+\begin{proof}
+\begin{itemize}
+\item Alice choose $i\in [n]$ and sends $(i,x_i)$ to Bob
+\item Bob:
+\begin{itemize}
+\item if $x_i=y_i$ outputs 1
+\item if $x_i\neq y_i$ outputs 0
+\end{itemize}
+\end{itemize}
+
+If $x=y$, $\mathcal{P}(x,y)=1$ (the protocol is always correct).
+
+If $x\neq y$, $\mathbb{P}(\underbrace{\mathcal{P}(x,y)=0}_{\text{of beeing correct}})=\frac{\Delta(x,y)}{n}$
+
+Idea: use error correcting code, e.g. take a $[3n,n,2n+1]_q$-RS code $C$ with $q=O(n)$.
+\begin{itemize}
+\item Alice choose $i\in \{1,...,3n\}$ at random and sends $(i,C(X)_i)$ where $C(X)_i$ is the $i$-th element of $C(X)$, which lives in $\mathbb{F}_q$
+\item Bob checks if $C(X)_i=C(y)_i$:
+\begin{itemize}
+\item if $C(X)_i=C(Y)_i$ outputs 1
+\item if $C(X)_i\neq C(Y)_i$ outputs 0
+\end{itemize}
+\end{itemize}
+
+Communication cost:
+\begin{align*}
+\lceil \log 3n \rceil + \lceil \log q \rceil + 1 = O( \log n)
+\end{align*}
+
+
+\paragraph{Correctness} If $x=y$: outputs always 1
+If $x\neq y$: 
+\[\mathbb{P}(\mathcal{P}(x,y)=0)=\frac{|\{i: C(X)_i \neq C(y)_i\}|}{3n}\geq \frac{2n+1}{3n}\geq \frac{2}{3}\]
+\end{proof}
+
+\newpage
+\part*{To go further: Polar Codes}
+$BEC_\alpha$: binary erasure channel, $C(BEC_\alpha)=1-\alpha$ (the bits erase, i.e. become uninterpretable, with probability $\alpha$).
+
+\paragraph{Shanon's theorem:} There exists a family $C_N:\{0,1,\}^K\to\{0,1\}^N$ of codes with blocklength $N$ and dim $K$ with $\frac{K}{N}\to 1- \alpha$ and decoders $Dec_N:\{0,1,?\}^N\to \{0,1\}^K$ with 
+\[\underset{s\in\{0,1\}^K}{\mathbb{P}} (Dec_n \circ BEC_\alpha^{\otimes N} \circ C_n(s) \neq s) \underset{N\to \infty}{\to} 0\]
+
+\paragraph{Objective} $C_N$ and $Dec_N$ polynomial-time (or even linear-time) in $N$
+
+\paragraph{Concatenation approach} Cut $N$ into blocks of length $n=c\log N$. This gives a good code for blocklength $n$, exponential in $n$ $\to$ polynomial in $N$.
+
+Only ``in principle" construction
+
+\section*{Polar codes (2007 Arilean)}
+
+Simple observation:\\
+Two trivial cases: \begin{itemize}
+\item perfect channel $Y=X$
+\item useless channel $Y$ independent of $X$
+\end{itemize}
+
+\paragraph{Polar code}
+Transform $2$ copies of $W$ into $W^-$ (worse channel) and $W^+$ (better channel). By repeated applications of this process, with $N$ copies of $W$, we get $N$ channels that are either perfect or useless.
+
+\begin{align*}
+\Qcircuit @C=2em @R=0.8em {
+ X_1 & & \gate{W} & \qw & Y_1 \\
+ X_2 & & \gate{W} & \qw & Y_2 \\
+}
+\end{align*}
+\[\downarrow\]
+\begin{align*}
+\Qcircuit @C=2em @R=0.8em {
+ U_1 & & \targ_{\qquad X_1=U_1 \oplus U_2} & \gate{W} & \qw & Y_1 \\
+ U_2 & & \ctrl{-1}^{\qquad X_2=U_2} & \gate{W} & \qw & Y_2 \\
+}\\
+\end{align*}
+
+
+\paragraph{Channel transformation}
+$W$ with input $\mathcal{X}=\{0,1\}$ and arbitrary output $\mathcal{Y}$. Define $W^+$ and $W^-$:
+\begin{align*}
+W^- &: \{0,1\}\to \mathcal{Y}^2\\
+W^+ &: \{0,1\} \to \mathcal{Y}^2\times \{0,1\}\\
+W^-(y_1y_2|u_1)&= \frac{1}{2}\sum_{u_2\in\{0,1\}} W(y_1\;|\;u_1 \oplus u_2)W(y_2\;|\; u_2)\\
+W^+(y_1y_2u_1\;|\;u_2) &= \frac{1}{2} W(y_1\;|\;u_1 \oplus u_2). W(y_2\;|\;u_2)\\
+& \qquad \qquad \qquad \qquad \qquad \Big( \frac{1}{2} \to \text{Proba of } u_1 \Big)
+\end{align*}
+
+\paragraph{Ex} $BEC_\alpha$
+\begin{itemize}
+\item $W^-$: \begin{itemize}
+\item no erasures 
+\[(Y_1,Y_2)=(U_1\oplus U_2),U_2) \tag{With proba $(1-\alpha)^2$}\]
+We can recover $U_1$
+\item erasure on the first $BEC$
+\[(Y_1,Y_2)=(?,U_2) \tag{With proba $\alpha(1-\alpha)$}\]
+Independent of $U_1$
+\item erasure on the second $BEC$
+\[(Y_1,Y_2)=(U_1\oplus U_2, ?) \tag{With proba $(1-\alpha)\alpha$}\]
+Independent of $U_1$
+\item erasure on both
+\[(Y_1,Y_2)=(?,?) \tag{With prob $\alpha^2$}\]
+\end{itemize}
+
+$W^-$ is like an erasure channel with erasure probability $1-(1-\alpha)^2$
+
+\item $W^+$: 
+\begin{itemize}
+\item no erasure
+\[(Y_1,Y_2,U_1)=(U_1\oplus U_2, U_2,U_1)\]
+We can get $U_2$
+\item erasure on the first bit
+\[(Y_1,Y_2,U_1)=(?,U_2,U_1\]
+We can get $U_2$
+\item erasure on the second bit
+\[(Y_1,Y_2,U_1)=(U_1\oplus U_2,?,U_1)\]
+We can get $U_2$
+\item erasure on both
+\[(Y_1,Y_2,U_1)=(?,?,U_1)\]
+Independent of $U_2$
+\end{itemize}
+$W^+$ is like an erasure channel with erasure probability $\alpha^2$.
+\end{itemize}
+
+
+To formalize how good a channel is
+
+\[I(W)=I(X:Y) \qquad \text{with } P_{XY}(x,y)=\frac{1}{2}W(y\;|\;x)\quad X\in\{0,1\}\]
+
+
+
+\begin{thm}
+Let $W$ be a channel with binary input. Define $(W^-,W^+)$, then
+\begin{align*}
+\bullet &\; \frac{1}{2}I(W^-)+\frac{1}{2}I(W^+)=I(W)\\
+\bullet &\; I(W^+)\geq I(W)\geq I(W^-)
+\end{align*}
+with equality if and only if $I(W)\in\{0,1\}$
+\end{thm}
+
+\begin{proof}
+\begin{align*}
+I(W^-) & = I (U_1 : Y_1Y_2)\\
+I(W^+) & = I(U_2 : Y_1Y_2U_1)\\
+I(U_1:Y_1Y_2)+I(U_2:Y_1Y_1U_1) & = I(U_1:Y_1Y_2) + \underbrace{I(U_2:U_1)}_{=0} + I(U_2:Y_1Y_2|U_1)\\
+& = I(U_1U_2:Y_1Y_2)
+\end{align*}
+
+But $X_1X_2$ is obtain from $U_1U_2$ by a bijection
+\begin{align*}
+I(U_1U_2:Y_1Y_2)& = I(X_1X_2:Y_1Y_2)\\
+& = I(X_1:Y_1)+I(X_2:Y_2) \tag{As $X_1$ and $X_2$ are independent}\\
+& = 2I(W)\\
+\end{align*}
+
+\begin{align*}
+\bullet \; I(W^+) &= I(U_2:Y_1Y_2U_1)\\
+&\geq I(U_2:Y_2)\\
+&=I(X_2:Y_2)\\
+&=I(N)\\
+\end{align*}
+We have equality if and only if $I(U_2:U_1Y_1|Y_2)=0$, so $U_2-Y_2-U_1Y_1$ forms a Markov Chain ($P_{U_1Y_1|Y_2U_2}=P_{U_1Y_1|Y_2}$)
+
+By a simple analysis, we can show that this happens if and only if $I(W)\in \{0,1\}$
+\end{proof}
+
+
+%QCIRCUIT HERE
+
+\paragraph{Recursive step}
+%MORE HERE
+
+
+$2^n$ copies of $W$ $\to$ $W^{z_1...z_n}$ for $(z_1,...,z_n)\in \{+,-\}^n$
+
+To use this for encoding
+\begin{itemize}
+\item Show polarization.
+\begin{align*}
+\frac{1}{2^n}\sum_{z_1...z_n}I(W^{z_1...z_n})&=I(W)\\
+\mathcal{B} & = \{ (z_1,...,z_n): I(W^{z_1,...,z_n}=0\}\\
+\mathcal{G} & = \{ (z_1,...,z_n): I(W^{z_1,...,z_n)}&=0\}
+|G|&=2^nI(W)\\
+\end{align*}
+\end{itemize}
+
+\paragraph{Encoding} msg $s\in \{0,1]^{2^nC(W)}$
+
+%scheme here
 
 \end{document}
