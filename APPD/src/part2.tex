@@ -9,7 +9,7 @@ $\Rightarrow$ Shared memory model
 $n$ processing elements/units directly connected to it
 \end{itemize}
 
-All processing units execute the same algorithm simultaneously: each time step all PU\footnote{Processing Unit} execute the \underline{same} instruction (but some PUs may be inactive, like in an if ... then ... else ...).
+All processing units execute the same algorithm simultaneously: each time step all PU\footnote{Processing Unit} execute the \emph{same} instruction (but some PUs may be inactive, like in an if ... then ... else ...).
 
 
 All PU can access memory location in a unit of time. Different processing units may access the very same memory location simultaneously. 
@@ -203,7 +203,7 @@ e_p(n) & =\frac{S_p(n)}{p}\\
 
 \note{Another definition of speed-up:} \textit{(We will not use it)}
 \begin{align*}
-S_p'(n)=\frac{T_{par}(1,n}{T_{par}(p,n)}
+S_p'(n)=\frac{T_{par}(1,n)}{T_{par}(p,n)}
 \end{align*}
 
 \note{Ideal}: $S_p(n)$ close to $p$, efficiency close to 1.
@@ -266,7 +266,7 @@ It can happen in practice if, for instance, by using more processors, all data f
 Let $A$ be an algorithm that executes a total of $m$
  operations and that runs in time $t$ on a PRAM (on an unspecified number of PUs).
 
-Then $A$ can be simulated of time $O\left( \frac{m}{p}+t\right)$ on $P$ PUs of a PRAM of the same time.
+Then $A$ can be simulated of time $O\left( \frac{m}{p}+t\right)$ on $p$ PUs of a PRAM of the same time.
 \end{thm}
 
 \begin{proof}
@@ -303,7 +303,7 @@ Choosing the fusion mode and computing a sum of $n$ values.
 
 \note{CRCW:} all PUs write to the same memory location: $O(1)$
 
-\note{CREW:} at each time step each PU can cimbine at most 2 values: $O(\log n)$ time steps.
+\note{CREW:} at each time step each PU can cpmbine at most 2 values: $O(\log n)$ time steps.
 
 \bigskip
 \textit{Using CRCW PRAM in coherent mode?}
@@ -372,7 +372,7 @@ We want an algorithm running in time $O(\log n)$. The algorithm should thus be a
 
 \subsection{Merge}
 \begin{defi}[Good sampler]
-A sorted sequence $L$ is said to be a good sampler (GS) of a sequence $L$ if, for any $k \leq 1$, there are at most $2k+1$ elements of $J$ \emph{between} $k+1$ (arbitrary) consecutive elements of $L \cup \{-\infty \} \cup \{+\infty\}$.
+A sorted sequence $J$ is said to be a good sampler (GS) of a sequence $L$ if, for any $k \leq 1$, there are at most $2k+1$ elements of $J$ \emph{between} $k+1$ (arbitrary) consecutive elements of $L \cup \{-\infty \} \cup \{+\infty\}$.
 
 \begin{itemize}
 \item If $J$ and $K$ are two sorted sequences, $J|K$ is the merge of $J$ and $K$.
@@ -419,7 +419,7 @@ $J|K \leftarrow res_1.res_2. \;\hdots\; . res_{|L|+1}$
 \end{algorithm}
 
 \begin{lemma}
-If $L$ has a good sampler of both $J$ and $K$, and if crossranked $R[L,J], R[L,K],R[J,L]$ and $R[K,L]$ are known, then Merge with Help runs in $O(1)$ time with $|J|+|K|$ PUs on a CREW PRAM.
+If $L$ is a good sampler of both $J$ and $K$, and if crossranked $R[L,J], R[L,K],R[J,L]$ and $R[K,L]$ are known, then Merge with Help runs in $O(1)$ time with $|J|+|K|$ PUs on a CREW PRAM.
 \end{lemma}
 
 \begin{proof}

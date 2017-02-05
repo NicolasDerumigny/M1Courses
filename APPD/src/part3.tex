@@ -88,7 +88,7 @@ p$\leftarrow$NUM\_PROCS()\\
 q$\leftarrow$MY\_NUM()\\
 \eIf{$q=k$}{
 	\For{i=1 to p-1}{
-		SEND( addr$[k-1-i+1\mod p]$, m)
+		SEND(addr$[k-1-i+1\mod p]$, m)
 	}
 }{
 	\For{j=1 to p-(q-k)-1}{
@@ -142,7 +142,7 @@ q$\leftarrow$MY\_NUM()\\
 		SEND(addr$[i]$,m/r)\\
 	}
 }{
-	\eIf{q=k+1}{
+	\eIf{q=k-1}{
 		\For{i=0 to r-1}{
 			RECEIVE(addr$[i]$,m/r)
 		}
@@ -519,10 +519,10 @@ $P_k$ holds the row from $\frac{kn}{p}$ to $\frac{n}{p}-1$.
 \paragraph{2nd solution:} (generalization) Block cyclic distribution.
 
 \note{Formally:}
-Processor $P_i$ holds row $j$ such that $i=\left\lfloor \frac{j}{r} \right\rfloor$.
+Processor $P_i$ holds row $j$ such that $i=\left\lfloor \frac{j}{r} \right\rfloor \mod p$.
 \emph{Now in one step} a processor:
 \begin{itemize}
-\item Updates: $k\times n$
+\item Updates: $k\times r$
 \item Receiving: $k$
 \item Sending: $k$
 \end{itemize}
