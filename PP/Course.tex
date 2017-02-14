@@ -50,7 +50,7 @@
 \small ENS de Lyon}
 \date{}
 
-\newcommand{\note}{\medskip\noindent\underline}
+\newcommand\subst[2]{\langle #1\big/#2\rangle}
 
 \begin{document}
 
@@ -106,7 +106,7 @@ f\;a & = (\lambda a.e) \;a \tag{Application}\\
 \end{align*}
 
 \paragraph{Notation}
-\[e<a/x>\] is the replacement in $e$ of all the occurrences of $a$ by $x$.
+\[e\subst{a}{x}\] is the replacement in $e$ of all the occurrences of $a$ by $x$.
 
 \paragraph{Example}
 \begin{enumerate}
@@ -119,9 +119,9 @@ is the identity function
 &\lambda x.y\\
 &x\mapsto y
 \end{align*}
-Here $x$ and $y$ are variables, $x\neq y$. $(\lambda x.y)\; a$ leads to $y<a/x>\equiv y$
+Here $x$ and $y$ are variables, $x\neq y$. $(\lambda x.y)\; a$ leads to $y\subst{a}{x}\equiv y$
 
-\[ (\lambda x.a) \; b \to_\beta a<b/x>\]
+\[ (\lambda x.a) \; b \to_\beta a\subst{b}{x}\]
 $\to_\beta$ is a binary relation on lambda-terms $\Rightarrow$ idea of computation on terms.
 
 \end{enumerate}
@@ -129,7 +129,7 @@ $\to_\beta$ is a binary relation on lambda-terms $\Rightarrow$ idea of computati
 \paragraph{Notion of $\alpha$-equivalence}
 \[\lambda x.a \overset{?}{=}_\alpha \lambda y.b\]
 Pick a \emph{fresh} variable, let say $z$,
-\[a<z/x> =_\alpha b<z/y>\]
+\[a\subst{z}{x} =_\alpha b\subst{z}{y}\]
 
 \emph{All the results and proofs will be done under the quotient implied by the $\alpha$-equivalence}
 \section{A toolbox on $\lambda$-calculus}
@@ -154,26 +154,26 @@ A term $e$ is \emph{closed} if $FV(e)=\emptyset$
 \end{defi}
 
 \begin{defi}[Substitution]
-Given $x \in \mathcal{X}$, $a\in \Lambda$, the substitution of (all the) occurrences of $a$ in $e\in \Lambda$, denoted $e<a/x>$ is:
+Given $x \in \mathcal{X}$, $a\in \Lambda$, the substitution of (all the) occurrences of $a$ in $e\in \Lambda$, denoted $e\subst{a}{x}$ is:
 \begin{itemize}
-\item if $y\in \mathcal{X} \setminus,\; \{x\}, \; y<a/x>\equiv y $ and $x<a/x>\equiv a$
-\item $(\lambda y.e)<a/x> = \lambda y.e<a/x>$
-\item $(e\; f)<a/x> = (e<a/x>)\; f<a/x> $
+\item if $y\in \mathcal{X} \setminus,\; \{x\}, \; y\subst{a}{x}\equiv y $ and $x\subst{a}{x}\equiv a$
+\item $(\lambda y.e)\subst{a}{x} = \lambda y.e \subst{a}{x}$
+\item $(e\; f)\subst{a}{x} = (e\subst{a}{x})\; f\subst{a}{x} $
 \end{itemize}
 \end{defi}
 
 \begin{defi}[$\to_\beta$ reduction]
 \begin{align*}
 \to_\beta & \subseteq \Lambda \times \Lambda\\
-& \Big\{ \big( \underbrace{(\lambda x.a)\; b}_{\text{redex}},\underbrace{a<b/x>}_{\text{contraction}}\big)\big| x\in \mathcal{X},\; a,v \in \Lambda \Big\}
+& \Big\{ \big( \underbrace{(\lambda x.a)\; b}_{\text{redex}},\underbrace{a\subst{b}{x}}_{\text{contraction}}\big)\big| x\in \mathcal{X},\; a,v \in \Lambda \Big\}
 \end{align*}
 \end{defi}
 
 \paragraph{Example}
 \begin{enumerate}
 \item \begin{align*}
-(\underbrace{\lambda x. (\lambda y.y)\; a}_{\nrightarrow_\beta (\lambda x.(\lambda y.y))\; b})\; b) \to_\beta ((\lambda y.y)\; a)\;<b/x> & \equiv ((\lambda y.y)\;<b/x>)a<b/x>\\
-& \equiv (\lambda y.y)\; a<b/x>
+(\underbrace{\lambda x. (\lambda y.y)\; a}_{\nrightarrow_\beta (\lambda x.(\lambda y.y))\; b})\; b) \to_\beta ((\lambda y.y)\; a)\;\subst{b}{x} & \equiv ((\lambda y.y)\;\subst{b}{x})a\subst{b}{x}\\
+& \equiv (\lambda y.y)\; a\subst{b}{x}
 \end{align*}
 
 \item \begin{align*}
@@ -181,7 +181,7 @@ Given $x \in \mathcal{X}$, $a\in \Lambda$, the substitution of (all the) occurre
 \end{align*}
 
 \item \begin{align*}
-(\lambda x.x\; x)(\lambda x.x \;x) \to_\beta & (x\; x)<\lambda x.x \; x \big/ x> \text{ or } (x\; x)<\lambda y.y \; y\big /x>\\
+(\lambda x.x\; x)(\lambda x.x \;x) \to_\beta & (x\; x)\subst{\lambda x.x \; x}{x} \text{ or } (x\; x)\subst{\lambda y.y \; y}{x}\\
 & (\lambda x. x\;x)(\lambda x.x\; x)
 \end{align*}
 Russell paradox: we get an infinite $\beta$-reduction!
@@ -194,7 +194,7 @@ Russell paradox: we get an infinite $\beta$-reduction!
 Let $a,b\in \Lambda$. $a\; \beta_0 \; b$ is defined by cases:
 \begin{itemize}
 \item $x\; \beta_0 \; x$
-\item $(\lambda x.u)v\; \beta_0 \; u<v/x>$
+\item $(\lambda x.u)v\; \beta_0 \; u\subst{v}{x}$
 \item $(\lambda x.u)\; \beta_0 \; (\lambda x.v)$ if $u\; \beta_0 \; v$
 \item $(u\; v)\; \beta_0 \; (u'\; v)$ if $u\;\beta_0\;u'$
 \item $(u\; v)\; \beta_0 \; (u\;v')$ if $v\; \beta_0 \; v'$

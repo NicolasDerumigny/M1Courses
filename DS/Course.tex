@@ -1,0 +1,81 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+ 
+\usepackage{caption}
+%\usepackage{pgfplots}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{footnote}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{multirow}
+\usepackage{amsfonts}
+\usepackage[boxed,linesnumbered,noend]{algorithm2e}
+\usepackage{qcircuit}
+\usepackage{enumerate}
+
+\newtheorem{thm}{Theorem}
+\newtheorem{prop}{Propriety}
+\newtheorem{lemma}{Lemma}
+\newtheorem{defi}{Definition}
+\newtheorem{coro}{Corollary}
+
+
+
+\setlength{\oddsidemargin}{0pt}
+% Marge gauche sur pages impaires
+\setlength{\evensidemargin}{0pt}
+% Marge gauche sur pages paires
+\setlength{\textwidth}{470pt}
+% Largeur de la zone de texte 
+\setlength{\topmargin}{0pt}
+% Pas de marge en haut
+\setlength{\headheight}{13pt}
+% Haut de page
+\setlength{\headsep}{10pt}
+% Entre le haut de page et le texte
+\setlength{\footskip}{40pt}
+% Bas de page + séparation
+\setlength{\textheight}{630pt}
+% Hauteur de la zone de texte
+
+\title{Distributed Systems}
+\author{Eddy Caron\footnote{hadriencroubois.com}\\
+\small ENS de Lyon}
+\date{}
+
+\newcommand{\note}{\medskip\noindent\underline}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+
+\paragraph{Final grade} 2/3 Final exam + 1/3 mid-term exam + 1/3 (project + partial)
+
+
+\bigskip
+We will use the programming language \emph{Erlang} (1987 $\rightsquigarrow$ 1998)\\
+\textbullet \; Concurrent, real time, distributed\\
+$\Rightarrow$ Use BEAM
+\bigskip
+
+Variables can be integers, float, PID, functions, tuples, maps, ... and atoms (specific to Erlang).
+
+There are built-in functions for message passing
+
+Lists are not strongly typed, tuples are like python's
+
+In Erlang, there is no overwriting of the variables (cannot affect them a new value).
+
+
+
+\end{document}
