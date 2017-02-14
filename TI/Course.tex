@@ -968,7 +968,7 @@ If $x\neq y$:
 \end{proof}
 
 \newpage
-\part*{To go further: Polar Codes}
+\part*{To go further: Polar Codes and Quantum Codes}
 $BEC_\alpha$: binary erasure channel, $C(BEC_\alpha)=1-\alpha$ (the bits erase, i.e. become uninterpretable, with probability $\alpha$).
 
 \paragraph{Shanon's theorem:} There exists a family $C_N:\{0,1,\}^K\to\{0,1\}^N$ of codes with blocklength $N$ and dim $K$ with $\frac{K}{N}\to 1- \alpha$ and decoders $Dec_N:\{0,1,?\}^N\to \{0,1\}^K$ with 
@@ -1117,5 +1117,223 @@ To use this for encoding
 \paragraph{Encoding} msg $s\in \{0,1]^{2^nC(W)}$
 
 %scheme here
+
+\section{Introduction to Quantum Information}
+Important property assumed of information carrier: a bit has a finite number of distinguishable states.
+
+The set of states is thus: $\Sigma$
+
+In this lecture, $\Sigma=\{0,1\}$, 0 stands for ``off", 1 for ``on", as a physical carrier switch.
+
+\paragraph{Assumption:} A complete way to describe the switch is $s\in \Sigma$
+
+
+\bigskip
+
+\paragraph{Quantum theory:} Superposition of different $s\in \Sigma$ is also allowed.
+
+\paragraph{Representation of a quantum system:}
+$\Sigma = \{0,1\}$
+
+Warm up: probabilistic model
+
+
+State of knowledge = $v = \begin{pmatrix}
+1/4\\ 3/4\\
+\end{pmatrix}
+\begin{matrix}
+\to \text{proba of 0}\\
+\to \text{proba of 1}\\
+\end{matrix}
+$
+
+\paragraph{Remark}
+The action of looking at the switch affects its state.
+
+\[v=
+\begin{pmatrix}
+1/4\\
+3/4\\
+\end{pmatrix}
+\to \text{look at the system}
+\left.
+\begin{matrix}
+\overset{\text{see 0}}{\to}
+\begin{pmatrix}
+1\\ 0\\
+\end{pmatrix}\\
+\overset{\text{see 1}}{\to}
+\begin{pmatrix}
+0\\ 1\\
+\end{pmatrix}\\
+\end{matrix}
+\right\} \text{updated state}
+\]
+
+\paragraph{Quantum setting}
+State: $\begin{pmatrix}
+\alpha \\ \beta
+\end{pmatrix}$ with $\alpha, \beta \in \mathbb{C}$ and $|\alpha|^2 + |\beta|^2 = 1$. It defines a \emph{qubit}.
+
+\paragraph{Two kinds of operations:}
+\begin{enumerate}
+\item ``Look at the switch" $\to$ measurement
+\[
+\begin{pmatrix}
+\alpha\\
+\beta\\
+\end{pmatrix}
+\overset{\text{measure}}{\to}
+\begin{matrix}
+\text{See 0 with probability $|\alpha|^2$} \to \begin{pmatrix}
+1\\ 0 \\
+\end{pmatrix} = e_0 \\
+\text{See 1 with probability $|\beta|^2$} \to \begin{pmatrix}
+0\\ 1 \\
+\end{pmatrix} = e_1 \\
+\end{matrix}
+\]
+
+An other way of seeing it is to interpret the state as a vector $v$. Then the probability of seeing 0 is $|<e_0,v>|^2$ and $|<e_1,v>|^2$ for 1. 
+
+\item ``Transform without looking" $\to$ perform a unary $U\in \mathbb{C}^{2\times 2}$ with $U*U=I$, $U*$ being the conjugate transpose.
+\end{enumerate}
+
+\paragraph{Example}
+$I=\begin{pmatrix}
+1 & 0\\
+0&1\\
+\end{pmatrix}
+$
+$NOT=\begin{pmatrix}
+0&1\\
+1 & 0\\
+\end{pmatrix}
+$
+$H=\begin{pmatrix}
+1/\sqrt{2} & 1/\sqrt{2}\\
+1/\sqrt{2} & -1/\sqrt{2}\\
+\end{pmatrix}
+$
+
+Start in state ``off" apply $H$, measure
+\[\begin{pmatrix}
+1\\ 0\\
+\end{pmatrix}
+\to 
+H
+\begin{pmatrix}
+1\\ 0\\
+\end{pmatrix}
+=\begin{pmatrix}
+1/\sqrt{2}\\
+1/\sqrt{2}\\
+\end{pmatrix}
+\]
+We observe 0 and 1 with equal probability $1/2$.
+
+\paragraph{Example}
+System in one of two states
+\[v_0= \begin{pmatrix}
+1/\sqrt{2}\\
+1/\sqrt{2}\\
+\end{pmatrix}
+\qquad \qquad
+v_1= \begin{pmatrix}
+1/\sqrt{2}\\
+-1/\sqrt{2}\\
+\end{pmatrix}
+\]
+
+The objective is to determine whether the state is $v_0$ or $v_1$.
+\medskip
+
+We apply $H$ and then measure: $Hv_0=\begin{pmatrix}
+1\\0\\
+\end{pmatrix}$
+and $Hv_1=\begin{pmatrix}
+0\\1\\
+\end{pmatrix}$.
+
+In general, if $v$ and $w$ are orthogonal, we can perfectly distinguish them.
+
+\paragraph{How many bits can I store in a single qubit?}
+We cannot store more than 2 bits, because $v_0,v_1,v_2$ would live in $\mathbb{C}^2$, so they cannot be orthogonal $\to$ cannot measure them perfectly.
+
+
+\subsection*{Random access code}
+\paragraph{Idea}
+Store 2 bits in 1 qubit with some error and only be interested in one of the two bits.
+
+\begin{defi}
+A quantum random memory access encoding of 2 bits into 1 qubit with success probability $p$
+\[2 \overset{p}{\mapsto} 1\]
+is a function 
+\[f:{0,1}^2\to \mathbb{C}^2\]
+such that for every $i\in \{1,2\}$, there exists a $U_i$ such that for all $x,y\in \{0,1\}$
+\[|<e_x,U_1f(x,y)>|^2\geq p\]
+\[|<e_y,U_2f(x,y)>|^2\geq p\]
+\end{defi}
+
+
+
+First limits of classical setting\\
+$f:\{0,1\}^2\to\{0,1\}$ (randomized)\\
+$dec_i:\{0,1\}\to\{0,1\}$
+
+One encoding
+$f(x,y)=x$\\
+$\Rightarrow$ success probability = $1/2$
+
+\begin{lemma}
+No $2\overset{p}{\mapsto} 1$ classical random access code exists with $p>1/2$.
+\end{lemma}
+
+\begin{proof}
+$f:\{0,1\}\to\{0,1\}$\\
+$dec_i: \{0,1\}\to\{0,1\}$ for $i\in \{1,2\}$
+
+Let $P^0=(\mathbb{P}(dec_1(0)=1),\mathbb{P}(dec_2(0)=1)$ and $P^1=(\mathbb{P}(dec_1(1)=1),\mathbb{P}(dec_2(1)=1)$
+
+Fact: The line $P^0P^1$ cannot pass strictly inside every quadrant (division of $[0,1]\times [0,1]$ in four parts).
+
+We take the quadrant that is missing, for example $(x,y)=(0,0)$. If it is encoded as 0, then for the first bit, it recovers with good probability, but the second bit is output as 0 with a low probability (calculus). If (0,0) is encoded as 1, the reverse situation occurs.
+
+More generally, for any mixture, decoding probabilities will be given by a point on the line $P^0P^1$, so one of the success probability is lower than 1/2.
+\end{proof}
+
+\begin{thm}
+There is a $2 \overset{0.85}{\mapsto} 1$ quantum random access code.
+\end{thm}
+
+\begin{proof}
+We use $\frac{\pi}{8}$:
+\[f(0,0)=\begin{pmatrix}
+\cos\frac{\pi}{8}\\
+\sin\frac{\pi}{8}\\
+\end{pmatrix}
+\qquad \qquad 
+f(0,1)=\begin{pmatrix}
+\cos\frac{\pi}{8}\\
+- \sin \frac{\pi}{8}\\
+\end{pmatrix}\]
+\[f(1,0)=\begin{pmatrix}
+\sin\frac{\pi}{8}\\
+\cos\frac{\pi}{8}\\
+\end{pmatrix}
+\qquad \qquad
+f(1,1)=\begin{pmatrix}
+- \sin \frac{\pi}{8}\\
+\cos\frac{\pi}{8}\\
+\end{pmatrix}\]
+
+If $i=1,U_1=i$, the probability of decoding correctly is $\cos^2 \frac{\pi}{8}$.
+
+
+
+\end{proof}
+
+
+
 
 \end{document}

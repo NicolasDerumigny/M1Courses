@@ -299,7 +299,7 @@ i\\j\\
 \end{pmatrix} \right\}
 \end{align*}
 
-Let $p_1,p2 \in Dom$. If $\exists d \in D$ such that$p_2=p_1 + d$ ($p_1$ should be executed before $p_2$).
+Let $p_1,p2 \in Dom$. If $\exists d \in D$ such that$p_2=p_1 + d$, we note $p_1 \prec p_2$ ($p_1$ should be executed before $p_2$).
 
 \begin{defi}[Schedule]
 A function $\sigma : Dom \to \mathbb{N}$ is a schedule if and only if
@@ -307,7 +307,7 @@ A function $\sigma : Dom \to \mathbb{N}$ is a schedule if and only if
 \end{defi}
 
 \begin{defi}[Makespan of $\sigma$]
-\[T_{\sigma}=1+\max_{p\in Dom} \{ \sigma(p)\} - \min_{p\in Dom}\{ \sigma(p)\]
+\[T_{\sigma}=1+\max_{p\in Dom} \{ \sigma(p)\} - \min_{p\in Dom}\{ \sigma(p)\}\]
 \end{defi}
 
 The Lamport's method focus on linear schedule: a schedule $\sigma$ can be defined by a $n$-dimensional vector $\pi \in \mathbb{Q}^n$.
@@ -315,16 +315,16 @@ The Lamport's method focus on linear schedule: a schedule $\sigma$ can be define
 $\pi$ defines an hyperplane.
 
 \begin{lemma}
-If $f_d\in D$, $\pi\cdot d \geq 1$, then $\sigma_\pi$ is a linear schedule.
+If $\forall d\in D$, $\pi\cdot d \geq 1$, then $\sigma_\pi$ is a linear schedule.
 \end{lemma}
 
 \begin{proof}
-Let $d$ be any dependence vector. Let $p_1$ and $p_2$ be such that $p_r=p_1+d$
+Let $d$ be any dependence vector. Let $p_1$ and $p_2$ be such that $p_2=p_1+d$
 
 \begin{align*}
 \pi \cdot d & \geq 1\\
-\Rightarrow \pi\cdotp_1 + \pi \cdot d & \geq 1 + \pi \cdot p_1\\
-\Rightarrow \pi(p_2)=\pi\cdot(p_1+d) & \geq 1 + \pi \cdot p1\\
+\Rightarrow \pi\cdot p_1 + \pi \cdot d & \geq 1 + \pi \cdot p_1\\
+\Rightarrow \pi(p_2)=\pi\cdot(p_1+d) & \geq 1 + \pi \cdot p_1\\
 \Rightarrow \pi\cdot p_2 & \geq \lfloor 1 + \pi \cdot p_1 \rfloor = 1 + \sigma_\pi(p_1)\\
 \Rightarrow \sigma_\pi(p_2) & \geq 1 + \sigma_\pi(p_1)
 \end{align*}
@@ -390,7 +390,6 @@ Makespan:
 T_{\sigma_\pi} &= 1 + \max_{p\in Dom} \{ \sigma_\pi (p)\} - \min_{p \in Dom} \{\sigma_\pi\}\\
 &= 1 + \max_{0\leq i,j \leq N} \{ \lfloor xi+yj \rfloor)\} - \min_{0\leq i,j \leq N} \{\lfloor xi+yj \rfloor\}\\
 &= 1 + \lfloor xN+yN\rfloor\\
-&=0
 \end{align*}
 
 We want to minimize the makespan, so we want to minimize
