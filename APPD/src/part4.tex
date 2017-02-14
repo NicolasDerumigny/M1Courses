@@ -105,7 +105,7 @@ A partial order $(W,<)$ is well founded if there is no infinite decreasing seque
 \end{defi}
 
 \begin{defi}
-Let $S$ be a transition system, and $P$ an assertion. A function $f$ from $C$ to a well-founded set $W$ is called a norm function (with respect to $P$) if for each transition $\gamma \to \delta$, then $f(\gamma) > f(\delta)$ or $P(\gamma)$
+Let $S$ be a transition system, and $P$ an assertion. A function $f$ from $C$ to a well-founded set $W$ is called a norm function (with respect to $P$) if for each transition $\gamma \to \delta$, then $f(\gamma) > f(\delta)$ or $P(\delta)$
 \end{defi}
 
 \begin{thm}
@@ -126,7 +126,7 @@ Let $\gamma$ be a configuration, and let $e_p$ be events of different processes 
 The premise of this theorem applies to any pair of events $e_p$ and $e_q$ except if \textit{(i)} $p=q$ and except if \textit{(ii)} $e_p$ is a send event and $e_q$ is the corresponding receive event.
 
 \begin{defi}
-Let $E$ be an execution. The relation $\prec$, called the casual order, on the events of the execution is the smallest relation that satisfies:
+Let $E$ be an execution. The relation $\prec$, called the causal order, on the events of the execution is the smallest relation that satisfies:
 \begin{enumerate}
 \item if $e$ and $f$ are events of the same process and $e$ occurs before $f$, then $e\prec f$
 \item if $e$ is a send and $f$ is the corresponding receive, then $e \prec f$
@@ -138,11 +138,11 @@ $a\preceq b$ if $a\prec b$ or $a=b$. $\preceq$ is a partial order. There may be 
 
 
 \subsection{Equivalence of executions}
-Let $f=(f_0,f_1,f_2,...)$ be a sequence of events. It is related to an execution $F=(\delta_0,\delta_1,\delta_2,...)$ if for each $i$, $f_i$ is applicable to $\delta_i$ and $f(\delta_i)=\delta_{i+1}$. $F$ is called the implicit execution of $f$. Let us consider a permutation $\sigma$ of the events. The permutation $(f_{\sigma(0)},f_{\sigma(1)},f_{\sigma(2)},...)$ of the events is consistent with the casual order if 
+Let $f=(f_0,f_1,f_2,...)$ be a sequence of events. It is related to an execution $F=(\delta_0,\delta_1,\delta_2,...)$ if for each $i$, $f_i$ is applicable to $\delta_i$ and $f(\delta_i)=\delta_{i+1}$. $F$ is called the implicit execution of $f$. Let us consider a permutation $\sigma$ of the events. The permutation $(f_{\sigma(0)},f_{\sigma(1)},f_{\sigma(2)},...)$ of the events is consistent with the causal order if 
 \[f_{\sigma (i)} \prec f_{\sigma(j)} \Rightarrow i \leq j\]
 
 \begin{thm}
-Let $f'=(f_{\sigma(0)},f_{\sigma(1)},f_{\sigma(2)},...)$ be a permutation of the events of $f$ that is consistent with the casual order. Then $f$'defines a unique execution $F'$ starting in the execution of $F$. $F'$ has as many events as $F$, and if $F$ is finite, then $F'$ has the same last configuration.
+Let $f'=(f_{\sigma(0)},f_{\sigma(1)},f_{\sigma(2)},...)$ be a permutation of the events of $f$ that is consistent with the causal order. Then $f$'defines a unique execution $F'$ starting in the execution of $F$. $F'$ has as many events as $F$, and if $F$ is finite, then $F'$ has the same last configuration.
 \end{thm}
 
 Executions $F$ and $F'$ have the same collection of events, and the causal order of these events are the same. We say that execution $F$ and $F'$ are equivalent, and we denote $F\sim F'$.
@@ -179,7 +179,7 @@ Wave algorithms cover broadcasting, synchronisation, compute some global functio
 \begin{itemize}
 \item Topology is fixed (no communication link will appear during the execution of the algorithm)
 \item Communication links/channels are undirected: for two processes $p$ and $q$, if $p$ can send a message to $q$, then $q$ can send a message to $p$.
-\item the set of processes is connected: $\forall p,q \in \mathbb{P}$, there is a path from $p$ to $q$, where $\mathbb{P}$ is the set of processes and $E$ a set of communication channels/links
+\item Connected set of processes: $\forall p,q \in \mathbb{P}$, there is a path from $p$ to $q$, where $\mathbb{P}$ is the set of processes and $E$ a set of communication channels/links
 \item Asynchronous messages
 \item No global link
 \end{itemize}
@@ -195,7 +195,7 @@ A wave algorithm is a distributed algorithm that satisfies 3 properties:
 \begin{enumerate}
 \item Termination: each computation $C$ is finite, i.e. $|C|<+\infty$
 \item Decision: each computation contains at least one decide event, i.e. $\forall C, \exists e \in C$, $e$ is a decide event
-\item Dependence: in each computation, \emph{each} decide event is causally preceded by an event of \emph{each} process, i.e. $\forall C, \forall e\in C : \text{$e$ is a decide event } \Rightarrow \forall p \in \mathbb{P}, \; \exists f \in C_p,\; f\preceq e$ where $C_p$ is the set of events of computation $C$ happening on process $p$)
+\item Dependence: in each computation, \emph{each} decide event is causally preceded by an event of \emph{each} process, i.e. $\forall C, \forall e\in C : \text{$e$ is a decide event } \Rightarrow \forall p \in \mathbb{P}, \; \exists f \in C_p,\; f\preceq e$ where $C_p$ is the set of events of computation $C$ happening on process $p$
 \end{enumerate} 
 \end{defi}
 
@@ -237,7 +237,7 @@ Let $C$ be a wave with one initiator $p$, then for each non-initiator $q$, let $
 \end{lemma}
 
 \begin{proof}
-wave $\Rightarrow$ at least one decide event $\Rightarrow$ at least one event in each process $\Rightarrow$ all processes (except maybe $p$) have received at least one message $\Rightarrow$  $father_q$ was defined for all $q\in \mathbb{P} \smallsetminus \{p\}$ we have exactly $N-1$ edges ($N=|P|-1$). We must show that there is no cycle in the graph. By definition, if $(q,father_q)\in E_T$, then $father_q \prec q$ $\Rightarrow$ no cycle possible.
+wave $\Rightarrow$ at least one decide event $\Rightarrow$ at least one event in each process $\Rightarrow$ all processes (except maybe $p$) have received at least one message $\Rightarrow$  $father_q$ was defined for all $q\in \mathbb{P} \smallsetminus \{p\}$, so we have exactly $N-1$ edges ($N=|P|-1$). We must show that there is no cycle in the graph. By definition, if $(q,father_q)\in E_T$, then $father_q \prec q$ $\Rightarrow$ no cycle possible.
 \end{proof}
 
 \begin{lemma}
@@ -245,8 +245,8 @@ Let $C$ be a wave and $d_p \in C$, $d_p$ being a decide event. Then $\forall q \
 \end{lemma}
 
 \begin{proof}
-Let $q \neq p$ be any process. By definition of wave algorithms, there exists an event $g \in C_q$ such that $q\preceq d_p$. We consider on (arbitrary chosen) causality path(?) between $g$ and $d_p$.
-$g=g_0 \prec g_1 \prec g_2 \prec ...\prec g_n = d_p \quad g_0\in C_q$. We consider the last event in $g_0,...,g_{n-1}$ that is an event of $q$ (say $g_i$). $g_i\in C_q, g_{i+1} \notin C_q \Rightarrow g_i$ is a send event.
+Let $q \neq p$ be any process. By definition of wave algorithms, there exists an event $g \in C_q$ such that $g\preceq d_p$. We consider an (arbitrary chosen) causality path between $g$ and $d_p$.
+$g=g_0 \prec g_1 \prec g_2 \prec ...\prec g_n = d_p, \quad g_0\in C_q$. We consider the last event in $g_0,...,g_{n-1}$ that is an event of $q$ (say $g_i$). $g_i\in C_q, g_{i+1} \notin C_q \Rightarrow g_i$ is a send event.
 \end{proof}
 
 \subsubsection{Lower bounds on the complexity of waves}

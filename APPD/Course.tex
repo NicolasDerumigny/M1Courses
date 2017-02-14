@@ -332,7 +332,7 @@ And we need only a sufficient condition.
 \end{proof}
 
 \paragraph{Constructing schedule}
-We use the property that the dependence vector is lexicographically positive. Assume matrix $D$ is sorted in lexicographic order. Let $k_1$ be the first non-null component of $d_1$. $\pi_{k_1}=1$ and $\pi_{k_{2}+1}=...=\pi_n=0$.
+We use the property that the dependence vector is lexicographically positive. Assume matrix $D$ is sorted in lexicographic order. Let $k_1$ be the first non-null component of $d_1$. Set $\pi_{k_1}=1$, and $\pi_{k_{1}+1}=...=\pi_n=0$.
 
 For all dependence vectors $d_1,...,d_j$ whose first non-null component is $k_1$, we have $\pi \cdot d_l \geq 1\quad (q\leq l \leq j)$.
 
@@ -363,11 +363,11 @@ D&=\begin{pmatrix}
 \end{pmatrix}\\
 \pi_2 & = 1\\
 1\star \pi_1-6&\geq 1\\
-1\star \pi_1 - 4 &\geq 1 \Leftrightarrow \pi_1 \geq 7, \pi_1 = 7 \quad \begin{pmatrix}
+1\star \pi_1 - 4 &\geq 1 \qquad \Leftrightarrow \pi_1 \geq 7, \pi_1 = 7 \quad \begin{pmatrix}
 7\\1\\
 \end{pmatrix}\\
-1\star \pi_1 + 5 &\geq 1
-\pi = \begin{pmatrix}
+1\star \pi_1 + 5 &\geq 1\\
+\pi& = \begin{pmatrix}
 x\\y\\
 \end{pmatrix}\\
 \pi \cdot d &\geq 1\\
@@ -389,7 +389,7 @@ Makespan:
 \begin{align*}
 T_{\sigma_\pi} &= 1 + \max_{p\in Dom} \{ \sigma_\pi (p)\} - \min_{p \in Dom} \{\sigma_\pi\}\\
 &= 1 + \max_{0\leq i,j \leq N} \{ \lfloor xi+yj \rfloor)\} - \min_{0\leq i,j \leq N} \{\lfloor xi+yj \rfloor\}\\
-&= 1 + \lfloor xN+yN\rfloor\\
+&= 1 + \lfloor xN+yN\rfloor - 0\\
 \end{align*}
 
 We want to minimize the makespan, so we want to minimize

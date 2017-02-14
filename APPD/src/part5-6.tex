@@ -16,7 +16,7 @@ Original algorithm is sequential.
 
 
 Total ordering of the tasks:
-\[T_{1,1} <_{seq} T_{1_2} <_{seq} T_{1,3} <_{seq} ... <_{seq} T_{1,n} <_{seq} T_{2,2} <_{seq} 2,3 <_{seq} ... <_{seq} T_{n,n}\]
+\[T_{1,1} <_{seq} T_{1,2} <_{seq} T_{1,3} <_{seq} ... <_{seq} T_{1,n} <_{seq} T_{2,2} <_{seq} T_{2,3} <_{seq} ... <_{seq} T_{n,n}\]
 
 Some parallelism: $T_{1,2}$ and $T_{1,3}$ are independent.
 
@@ -27,23 +27,27 @@ Condition for two tasks $T$ and $T'$ to be a dependence relation:
 \item $Out(T)$: the set of variable written by task $T$
 \end{itemize}
 
-$T$ and $T'$ are independent ($T \perp T'$)
+$T$ and $T'$ are not independent ($T \perp T'$)
 
 \[T \perp T' \Leftrightarrow
 \begin{cases}
 In(T)\cap Out(T')\neq \emptyset & \text{or}\\ 
 Out(T)\cap In(T') \neq \emptyset &\text{or}\\
-Out(T)\cap Out{T'} \neq 0
+Out(T)\cap Out(T') \neq \emptyset
 \end{cases}
 \]
 
 We define a partial order $\prec$ by:\\
 if $T\perp T'$ and $T<_{seq} T'$ then $T\prec T'$
+\bigskip
+
 
 $\prec$ is $(<_{seq}\cap \perp)^+$ (transitive closure)
+\bigskip
+
 
 Representation of dependencies with a graph:
-\[G=(\underbrace{V}_{\text{set of tasks}},\underbrace{E}_{oriented edges})\]
+\[G=(\underbrace{V}_{\text{set of tasks}},\underbrace{E}_{\text{oriented edges}})\]
 With
 \begin{align*}
 e=(T,T')\in E & \Leftrightarrow T \prec T'\\
@@ -66,14 +70,14 @@ Where:
 
 \begin{defi}
 A schedule of a task graph $G(V,E,\omega)$ is a function
-$\sigma : V\to \mathbb{N}$ such that if $e=(u,v) \in E$ then $\sigma (u) + \omega (v) \leq \sigma (v)$. $\sigma$:starting time of the tasks.
+$\sigma : V\to \mathbb{N}$ such that if $e=(u,v) \in E$ then $\sigma (u) + \omega (v) \leq \sigma (v)$. $\sigma$: starting time of the tasks.
 \end{defi}
 
 If we have a limited number $p$ of processor (if $p<|v|$), $alloc$: $v\to \{1,...,p\}$ states on which processor a task is executed.
 
 \[alloc(u) = alloc (v) \Leftrightarrow 
 \begin{cases}
-\sigma(u) + \omega{v} \leq \sigma(v) & \text{or}\\
+\sigma(u) + \omega(v) \leq \sigma(v) & \text{or}\\
 \sigma(v) + \omega(v) \leq \sigma(u)
 \end{cases}\]
 
@@ -112,7 +116,7 @@ $\omega : V \to \mathbb{N}^*$. We extend it on paths $\Phi : T_1,T_2,...,T_k$ wh
 \begin{prop}
 Let $G=(V,E,\omega)$ be a DAG (directed acyclic graph) and $\sigma$ a schedule for $G$ with $p$ processors.
 
-Then $MS(\sigma, p)\geq \omega (\Phi) \geq \omega (\Phi)$ for all paths $\Phi$ in $G$.
+Then $MS(\sigma, p)\geq \omega (\Phi)$ for all paths $\Phi$ in $G$.
 \end{prop}
 
 \begin{proof}
@@ -130,7 +134,7 @@ Sum for $i$ to $d-1$:
 $G=(V,E,\omega)$, $\sigma$ on $p$ procc.
 \begin{enumerate}
 \item Speedup ratio:
-\[s(\sigma, p)=\frac{seq}{MS(\sigma,p)} = \frac{\sum_{v\in V} \omega (v)}{MS(\sigma,p)}\]
+\[s(\sigma, p)=\frac{T_{seq}}{MS(\sigma,p)} = \frac{\sum_{v\in V} \omega (v)}{MS(\sigma,p)}\]
 \item Efficiency:
 \[e(\sigma, p)=\frac{s(\sigma, p)}{p} = \frac{\sum_{v\in V} \omega (v)}{p.MS(\sigma,p)}\]
 \end{enumerate}
@@ -138,7 +142,7 @@ $G=(V,E,\omega)$, $\sigma$ on $p$ procc.
 
 
 \begin{thm}
-Let $G=(V,E,\omega)$ for any schedule $G$ on $p$ process $0\leq e(\sigma, p) \leq 1$
+Let $G=(V,E,\omega)$ be a task graph. Then for any schedule $G$ on $p$ processors, $0\leq e(\sigma, p) \leq 1$
 \end{thm}
 
 \begin{proof}
@@ -150,7 +154,7 @@ Let $G=(V,E,\omega)$ a task graph.
 \[seq=MS_{opt}(1)\geq ... \geq MS_{opt}(n)\]
 \end{thm}
 
-Let $MS'(p)$ be the minimum makespan of all schedule that use exactly $p$ processors. Then for all $1\leq p \leq |V| \; MS'(p)=MS_{opt}(p)$, because there is no communication (implicit hypothesis).
+Let $MS'(p)$ be the minimum makespan of all schedule that use exactly $p$ processors. Then for all $1\leq p \leq |V|, \; MS'(p)=MS_{opt}(p)$, because there is no communication (implicit hypothesis).
 
 
 
@@ -357,10 +361,10 @@ Macro-dataflow model: let two tasks $T$ and $T'$ with $T \to T'$ ($\to$ meaning 
 \item If $alloc(T)\neq alloc(T')$, then there is some communication cost $= c(T,T')$: does not depend on the choice of $alloc(T)$ and $alloc(T')$.
 \end{itemize}
 
-\paragraph{Assumptions (implicit ones}
+\paragraph{Assumptions (implicit ones)}
 \begin{itemize}
 \item Complete graph
-\item There are no contention between communications, i.e. the time of the communication is the same if there is one or $n$ simultaneous input communications for a unique processor ($\simeq$ infinite input bandwidth)
+\item There are no contention between communications, i.e. the time of the communication is the same if there is 1 or $n$ simultaneous input communications for a unique processor ($\simeq$ infinite input bandwidth)
 \end{itemize}
 
 \paragraph{Scheduling and communications:} A communication DAG in a four-uplet $G=(V,E,\omega,c)$ with:
@@ -494,11 +498,14 @@ max_{out}&=\max_{\substack{v\in Succ(v)\\\mathcal{C}(u)\neq\mathcal{C}(v)}} \{ b
 \end{align*}
 \end{itemize}
 
-I behave as if $I$ had an infinite number of processors.
+
+\paragraph{WARNING (!!!!!):} In the case of $\{T_3,T_4,T_5\}$ with $T_3 \to T_4$ and $T_3 \to T_5$, to compute the $EPT$, we need to sequentialize $T_4$ and $T_5$ (add virtual edge) because in the end they are going to be executed on the same processor.
+
+We behave as we have an infinite number of processors.
 
 \subsubsection*{Kim and Browne linear clustering}
 \begin{itemize}
-\item Take one longest dependence path in the graph; define a cluster from it; obtain a new cluster $\mathcal{C}'$; keep $\mathcal{C}'$ if and only if $EPT(\mathcal{C})\leq EPT(\mathcal{C})$
+\item Take one longest dependence path in the graph; define a cluster from it; obtain a new cluster $\mathcal{C}'$; keep $\mathcal{C}'$ if and only if $EPT(\mathcal{C'})\leq EPT(\mathcal{C})$
 \item Iterate with the remainder of the graph
 \end{itemize}
 
@@ -508,9 +515,6 @@ I behave as if $I$ had an infinite number of processors.
 \item Sort edges by non-increasing communication costs
 \item For each edge on that order, merge the clusters containing the two extremities of the edges if this does not increase the $EPT$ (initialise $\mathcal{C}_0=\{\{T_1\},...,\{T_n\}\}$).
 \end{itemize}
-
-
-In the case of $\{T_3,T_4,T_5\}$ with $T_3 \to T_4$ and $T_3 \to T_5$, to compute the $EPT$, we need to sequentialize $T_4$ and $T_5$ (add virtual edge) because in the end they are going to be executed on the same processor.
 
 \subsubsection*{Dominant Sequence clustering} 
 \begin{itemize}
