@@ -1,0 +1,234 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+ 
+\usepackage{caption}
+%\usepackage{pgfplots}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{footnote}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{multirow}
+\usepackage{amsfonts}
+\usepackage[boxed,linesnumbered,noend]{algorithm2e}
+\usepackage{qcircuit}
+\usepackage{enumerate}
+
+\newtheorem{thm}{Theorem}
+\newtheorem{prop}{Propriety}
+\newtheorem{lemma}{Lemma}
+\newtheorem{defi}{Definition}
+\newtheorem{coro}{Corollary}
+
+
+
+\setlength{\oddsidemargin}{0pt}
+% Marge gauche sur pages impaires
+\setlength{\evensidemargin}{0pt}
+% Marge gauche sur pages paires
+\setlength{\textwidth}{470pt}
+% Largeur de la zone de texte 
+\setlength{\topmargin}{0pt}
+% Pas de marge en haut
+\setlength{\headheight}{13pt}
+% Haut de page
+\setlength{\headsep}{10pt}
+% Entre le haut de page et le texte
+\setlength{\footskip}{40pt}
+% Bas de page + séparation
+\setlength{\textheight}{630pt}
+% Hauteur de la zone de texte
+
+\title{Machine Learning}
+\author{Marc Sebban \& Amaury Habrard\\
+\small LaHC}
+\date{}
+
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+
+
+\section{What is Machine Learning?}
+Machine Learning aims at knowing how to make algorithms that can \emph{learn} from data. They are divided in two category:
+\begin{itemize}
+\item Supervised learning, subdivided into 
+\begin{itemize}
+\item Classification: predict a yes/no answer
+\item Regression: predict a continuous value, such as the price of a house
+\item Ranking: output the "most relevant" data
+\end{itemize}
+The aim is to predict fro labelled data
+\item Unsupervised learning, subdivided into 
+\begin{itemize}
+\item Clustering
+\item Dimensionality Reduction
+\end{itemize}
+The aim is to find the underlying structure of unlabelled data
+\end{itemize}
+
+\paragraph{Possible Applications}
+Computer Vision, Robotics, Speech Recognition, Artificial Intelligence
+
+\paragraph{Required Skills}
+\begin{itemize}
+\item Convex Optimization
+\item Algorithm: Asymptotic behaviour
+\end{itemize}
+
+We will mainly use SVM (Support Vector Machine), that deals with classification problems. They use the \emph{kernel trick}, which is projection of the data on a high-dimensional space (potentially infinite) where the data becomes linearly separable.
+
+\section{Supervised learning problem}
+\subsection{Notations}
+\begin{itemize}
+\item Let $S =\{ z_i = (\mathbf{x_i},y_i)\}^m_{i=1}$ be a set of $m$ training examples i.i.d. from an unknown joint distribution $\mathcal{D}_{\mathcal{Z}}$ over a space $\mathcal{Z} = \mathcal{X} \times \mathcal{Y}$
+
+\item The $\mathbf{x_i}$ values ($\mathbf{x_i} \in \mathcal{X}$) are typically vectors in $\mathbb{R}^d$ whose components are usually called \emph{features}.
+
+\item The $y$ values ($y \in \mathcal{Y}$) are drawn from a discrete set of \emph{classes/labels} (typically $\mathcal{Y}=\{-1,+1\}$ in \emph{binary classification}) or are continuous values (\emph{regression})
+
+\item We assume that there exists a \emph{target function} $f$ such that $y=f(\mathbf{x}), \; \forall (\mathbf{x},y) \in \mathcal{X} \times \mathcal{Y}$.
+\end{itemize}
+
+\begin{defi}
+A supervised learning algorithm $L$ automatically outputs from $S$ a model or a classifier (or a hypothesis) $h\in \mathcal{H}$ as close to $f$ as possible.
+\end{defi}
+
+\subsection{Curse of dimensionality - Overfitting - Underfitting}
+The number of training example is very important! Sadly, as the number of features or dimension grows, the amount of data (i.e. examples necessary to learn) grows exponentially: it is the \emph{curse of dimensionality}.
+
+To avoid this problem, we can:
+\begin{itemize}
+\item pre-process the data into a lower dimensional space
+\item regularize the underlying optimization problem at running time
+\end{itemize}
+
+This issue is very closed to \emph{overfitting}.
+
+
+\begin{defi}[Overfitting]
+In statistics, \emph{overfitting} occurs when a model is excessively complex, such as having too many degrees of freedom (e.g. polynomial of high order) with respect to the amount of data available $\to$ use a \emph{regularization}.
+\end{defi}
+
+\begin{defi}[Underfitting]
+\emph{Underfitting} occurs when a statistical model or machine learning algorithm cannot capture the underlying trend of the data.
+\end{defi}
+\bigskip
+
+To pick the best hypothesis $h^*$, we need a criterion to assess the quality of $h$. Given a non-negative loss function $\mathcal{l} : \mathcal{H} \times \mathcal{Z} \to \mathbb{R}^+$ measuring the degree of agreement between $h(\mathbf{x})$ and $y$, we can define the \emph{tree risk}.
+
+\begin{defi}[True Risk]
+The true risk $\mathcal{R}^{\ell}(h)$ (also called \emph{generalization error}) of a hypothesis $h$ with respect to a loss function $\ell$ corresponds to the expected loss suffered by $h$ over the distribution $\mathcal{D}_{\mathcal{Z}}$.
+
+\[\mathcal{R}^{\ell}(h)=\mathbb{E}_{\mathcal{Z}\sim \mathcal{D}_{\mathcal{Z}}} \ell(h,z)\]
+\end{defi}
+
+
+Unfortunately, $\mathcal{R}^\ell(h)$ cannot be computed as $\mathcal{D}_\mathcal{Z}$ is unknown, so we try to minimise the \emph{empirical risk} $\hat{\mathcal{R}}^\ell$, a statistical measure of the true risk over $S$.
+
+\begin{defi}[Empirical Risk]
+Let $S = \{ z_i = (\mathbf{x_i},y_i))\}_{i=1}^m$ be a training sample. The empirical risk $\hat{\mathcal{R}}^{\ell}$ (also called empirical error) of a hypothesis $h\in \mathcal{H}$ with respect to a loss
+function ` corresponds to the expected loss suffered by $h$ on $S$.
+\[\hat{\mathcal{R}}_\ell(h)= \frac{1}{m} \sum_{i=1}^m \ell (h,z_i)\]
+\end{defi}
+
+\begin{defi}[0/1 loss]
+The most natural loss function for binary classification is the 0/1 loss (also called classification error)
+\[\ell_{0/1}(h,z)=1 \qquad\text{if $yh(x)<0$ and 0 otherwise} \]
+$\mathcal{R}^{\ell_{0/1}}$ then corresponds to the proportion of correct predictions.
+\end{defi}
+
+
+\paragraph{Warning}
+Due to the non convexity and non differentiability of the 0/1 loss, minimizing the empirical risk is NP-hard. For this reason, we use surrogate loss functions such that:
+\begin{itemize}
+\item \emph{Hinge loss} (used in SVM): $\ell_{hinge}(h,z) = \max (0,1-yh(x))$
+\item \emph{Exponential loss} (used in boosting): $\ell_{exp}(h,z)=e^{-yh(x)}$
+\item \emph{Logistic loss} (used in logistic regression): $\ell_{log}(h,z)=\ln (1+e^{-yh(x)})$
+\end{itemize}
+
+\subsection{Regularized Risk Minimization}
+To prevent the algorithm from overfitting, a supervised learning problem often take the following regularized form:
+\[\min_{h\in \mathcal{H}} \hat{\mathcal{R}}^\ell (h) + \lambda ||h||_p\]
+
+Where $\lambda$ is a constant penalizing "too complex" models, and $||.||_p$ a $\ell_p$-norm over the classifier $h$.
+
+\begin{defi}[$\ell_p$-norm]
+If $\theta$ is a $d$-dimensional vector:
+\[||\theta||_p = \left( \sum_{i=1}^d |\theta_i |^p \right)^{\frac{1}{p}}\]
+\end{defi}
+
+The $\ell_2$-norm is used to reduce the risk of overfitting (it decreases the large values of the model), and the $\ell_1$ also allows the induction of sparse models - i.e. with less features (example: LASSO or $\ell_1$-SVM).
+
+\paragraph{Remark}
+Increasing $\theta$ with the $\ell_1$-norm causes more and more of the parameters $\theta_j$ to be driven to zero. The gradient on the $\ell_1$-norm is constant w.r.t. the magnitude of each vector component.
+
+\paragraph{Downside}
+The $l_1$-norm is not differentiable.
+\bigskip
+
+\subsection{Bias/Variance trade-of}
+There are three sources of error between $h\in \mathcal{H}$ and the target function $f\in \mathcal{F}$:
+\begin{enumerate}
+\item The inductive bias: nothing guarantees the equality between the target concept space $\mathcal{F}$ and the selected class of hypotheses $\mathcal{H}$, even if the learner is able to provide an optimal hypothesis $h^*$ from $\mathcal{H}$.
+\item The variance: since the training set $S$ is finite and randomly drawn from $\mathcal{D}_{\mathcal{Z}}$, the learner usually does not provide the optimal hypothesis $h^*$.
+\item The presence of noise: some training examples can be mislabelled. The
+learner receives a training set of a "noisy" function $f_b = f + \varepsilon$.
+\end{enumerate}
+
+The Bias/Variance trade-off comes from the Mean Square Error (MSE), in statistics: 
+
+\begin{defi}[MSE]
+Let $\theta$ a theoretical parameter ($\mathcal{R}(h)$ in our case) and $\hat{\theta}$ an estimate of $\theta$ ($\hat{\mathcal{R}}(h)$ in our case). Let $B=\mathbb{E}(\theta) - \theta$ be the bias of $\hat{\theta}$ w.r.t. $\theta$. The MSE assesses the quality of $\theta$ in terms of its variation and unbiasedness. It is the expected value of the square loss between $\hat{\theta}$ and $\theta$.
+\begin{align*}
+MSE & = \mathbb{E}_z [(\hat{\theta}-\theta)^2]\\
+&= \mathbb{E}_z[(\hat{\theta}-\mathbb{E}(\hat{\theta}) + \mathbb{E}(\hat{\theta})- \theta)^2]\\
+&= \mathbb{E}_z[(\hat{\theta}-\mathbb{E}(\hat{\theta}) + B)^2]\\
+& = \mathbb{V}(\hat{\theta}) + B^2
+\end{align*}
+\end{defi}
+
+
+\subsection{Statistical learning theory}
+\begin{defi}[Empirical Risk Minimization]
+The ERM principle rests on the fact that if $h$ works well on the training set $S$ it might also work well on new examples.
+\end{defi}
+
+\begin{defi}[Probably Approximately Correct (PAC) Condition][Valiant 1984]
+The ERM principle is valid if the true risk of the hypothesis $h \in \mathcal{H}$ induced from $S$ is closed to the true risk of the optimal hypothesis $h^* \in \mathcal{H}$
+\begin{align*}
+h &= \arg \min_{h_i \in \mathcal{H}} \hat{\mathcal{R}}(h_i)\\
+h^* &= \arg \min_{h_i\in \mathcal{H}} \mathcal{R}(h_i)
+\end{align*}
+
+Condition of validity of the ERM principle:
+\[\forall \mathcal{D}_\mathcal{Z}, \forall \gamma \geq 1, \forall \delta \leq 1, \mathbb{P}(|\mathcal{R}(h)=\mathcal{R}(h^*)|\geq \gamma) \leq \delta\]
+\end{defi}
+
+\begin{defi}[Bayesian error]
+The bayesian error $\epsilon^*$ is the lowest possible error rate (or irreducible error) for any hypothesis $h$.
+\[\epsilon^8 = \int_{x\in R_i \text{ s.t. }y\neq C_i} \mathbb{P}(C_i|x)\mathbb{P}(x)dx\]
+where $x$ is an instance, $y$ its corresponding label, $R_i$ is the area/region that a classifier function $h$ classifies as $C_i$.
+\end{defi}
+
+
+\paragraph{Remark}
+In many application, $\epsilon^* >0$, and as $S$ is finite, selecting the optimal $h$ does not imply getting the optimal hypothesis $h^*$.
+\bigskip
+
+
+The law of large numbers
+%TODO
+
+
+\end{document}

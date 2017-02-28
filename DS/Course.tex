@@ -76,6 +76,100 @@ Lists are not strongly typed, tuples are like python's
 
 In Erlang, there is no overwriting of the variables (cannot affect them a new value).
 
+\section{Algorithm for Distributed System}
+\subsection{Modelization}
+\begin{defi}[Transition relation]
+Let $S=(\mathcal{C},\to,\mathcal{I})$ be a transition system. An execution of $S$ is a \emph{maximal sequence} $E=(\gamma_0,\gamma_1,...,\gamma_n)$
+%TODO
+\end{defi}
+
+
+\begin{defi}[Terminal configuration]
+A \emph{terminal configuration} is a configuration $\gamma$ for which there is no $\delta$ such that $\gamma \to \delta$. Note that a sequence $E=(\gamma_0,\gamma_1,\gamma_2,...)$
+%TODO
+\end{defi}
+
+$\to$ this notion is very tricky in parallel programming, as it is difficult to know whether all the executions are finished or not. 
+
+\begin{defi}
+A configuration $\delta$ is \emph{reachable} from $\delta$ (notation $\delta \rightsquigarrow \gamma$), if there exist a sequence $\gamma=\gamma_0,\gamma_1,\gamma_2,...,\gamma_k$ with $\gamma_i \to \gamma_{i+1}$ for all $0\leq i <k$. Configuration $\delta$ is reachable if it is reachable from an initial configuration.
+\end{defi}
+
+
+\begin{defi}[System with Asynchronous Message Passing]
+Cf APPD course
+\end{defi}
+
+
+\subsection{Fairness}
+\begin{defi}
+An execution is \emph{weakly fair} if no event is applicable in infinitely many consecutive configurations without occurring in the execution
+\end{defi}
+
+
+\begin{defi}
+An execution is \emph{strongly fair} if no event is applicable in infinitely many configuration without occurring in the execution.
+\end{defi}
+
+
+\subsection{Network topology}
+Many topology exists, including :
+\begin{itemize}
+\item Ring
+\item Tree
+\item Hypercube
+\item Star
+\item Clique
+\end{itemize}
+
+You can "change the topology" of your network to adapt and algorithm, for example taking a star sub-graph of a clique.
+
+
+\subsection{How to write a distributed algorithm?}
+\begin{itemize}
+\item A specific code for a specific node (or family of node)
+\begin{itemize}
+\item The sender code and the receiver code
+\item The initial code and the non-initial code
+\end{itemize}
+\item One code for all
+\begin{itemize}
+\item The same code is executed on each node
+\item A requirement can switch to the right code for a node
+\end{itemize}
+\end{itemize}
+
+Use label to separated the code between initiators, non-initiator or reception of a specific message (for example stopping the execution).
+
+\paragraph{Warning}
+The execution flow is not clear: there is no assumption about the label selected for the execution (it is randomly chosen), so the algorithm must run for all the chosen labels for al the processors in the current state.
+
+It is useful to try to find an incorrect workflow to test whether the algorithm is correct.
+
+No assumptions must be made on the execution time (especially linking synchronization with the size of the code)!
+
+
+\section{Communication protocols}
+\paragraph{Example} Write an algorithm to exchange informations between both process
+
+%TODO make this nicer (custom command)
+\begin{algorithm}
+vars:\\
+data$_{in}$=N\\
+data$_{recv}=-1$\\
+is\_sent = -1\\
+Label$_1$\{is\_sent==1\}\\
+begin\\
+send $\langle$msg,data$_{in}\rangle$
+is\_sent=0\\
+end\\
+Label$_{2}$\{receive $\langle$msg,i$\rangle$\}\\
+begin\\
+data$_{recv}$=i
+end\\
+\end{algorithm}
+
+
 
 
 \end{document}

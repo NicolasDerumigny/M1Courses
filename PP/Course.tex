@@ -131,7 +131,7 @@ $\to_\beta$ is a binary relation on lambda-terms $\Rightarrow$ idea of computati
 Pick a \emph{fresh} variable, let say $z$,
 \[a\subst{z}{x} =_\alpha b\subst{z}{y}\]
 
-\emph{All the results and proofs will be done under the quotient implied by the $\alpha$-equivalence}
+\emph{All the results and proofs will be done up to  $\alpha$-equivalence (no difference made between $\lambda x.x$ and $\lambda y.y$).}
 \section{A toolbox on $\lambda$-calculus}
 Let $\mathcal{X}$ be a measurable set of variables, ranged over by $x,y,z,...$
 
@@ -156,7 +156,7 @@ A term $e$ is \emph{closed} if $FV(e)=\emptyset$
 \begin{defi}[Substitution]
 Given $x \in \mathcal{X}$, $a\in \Lambda$, the substitution of (all the) occurrences of $a$ in $e\in \Lambda$, denoted $e\subst{a}{x}$ is:
 \begin{itemize}
-\item if $y\in \mathcal{X} \setminus,\; \{x\}, \; y\subst{a}{x}\equiv y $ and $x\subst{a}{x}\equiv a$
+\item if $y\in \mathcal{X} \setminus \{x\}, \; y\subst{a}{x}\equiv y $ and $x\subst{a}{x}\equiv a$
 \item $(\lambda y.e)\subst{a}{x} = \lambda y.e \subst{a}{x}$
 \item $(e\; f)\subst{a}{x} = (e\subst{a}{x})\; f\subst{a}{x} $
 \end{itemize}
@@ -172,7 +172,7 @@ Given $x \in \mathcal{X}$, $a\in \Lambda$, the substitution of (all the) occurre
 \paragraph{Example}
 \begin{enumerate}
 \item \begin{align*}
-(\underbrace{\lambda x. (\lambda y.y)\; a}_{\nrightarrow_\beta (\lambda x.(\lambda y.y))\; b})\; b) \to_\beta ((\lambda y.y)\; a)\;\subst{b}{x} & \equiv ((\lambda y.y)\;\subst{b}{x})a\subst{b}{x}\\
+(\underbrace{\lambda x. (\lambda y.y)\; a}_{\nrightarrow_\beta (\lambda y.y)\; b})\; b) \to_\beta ((\lambda y.y)\; a)\;\subst{b}{x} & \equiv ((\lambda y.y)\;\subst{b}{x})a\subst{b}{x}\\
 & \equiv (\lambda y.y)\; a\subst{b}{x}
 \end{align*}
 
