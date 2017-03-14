@@ -16,7 +16,7 @@
 \usepackage{mathrsfs}
 \usepackage{multirow}
 \usepackage{amsfonts}
-\usepackage[boxed,linesnumbered,noend]{algorithm2e}
+\usepackage[boxed,linesnumbered]{algorithm2e}
 \usepackage{qcircuit}
 \usepackage{enumerate}
 
@@ -227,8 +227,292 @@ In many application, $\epsilon^* >0$, and as $S$ is finite, selecting the optima
 \bigskip
 
 
-The law of large numbers
+The law of large numbers prompts us to increase the size of the learning set and to search for the minimal size m that allows us to fulfil the PAC
+condition:
+\[\forall \mathcal{D}_{\mathcal{Z}}, \forall \gamma \geq 0, \forall \delta \leq 1, \exists m \text{ s.t. } \mathbb{P}(|\mathcal{R}(h_m)-\mathcal{R}(h^*)|\geq \gamma) \leq \delta\]
+Where $h_m$ is the hypothesis learnt from a training set of size $m$.
+
+
+\paragraph{Question} What is the conditions on the \emph{minimum number of required examples} for the empirical risk and the true risk of the induced hypothesis $h$ to converge towards the true risk of $h^*$ ?\\
+We will differentiate $|\mathcal{H}|$ finite and $|\mathcal{H}|$ infinite. 
+
+
+\subsubsection{When $|\mathcal{H}|$ is finite}
+
+
+%TODO : miss to page 44 to 53
+\subsubsection{When $|\mathcal{H}|$ is infinite}
+
+
+\paragraph{Remarks}
+On the VC theory.
+\begin{itemize}
+\item The only property that matters is the \emph{size of the hypothesis space} and not \emph{how the algorithm searches the space}
+
+\item Therefore, the VC theory is meaningful when the learning algorithm performs minimization of $\hat{\textsc{R}}(h)$ in the \emph{full hypothesis space}.
+\item It is \emph{useless for local algorithms}, like the $k$-NM which has an infinite $d_{\mathcal{H}}$.
+
+\item Two analytical frameworks to take into account the algorithm $L$ to derive generalization bounds: \emph{Uniform stability} and {Algorithmic robustness}. The goal is to bound:
+\[ \mathbb{P} (|\mathcal{R}(L, h_S ) - \hat{\mathcal{R}}(L, h_S)| \geq \gamma) \]
+which differs from what we studied before:
+
+\[ \mathbb{P} ( \sup_{h\in \mathcal{H}}|\mathcal{R}(h) - \hat{\mathcal{R}}(h)| \geq \gamma) \]
+\end{itemize}
+
+\subsection{Uniform stability}
+We only focus here on Uniform Stability.
+Variance versus Stability
+Statistical learning theory prompts us to reduce the variance
+without altering the bias.
+Having a low variance is equivalent to having high stability.
+How to relate the generalization error Rh to the stability of an
+algorithm L which induces h?
+Intuitively, an algorithm L is said stable if it is robust to small changes in
+the training sample, i.e., the variation in its output h is small.
+
+Given a training set $S$ of size $m$, we build $\forall i =1 ... m$:
+\begin{itemize}
+\item $S^{\setminus i}= \{ z_1,...,z_{i-1}, z_{i+1},...,z_m\}$ by removing the $i$-th element of $S$.
+\item $S^{i}= \{ z_1,...,z_{i-1},z_i',z_{i+1},...,z_m\}$ by replacing the $i$-th element by $z_i'$ drawn i.i.d. from $\mathcal{D}_{\mathcal{Z}}$.
+\end{itemize}
+
+
+\begin{defi}[Uniform stability][Bousquet and Elisseef][2002]
+An algorithm $L$ has uniform stability $\frac{\beta}{m}$ with respect to a loss function $\ell$ if the following holds:
+\[\forall S, \forall i \in \{1,...,m\}, \sup_{z} |\ell(h_S,z)-\ell(h_{S^{\setminus i}},z)|\leq \frac{\beta}{m}\]
+Where $\beta$ is a positive constant, $h_S$ and $h_{S^{\setminus i}}$ are the hypothesis learned by $L$ from $S$ and $S^{\setminus i}$ respectively.
+\end{defi}
+
+\begin{prop}[Generalisation bound using uniform stability]
+Let $S$ be a training sample of size $m$ and $\delta>0$. For any algorithm $L$ with uniform stability $\frac{\beta}{m}$ with respect to a loss function $\ell$ bounded by $M$, with probability $1-\delta$, we have:
+\[\mathcal{R}_{h_S}\leq \hat{\mathcal{R}}_{h_S}+\frac{2\beta}{m}+(4\beta+M)\sqrt{ \frac{ \ln \frac{1}{\delta}}{2m} }\]
+\end{prop}
+
+\begin{thm}[Kearns and Ron][1999]
+An algorithm $L$ having an hypothesis space of finite VC-dimension is stable in the sens that its stability is bounded by ots VC-dimension.
+\end{thm}
+
+\begin{coro}
+Using the stability as a complexity measure does not give worse bounds than using the VC-dimension.
+\end{coro}
+
+\begin{proof}Of Generalisation Bound.\\
+The proof is based on McDiarmid's Theorem (1989).
+\begin{thm}[][McDiarmid][1989]
+Let $S$ and $S^i$ defined as above, let $F : \mathcal{Z}^m \to \mathbb{R}$ be a function for which
+there exists constants $c_i (i = 1, ...,m)$ such that
+\[\sup_{s\in \mathcal{Z}^m,z_i'\in \mathcal{Z}}|F(S)-F(S^i)|\leq c_i\]
+
+then
+
+\[P_S(F(S)-\mathbb{E}[F(S)]\geq \gamma) \leq e^{-2\gamma^2/\sum_{i=1}^{m} c_i^2}\]
+
+\end{thm}
+Let's show that $F(S) = \mathcal{R}_{h_S}-\hat{\mathcal{R}}_{h_S}$ (for the sake of simplicity
+$F(S) = \mathcal{R} - \hat{\mathcal{R}}$) and $F(S^i ) = \mathcal{R}^i - \hat{\mathcal{R}}^i$ satisfy the previous condition.
+
+See more details in the slides
+%TODO : copy the proof :(
+\end{proof}
+
+%warning : second mistake in the slides : p63 its P_S[R-^R>\gamma + 2\beta/m] \leq ...
+
+
+\paragraph{How to find the stability constant?}
+When the learning problem takes the following form:
+\[\min_{h\in \mathcal{H}} \frac{1}{m} \sum_{i} \ell (h,z_i) + \lambda||h||^2_{\mathcal{F}}\]
+we can show [Bousquet and Elisseef 2002] that the stability constant is defined as follows:
+\[\beta \leq \frac{\sigma^2}{2\lambda}\]
+where $\sigma$ comes from the $\sigma$ admissibility of $\ell(h,z)=c(h(x),y)$ where $c$ is the associated cost function.
+
+\begin{defi}[$\sigma$-admissibility]
+A loss function $\ell$ is $\sigma$-admissible if the associated cost function $c(h(x),y)$ is convex with respect to its first argument and the following condition holds:
+\[\forall y_1,y_2 \in \mathcal{Z}, \forall y' \in \mathcal{Y}, |c(y_1,y')-c(y_2,y')|\leq \sigma |y_1-y_2|\]
+\end{defi}
+\paragraph{Examples: }
+See tutorial.
+
+\subsection{Model Selection}
+We saw that there is pften a trade-off between the bias and variance:  it is important not to choose a hypothesis that is either too simple (underfitting) or too complex (overfitting). Model selection algorithms provide a method that automatically makes the trade-off between bias and variance.
+
+\paragraph{Examples}
+\begin{enumerate}
+\item Linear regression: What degree of the polynomial do you need to select?
+\item $k$ nearest-neighbours: What is the right number $k$ of neighbours?
+\end{enumerate}
+
+
+\subsubsection*{Model Selection}
+How to choose the best hypothesis in $M$ ($M=\{h_1,h_2,...)$
+\begin{itemize}
+ \item Bad Idea: choose the onbe with the lowest training error $\hat{\mathcal{R}}(h)$ (risk of overfitting)
+ \item Good Idea: Hold-out $k$ cross-validation 
+ \end{itemize} 
+
+\begin{algorithm}
+\KwIn{A learning algorithm $L$ and a learning set $S$ of $m$ examples}
+\KwOut{An estimate $\hat{\mathcal{R}}'(h)$}
+Split $S$ randomly in $k$ subsets $S_1,...,S_k$ (if $k=m$, leave-one-out CV)\;
+\For{i=1 to k}{
+	Run $L$ on $S-S_i$ and induce classifier $h_i$\;
+}
+Deduce the estimate $\hat{\mathcal{R}}'(h)$ of the true risk s.t. $\hat{\mathcal{R}}'(h) =
+\frac{1}{k} \sum_{i=1}^{k} \hat{\mathcal{R}}(h_i)$ where $\hat{\mathcal{R}}(h_i)$ is the error of $h_i$ on $S_i$\;
+\caption{Hold-out $k$ cross-validation algorithm}
+\end{algorithm}
+
+\section{The Regression Problem}
+\subsection{Introduction}
+\paragraph{The Regression Problem}
+How to optimize the parameter of the hyperplane
+\[h_\theta (x) = \theta_1x_1 + \theta_2x_2 + \theta_3x_3 + \theta_0\]
+which fits the best the following set of training example $S$ ?
+
+\paragraph{Notations}
+\begin{itemize}
+\item $m$ is the number of training examples
+\item $x\in \mathbb{R}^n$ is the input feature vector of $n$ variables.
+\item $y$ is the output variable/target
+\item $(x,y)$ is the training example
+\item $(x^{(i)},y^{(i)})$ is the $i$-th training example
+\item $h$ is the hypothesis that maps from input $x$ to output $y$.
+\item $h(x)$ is of the linear form: $h(x)=\theta_0 + \theta_1x_1 + ... + \theta_nx_n$. For conciseness, we define $x_0=1$ so that 
+\[ h(x) = h_{\theta}(x) = \sum_{i=0}^n \theta^ix_i = \theta^T x \]
+Where $\theta=(\theta_0,...,\theta_n)\in \mathbb{R}^{n+1}$.
+\end{itemize}
+
+
+We aims at choosing the parameters $\theta$ so that the hypothesis $h$ will make accurate predictions.
+
+\begin{defi}[Non regularized Least Squares Problem]
+\[\min_{\theta} J(\theta) = \min_{\theta} \frac{1}{2m}\sum_{i=1}^m \Big( h_\theta(x^{(i)}) - y^{(i)}\Big)^2\]
+\end{defi}
+
+\subsection{Learning Algorithms}
+There exist three main solutions for minimizing $J(\theta)$:
+\begin{itemize}
+\item Batch Gradient Descent
+\item Stochastic Gradient Descent
+\item Closed-form solution
+\end{itemize}
+
+\paragraph{Basic Idea}
+Let us assume that $J(\theta)$ is differentiable:
+\begin{itemize}
+\item Start with some initialization of $\theta$ (e.g. $\vec{\theta} =0$ or some randomly
+chosen vector.)
+\item Update$\theta$'s values so that to reduce $J(\theta)$) (by computing partial
+derivatives of $J(\theta)$ w.r.t. $\theta$).
+\item Repeat the process till convergence to the minimum of $J(\theta)$
+\end{itemize}
+
+\paragraph{Update Rule}
 %TODO
+
+
+\paragraph{Remark}
+Note that with a slightly different initial starting point, you can end up to a completely different optimum. Fortunately,$J(\theta)$ is a \emph{quadratic function} with only \emph{one global optimum}.
+
+\paragraph{Update of the $i^{th}$ parameter of $\theta$}
+Cf slides for calculus
+We get the following update rule:
+\[ \theta_i := \theta_i - \alpha(h_\theta(x)-y)x_i\]
+
+\begin{algorithm}
+Initialized $\vec{\theta}$\;
+\Repeat{convergence (i.e. "stabilisation" of $J(\theta)$)}{
+	$\forall \theta_i$ of $\theta$, $\theta_i := \theta_i - \alpha\frac{1}{m}\sum_{j=1}^m(h_\theta(x)-y)x_i$
+}
+\caption{Batch Gradient Descending Algorithm}
+\end{algorithm}
+
+
+
+
+\paragraph{Remark}
+If $m$ is huge, then the batch gradient descent will perform at each step a huge summation, therefore we need another algorithm.
+
+\begin{algorithm}
+Initialized $\vec{\theta}$\;
+\Repeat{convergence (i.e. "stabilisation" of $J(\theta)$)}{\For{j=1 to m}{
+	$\forall \theta_i$ of $\theta$, $\theta_i := \theta_i - \alpha(h_\theta(x^{(j)})-y^{(j)})x_i^{(j)}$
+	}
+}
+\caption{Stochastic Descending Algorithm}
+\end{algorithm}
+
+\paragraph{Remarks}
+The Stochastic Gradient Descent is much faster, and start each update of $\theta$ with the first training example, then the second, ... . However, it won't converge exactly to the global minimum, even though it tends to wander around some regions close to the global minimum.
+
+\paragraph{Influence of the learning rate $\alpha$}
+For some specific examples, $J(\theta)$ may increase. This may occur in some situations where $\theta$ is large (``zigzag" effect). To prevent the parameters $\theta$'s from oscillating around the global minimum we can take a smaller learning rate.
+
+In most implementations, the learning rate is held constant. However, if you want to converge to ``a minimum" you can slowly decrease $\alpha$ over time, such that at iteration i we get:
+\[\alpha_i = \frac{C_1}{i+C_2}\]
+which means you're guaranteed to converge ``somewhere".
+
+
+\paragraph{Mini-batch gradient descent}
+A compromise between a batch gradient descent and a stochastic gradient descent, is to compute the gradient only on a (randomly selected) bunch of training examples (called a ``\emph{mini-batch}") at each step.
+
+It may result in smoother convergence, as the gradient computed at each step uses more training examples than in the stochastic setting.
+
+
+
+\paragraph{Closed-form Solution}
+We use massively the trace and its proprieties (Cf slides for details).
+The optimal solution, $\nabla_\theta J(\theta)\overset{\text{set}}{=} \vec{0}$ boils down to
+\[\theta = (X^TX)^{-1}X^Ty\]
+Where
+\[X= \begin{pmatrix}
+(x^{(1)})^T \\
+(x^{(2)})^T \\
+\vdots\\
+(x^{(n)})^T\\
+\end{pmatrix}
+\]
+
+\paragraph{Issues:}
+$(X^TX)^{-1}$ can be not invertible:
+\begin{itemize}
+\item Redundant features (linearly dependent) $\to$ perform a PCA (Principal Component Analysis)
+\item Too many features $\to$ delete some irrelevant features (feature selection algorithm)
+\end{itemize}
+
+\paragraph{Remarks}
+For complexity reasons, we prefer to use the gradient descent rather than the normal equation when $n$ is height.
+
+\subsection{Objective function in linear regression}
+The objective function used is
+\[ \min_{\theta}  \frac{1}{2m} \sum_{i=1}^m \Big(h_\theta (x^{(i)}) - y^{(i)} \Big)^2\]
+
+\begin{defi}[Likelihood]
+Let $x_1, x_2, ... x_m$ be a random set of $m$ i.i.d. observations, coming from an unknown
+
+\end{defi}
+
+So we use the quadratic loss because it is equivalent to maximising the likelihood assuming that there are i.i.d gaussian errors on the data
+
+%TODO : missing slides here
+
+%polynomial regression : equal to linear
+
+%Ridge regression
+
+%LASSO
+
+
+\subsection{Limitations of Linear Regression}
+Until now, we assumed that $y\in \mathbb{R}$ (continuous variable). Let us now assume that $y \in \{0,1\}$ (discrete variable).
+
+\[\text{predicting }y \simeq \text{ classification task}\]
+
+Sometimes, it will work, but it is actually a pretty bad idea.
+\bigskip	
+
+\paragraph{} Let us assume that $y\in \{0,1\}$ and $h_{\theta} \in [0,1]$. Let us define $h_\theta(x)$ as follows:
+\[h_{\theta}(x)=g(\theta^Tx)=\frac{1}{1+e^{-\theta^Tx}}\]
+where $g(z)=\frac{1}{1+e^{-z}}$ is the \emph{sigmoid (or logistic)} function.
 
 
 \end{document}

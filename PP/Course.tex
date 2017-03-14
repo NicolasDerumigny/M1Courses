@@ -19,6 +19,7 @@
 \usepackage[boxed,linesnumbered,noend]{algorithm2e}
 \usepackage{qcircuit}
 \usepackage{enumerate}
+\usepackage{bussproofs}
 
 \newtheorem{thm}{Theorem}
 \newtheorem{prop}{Propriety}
@@ -51,6 +52,8 @@
 \date{}
 
 \newcommand\subst[2]{\langle #1\big/#2\rangle}
+\newcommand\lterm[2]{\lambda #1. #2}
+\newcommand\tlambda[0]{$\lambda$}
 
 \begin{document}
 
@@ -132,7 +135,13 @@ Pick a \emph{fresh} variable, let say $z$,
 \[a\subst{z}{x} =_\alpha b\subst{z}{y}\]
 
 \emph{All the results and proofs will be done up to  $\alpha$-equivalence (no difference made between $\lambda x.x$ and $\lambda y.y$).}
+
+
 \section{A toolbox on $\lambda$-calculus}
+\emph{$\lambda$-calculus: Syntax and Semantics}, Herk Barendregt (1977)
+\bigskip
+
+
 Let $\mathcal{X}$ be a measurable set of variables, ranged over by $x,y,z,...$
 
 \begin{defi}
@@ -200,6 +209,397 @@ Let $a,b\in \Lambda$. $a\; \beta_0 \; b$ is defined by cases:
 \item $(u\; v)\; \beta_0 \; (u\;v')$ if $v\; \beta_0 \; v'$
 \end{itemize}
 \end{defi}
+
+\noindent\textit{Maintenant en français !}
+
+\paragraph{Remarque:} $\beta_0$ est réflexive.
+
+\begin{defi}
+La \emph{$\beta$-réduction} est la clôture transitive de $\beta_0$:
+\[\beta = \beta_0^* \]
+\end{defi}
+
+
+\paragraph{Remarque}
+Si $a,b \in \Lambda$, alors $a \; \beta \; b$ si il existe $n\geq 0$ et $(e_k)_{0\leq k \leq n}$ $\lambda$-termes tels que :
+\begin{itemize}
+\item $a=e_0$ et $b=e_n$
+\item pour tout $k<n$, $e_k \; \beta_0 \; e_{k+1}$
+\end{itemize}
+
+\begin{defi}
+Soit $\mathcal{R}$ une relation binaire sur $\Lambda$. On dit que $\mathcal{R}$ est \emph{$\lambda$-compatible} si elle satisfait les propriétés suivantes :
+\begin{itemize}
+\item $x\;\mathcal{R}\; x$
+\item si $a \; \mathcal{R} \; b$ et $c \;\mathcal{R}\; d$ alors $a\; c\; \mathcal{R} \; b \; d$
+\item si $a\; \mathcal{R}\; b$ alors $\lambda x.a\; \mathcal{R}\; \lambda x.b$
+\end{itemize}
+\end{defi}
+
+\begin{prop}
+La $\beta$-réduction est la plus petite relation $\lambda$-compatible et transitive contenant $\to_{\beta}$
+\end{prop}
+
+\begin{proof}
+$\star$ On vérifie d'abord :
+\[\to_\beta \; \subseteq \beta_0 \subseteq \beta_0^* = \beta \]
+
+D'autre part, $\beta_0$ est $\lambda$-compatible :
+\begin{itemize}
+\item par réflexivité, $x \; \beta	\; x$
+\item soit $a\; \beta \; b$ ; par définition,il existe $n\geq 0$, $(e_k)_{0\leq k \leq n}$ tel que $a=e_0$, $b=e_n$ et pour tout $k<n$, $e_k \; \beta_0 \; e_{k+1}$. Du coup, par définition de $\beta_0$, pour tout $k<n$, $\lterm{x}{e_k} \; \beta_0 \; \lterm{x}{e_{k+1}}$.
+
+Ainsi, $\lterm{x}{a} \; \beta \; \lterm{x}{b}$.
+\end{itemize}
+
+$\star$ Soit $\mathcal{R}$ une autre relation $\lambda$-compatible et transitive contenant $\to_\beta$. Montrons que $\beta\subseteq \mathcal{R}$. Il "suffit" de vérifier que $\beta_0 \subseteq \mathcal{R}$ (laissé en exercice).
+\end{proof}
+
+\subsection*{Propriétés essentielles de la $\beta$-réduction}
+\paragraph{Remarque}
+$(\Lambda, \beta_0)$ est un \emph{système de réduction abstrait\footnote{Cf ThPr}}.
+
+\begin{defi}[Forme normale, Relation normalisante]
+Soit $\mathcal{R}$ une relation binaire sur $\Lambda$,
+\begin{itemize}
+\item On dit que $a$ \emph{est} une forme normale (relativement à $\mathcal{R}$) s'il n'existe pas $b\in \Lambda$ tel que $a\; \mathcal{R} \; b$.
+\item On dit que $a$ \emph{a} une forme normale (relativement à $\mathcal{R}$) s'il existe $b\in \Lambda$ tel que $b$ \emph{est} une forme normale et $a \; \mathcal{R}^*\;b$
+\item On dit que $\mathcal{R}$ est normalisante si tout $a \in \Lambda$ a une forme normale
+\end{itemize}
+\end{defi}
+
+
+\paragraph{Exemple}
+\begin{itemize}
+\item $\lterm{x}{x}$ est une forme normale relativement à $\beta_0$
+\item $\beta_0$ n'est pas normalisante !
+\begin{align*}
+\Omega & \equiv (\lterm{x}{x\; x})\; (\lterm{x}{x\; x})\\
+\Omega & \to_\beta \Omega
+\end{align*}
+\end{itemize}
+
+\begin{defi}[Confluence]
+Soit $\mathcal{R}$ une relation binaire sur $\Lambda$. On dit que $\mathcal{R}$ est confluente si pour tout $(a,b,c) \in \Lambda^3$ tel que 
+\[a \; \mathcal{R}^* \; b \text{ et } a\; \mathcal{R}^*\; c\]
+alors il existe $d\in \Lambda$, tel que
+\[b \; \mathcal{R}^* \; d \text{ et } c \; \mathcal{R}^* \; d\]
+\end{defi}
+
+\begin{thm}
+La $\beta_0$-réduction est confluente.
+\end{thm}
+\begin{proof}
+En semaine 3 ou 4.
+\end{proof}
+
+\begin{coro}
+Tout $\lambda$-terme admet au plus une forme normale, relativement à $\beta_0$
+\end{coro}
+
+\subsection*{Notion d'égalité sur les \tlambda-termes}
+
+\begin{defi}
+La $\beta$-équivalence sur $\Lambda$ est la relation binaire notée $=_\beta$, définie comme la clôture réflexive symétrique transitive de $\beta_0$ :\\
+$a=_\beta b$ s'il existe $n\geq 0$ et $(e_k)_{0\leq k \leq n}$ tel que $a=e_0$ et $b=e_n$ et $\forall k<n$, soit $e_k \; \beta_0 \; e_{k+1}$ soit $e_{k+1} \; \beta_0 \; e_{k}$
+\end{defi}
+
+\begin{defi}[\tlambda-congruence]
+Une relation binaire $\mathcal{R}$ (sur $\Lambda$) est une \tlambda-congruence si c'est une relation d'équivalence et qu'elle est \tlambda-compatible.
+\end{defi}
+
+\begin{thm}[Church-Rosser]
+Pour tout $(a,b)\in \Lambda^2$, $a=_\beta b$ si et seulement si il existe $c\in \Lambda$ tel que $a \; \beta \; b$ et $b \; \beta \; c$
+\end{thm}
+
+\begin{proof}
+La condition est suffisante
+\bigskip
+
+Réciproquement, pour la condition nécessaire, on introduit $R\subseteq \Lambda \times A$ défini par :\\
+$a \; \mathcal{R} \; b$ s'il existe $c$ tel que $a\; \beta \; c$ et $b \; \beta \; c$.
+
+On remarque, par définition de $\mathcal{R}$,
+\begin{itemize}
+\item $\mathcal{R}$ est réflexive et symétrique
+\item $\mathcal{R}$ est transitive
+\end{itemize}
+De plus, $\mathcal{R}$ contient $\beta$ (ou $\beta_0$). Donc, si $a=_\beta b$, alors $a\; R \; b$.
+\end{proof}
+
+\begin{thm}
+La relation d'équivalence $=_\beta$ est la plus petite \tlambda-congruence contenant $\to_\beta$
+\end{thm}
+\begin{proof}
+En exo.
+\end{proof}
+
+
+
+\paragraph{Notation} On note $\equiv$ pour une définition ($\overset{\text{def}}{=}$), mais aussi pour l'$\alpha$-équivalence ($=_\alpha$). On peut utiliser la notation de Bruijn (cf références).
+
+
+\part{Calcul propositionnel et correspondance de Curry-Howard}
+\setcounter{section}{0}
+\section{Éléments de langage (informels)}
+\begin{itemize}
+\item Théorie de la \emph{démonstration} (prouvabilité)
+\item Thème des modèles
+\end{itemize}
+
+Quelques "ingrédients" :
+\begin{itemize}
+\item \emph{énoncés} (logiques) : ici les familles du calcul propositionnel:
+\[A ::= x \;|\: \top \:|\; \bot \;|\; A\Rightarrow B \;|\; A\land B \;|\; A \lor B \;|\; \neg A\footnote{$\neg A$ signifie en fait $A \Rightarrow \bot$} \label{eq:star}\tag{$\star$}\]
+La notation "$A$ propriété" signifie que $A$ est engendrée par la grammaire (\ref{eq:star})
+\item On parle de \emph{jugements} sur ces énoncés : "$A$ true" 
+\item On introduit aussi des jugements hypothétiques : 
+$A_1$ true, $A_2$ true, ... ,$A_n$ true $\vdash$ $B$ true
+\end{itemize}
+
+
+Commentaires sur les différentes règles de (NJ):
+\begin{itemize}
+\item Le vrai
+\item L'implication (/!\textbackslash: $A \Rightarrow B \neq \neg A \lor B$ dans (NJ))
+\item Le faux
+\item La négation
+\item La disjonction
+\end{itemize}
+
+
+\section{Fragments $\lambda_\to$}
+On peut associer des règles au typages de \tlambda-termes en raisonnant sur $\lterm{x}{t} : T$
+
+
+\begin{thm}[Curry-Howard]
+Le fragment $NJ_\to$ et $\lambda_\to$ sont en correspondance via:
+\begin{enumerate}
+\item Si $\Delta \vdash t : T$ dans $\lambda_\to$
+%TODO
+\end{enumerate}
+\end{thm}
+
+\begin{figure}[h]
+\begin{center}
+\begin{tabular}{| c | c |}
+\hline
+$\lambda_\to$ & $NJ_\to$\\
+\hline
+\emph{type} & \emph{proposition}\\
+\hline
+variable de type & proposition atomique\\
+type flèche & implication\\
+\hline
+\emph{terme} & \emph{dèrivation}\\
+\hline
+variable de terme & hypothèse\\
+\tlambda-abstraction & règle d'introduction\\
+application & règle d'élimination\\
+$\beta$-redex & coupure\\
+$\beta$-réduction & transformation sur les dérivations\\
+\hline
+\emph{forme normale} & \emph{dérivation sans coupure}\\
+\hline
+\end{tabular}
+\caption{Correspondance de Curry-Howard}
+\end{center}
+\end{figure}
+
+
+\section{Interprétation BHK}
+L'interprétation de Brouwer-Heyting-Kolmogorov consiste à construire un témoin (une preuve) d'une proposition selon le protocole suivant :
+\begin{itemize}
+\item Un témoin pour $A \land B$ est une paire formée par un témoin pour $A$ et un témoin pour $B$
+\item Il y a un témoin unique pour $\top$
+\item Un témoin pour $A\lor B$ est soit un témoin pour $A$, soit un témoin pour $B$
+\item Il n'y a pas de témoin pour $\bot$
+\item Un témoin pour $A\Rightarrow B$ est une application de témoins pour $A$ vers des témoins pour $B$
+\item Un témoin pour $\neg A$ est un témoin de $A \Rightarrow \bot$
+\end{itemize}
+Avec $A, B$ engendrés par la grammaire
+\[A ::= X \;|\: A \Rightarrow A \;|\; A \lor A \;|\; A \land A \;|\; \top \;|\; \bot\]
+
+\begin{defi}[Produit (paire)]
+Soit A,B. Le produit de $A$ par $B$ est le damier de $A\times B$, et de la propriété universelle suivante :\\
+Pour tout $f : D \to A$ et $g : D\to B$, il existe $h : D\to A\times B$ tel que $\pi_1 \circ h = f$ et $\pi_2 \circ h = g$\footnote{Ces égalité correspondent à des $\beta$-réduction dans le \tlambda-calcul}.
+
+De plus, $h$ est \emph{unique} et ne dépend que de $f$ et de $g$,
+\[h = \langle f, g \rangle\]
+\end{defi}
+
+Par ailleurs, si $e : D \to A \times B$, alors 
+\[
+\begin{cases}
+\pi_1 \circ e : D \to A\\
+\pi_2 \circ e : D \to B\\
+\end{cases}
+\]
+Pour ce couple, il existe $\langle \pi_1 \circ e, \pi_2 \circ e\rangle : D \to A \times B$
+
+Du coup, par unicité, on a nécessairement
+\[\langle \pi_1 \circ e, \pi_2 \circ e\rangle = e \]
+
+Cette observation donne lieu à :
+\begin{itemize}
+\item une transformation sur les dérivations
+\item une autre forme de réduction sur les \tlambda-termes
+\end{itemize}
+On parle alors d'$\eta$-réduction.
+
+\bigskip
+
+On rajoute alors les règles de typage du produit ($\times_i$) et ($\times_{E,k}$) pour $k\in \{1,2\}$.
+
+
+\begin{defi}[Somme (coproduit)]
+Soit $A,B$. C'est la donné de $A + B$ avec la propriété universelle suivante :\\
+Si $f : A \to C$, et $g : B \to C$, il existe $k : A + B \to C$ unique, ne dépendant que de $f$ et de $g$ noté $\{ f, g \}$, tel que 
+\[
+\begin{cases}
+k \circ in_l = f\\
+k \circ in_r = g
+\end{cases}
+\]
+
+Par ailleurs, si on se donne
+\[e : A + B \to C\]
+Alors
+\[
+\begin{cases}
+e \circ in_l : A \to C\\
+e \circ in_r : B \to C
+\end{cases}
+\]
+Donc 
+\[\{ e \circ \in_l, e \circ in_r\} = e\]
+\end{defi}
+
+On rajoute alors trois règles : (+Ig), (+Id) et (+E)
+
+
+
+
+\part{$\lambda$-calcul simplement typé}
+\setcounter{section}{0}
+\section{Quelques Lemmes}
+
+\begin{lemma} 
+Si $\Delta \vdash t : T$ clos, $FV(t) \subseteq FV(\Delta)$, où $FV(\emptyset)=\emptyset$, et $FV(\Delta,x : S) = FV(\Delta)\cup \{x\}$.
+\medskip
+
+\emph{Attention} : Un contexte de typage $\Delta \equiv x_1 : S, ..., x_p : S_p$ où $p\geq 0$ est valide si les variables $x_1, ... ,x_p$ sont distinctes deux à deux.
+\end{lemma}
+
+On peut rajouter des règles sur la validité de $\Delta$ en tant que contexte.
+
+\begin{prooftree}
+\AxiomC{}
+\AxiomC{}
+%\RightLabel{\scriptsize Rule Name}
+\BinaryInfC{$\emptyset$ contexte valide}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$\Delta$ contexte valide}
+\AxiomC{$T$ type}
+\AxiomC{$x\notin FV(\Delta)$}
+%\RightLabel{\scriptsize Rule Name}
+\TrinaryInfC{$\Delta, x : T$ contexte valide}
+\end{prooftree}
+
+Et on augmente (Hyp).
+
+\begin{prooftree}
+\AxiomC{$\Delta$ contexte valide}
+\AxiomC{$x : T \in \Delta$}
+\RightLabel{\scriptsize (Hyp)}
+\BinaryInfC{$\Delta, x : T$ contexte valide}
+\end{prooftree}
+
+
+\begin{lemma}[Affaiblissement]
+Si $\Delta \vdash t : T$ et si $\Delta \subseteq \Delta'$, avec $\Delta'$ contexte valide, alors $\Delta' \vdash t : T$.
+\end{lemma}
+
+\begin{proof}
+Par induction sur la dérivation principale, c'est-à-dire
+$\Delta \vdash t : T$.
+Le seul cas ``délicat'' est lorsque
+\begin{prooftree}
+\AxiomC{$\Delta,x:U \vdash a : V$}
+\RightLabel{\scriptsize $\to_I$}
+% TODO
+\UnaryInfC{}
+\end{prooftree}
+\end{proof}
+
+
+\begin{thm}
+Si $\Delta \vdash t : T$, alor $t$ est fortement normalisant.
+\end{thm}
+
+\begin{proof}
+Deux parties : poser la notation générale, puis l'adapter à $\to_\lambda$.
+
+\begin{enumerate}
+\item \emph{Définition générale :} Si $e \in \Lambda$, $e\equiv \lterm{\overline{x}}{\Delta \overline{u}}$ avec $|\overline{x}|>0$, $|\overline{u}|>0$ et $\Delta \in \mathcal{X}$ ou bien $\Delta$ est un $\beta$-redex
+\begin{itemize}
+\item $e$ est en forme normale si $\Delta \in \mathcal{X}$ et chaque $u_i$ est en forme normale
+\item $e$ est une forme normale de tête (HNF) si $\Delta \in \mathcal{X}$
+\item si $e$ n'est pas en HNF, c'est-à-dire $\Delta$ est un $\beta$-redex, $\Delta$ est appelé \emph{redex de tête}.
+\end{itemize}
+\end{enumerate}
+
+\begin{defi}
+$e \in \Lambda$ est fortement normalisant (SN) s'il n'existe pas de $\beta$-réduction infinie issue de $e$
+\end{defi}
+
+\paragraph{Exemple}
+\begin{itemize}
+\item $\Omega$ n'est pas SN
+\item $(\lterm{x}{\lterm{y}{y}} \Omega$ n'est pas SN (il existe une dérivation infinie) $\to$ \emph{attention} : la $\beta$-équivalence n'est pas compatible avec la propriété d'être fortement normalisant.
+\end{itemize}
+
+Par contre, si $a=_\beta b$ et $b$ a une NF (resp HNF), alors $a$ a une NF (resp HNF)
+
+De plus :
+\begin{itemize}
+\item Si $e$ a une NF (resp HNF), $\lterm{x}{e}$ a une NF (resp HNF)
+\item Si $e$ est SN, $\lterm{x}{e}$ est SN
+\end{itemize}
+\bigskip
+
+Soit $\mathcal{N}$ l'ensemble des termes SN, et $\mathcal{N}_0 \equiv \{  x\overline{u} \:|\: x\overline{u} \in \mathcal{N}\} \subseteq \mathcal{N}$
+\paragraph{Notation}
+\begin{itemize}
+\item $e\in \Lambda$, $Succ(e)=\{e'\in \Lambda \:|\: e\beta_0 e' \}$, et cet ensemble est \emph{fini} (réduction à branchements fini)
+\item Lemme de Koenig : si un arbre est infini et que cet arbre est a branchement fini, alors il existe un chemin infini
+\end{itemize}
+
+Si $e\in \mathcal{N}$, $\bigcup_{p\geq 0} Succ^p (e)$ est \emph{fini}, de sorte que la définition suivante est bien fondée :
+
+\begin{defi}
+Pour $e\in \mathcal{N}$, $\ell(e)$ désigne la somme des longueurs des chemins de tout réduction issue de $e$.
+\end{defi}
+
+\begin{lemma}
+Sont immédiats :
+\begin{itemize}
+\item Si $e\in \mathcal{N}$, alors $\lterm{x}{e} \in \mathcal{N}$
+\item Si de plus $e' \in \mathcal{N}$ et $e \beta e'$, alors $e' \in \mathcal{N}$
+\item Si $e \in \Lambda$ tel que $Succ(e)\subseteq \mathcal{N}$, alors $e\in \mathcal{N}$
+\end{itemize}
+\end{lemma}
+\begin{proof}
+Pour le troisième point, soit $e\in \Lambda$ tel que $Succ(e)\subseteq \mathcal{N}$, pour tout $e' \in Succ(e)$, $\ell (e') < \ell(e)$ $\to$ une récurrence simple sur $\ell(e)$ permet d'établir $\mathcal{P}(e) \equiv$ ``$Succ(e) \subseteq \mathcal{N}$ implique $e\in \mathcal{N}$''
+\end{proof}
+
+
+
+
+\end{proof}
+
 
 
 

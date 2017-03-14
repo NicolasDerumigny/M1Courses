@@ -16,7 +16,7 @@
 \usepackage{mathrsfs}
 \usepackage{multirow}
 \usepackage{amsfonts}
-\usepackage[boxed,linesnumbered,noend]{algorithm2e}
+\usepackage[boxed,linesnumbered]{algorithm2e}
 \usepackage{qcircuit}
 \usepackage{enumerate}
 
@@ -51,6 +51,9 @@
 \date{}
 
 \newcommand{\note}{\medskip\noindent\underline}
+\newcommand\tok[1]{$\langle$#1$\rangle$}
+\SetKw{Var}{Var:\\}
+\SetKwBlock{Label}{label}{end}
 
 \begin{document}
 
@@ -150,26 +153,129 @@ No assumptions must be made on the execution time (especially linking synchroniz
 
 
 \section{Communication protocols}
+\subsection{Sliding window communication protocol}
 \paragraph{Example} Write an algorithm to exchange informations between both process
 
-%TODO make this nicer (custom command)
-\begin{algorithm}
-vars:\\
-data$_{in}$=N\\
-data$_{recv}=-1$\\
-is\_sent = -1\\
-Label$_1$\{is\_sent==1\}\\
-begin\\
+\begin{algorithm}[h]
+\Var
+data$_{in}$=N\;
+data$_{recv}=-1$\;
+is\_sent = -1\;
+\Label ($1$\{is\_sent==1\}){
 send $\langle$msg,data$_{in}\rangle$
-is\_sent=0\\
-end\\
-Label$_{2}$\{receive $\langle$msg,i$\rangle$\}\\
-begin\\
-data$_{recv}$=i
-end\\
+is\_sent=0\;
+}
+\Label ($2$\{receive $\langle$msg,i$\rangle$\}){
+data$_{recv}$=i\;
+}
 \end{algorithm}
 
+\begin{algorithm}
+\tcp{Now, we want to send an array of data:}
+\Var
+data$_{in}$=N\;
+data$_{recv}=-1$\;
+j=0\;
+i=0\;
+\Label ($1$\{is\_sent$[i]$==1\}){
+send $\langle$msg,data$_{in}[i]\rangle$\;
+is\_sent[i++]=0\;
+}
+\Label (${2}$\{receive $\langle$msg,v$\rangle$\}){
+data$_{recv}[j++]$=v\;
+}
+\end{algorithm}
 
+\begin{algorithm}
+\tcp{Now, we had a procedure \url{lost} that erase messages:}
+\Label (Lost$_n$=\{$\langle$msg$\rangle\}$){
+kill(msg)\\
+}
+\end{algorithm}
+
+\begin{algorithm}
+\tcp{We can do it with using 0 acknowledgements, by using the data you need to send as an acknowledgement:
+}
+\Var
+$s_p$ is the number of words received by $p$ from $q$ (without missing ones)\;
+$l_p, l_q$ is the number of ahead values $\to$ size of the sliding window\;
+\Label($S_p$:\{$a_p\leq i < s_p+l_p$\}){
+	send \tok{pack,$in_p[i],i$} to $q$\;
+}
+\Label($R_p$:\{\tok{pack,$w,i$}$\in Q_p$\}){
+	receive \tok{pack, $w,i$}\;
+	\eIf{$out_p[i]==-1$}{
+		$out_p[i]=w$\;
+		$a_p = \max \{a_p, i-l_q + 1\}$\;
+		$s_p = \min_{j} \{ out_p [j] = -1\}$\;
+	}{
+		ignore\;
+	}
+}
+\Label($L_p$:\{\tok{$pack,w,i$}$\in Q_p$){
+	$Q_p=Q_p\setminus$\tok{$pack,w,i$}\;
+}
+\end{algorithm}
+
+The number of exchanged message can be a good measure of the performance of the algorithm.
+\clearpage
+
+\subsection{Timer-based protocol}
+
+Create channel, and see whether it is opened or not (See slides for details).
+
+
+\section{Wave algorithm}
+\subsection{Wave algorithm}
+We need to solve broadcast, global synchronisation, trigger events, parallel computing, data-parallelism.
+
+For that, we use message passing.
+
+Requirements:
+\begin{itemize}
+\item Termination
+\item Decision
+\item Dependence
+\end{itemize}
+\bigskip
+
+List of aspects:
+\begin{itemize}
+\item Centralized: one initiator
+\item Decentralized: $n$ initiators
+\item Network: topology, undirected links, connected, \emph{Asynchronous} on \emph{Synchronous}
+\end{itemize}
+\bigskip
+
+Initial knowledge:
+\begin{itemize}
+\item Name
+\item Name of its neighbour
+\end{itemize}
+
+Most of these algorithm send ``empty messages" (simple token).
+\bigskip
+
+The ring algorithm is a wave algorithm
+
+On a tree:
+
+\begin{algorithm}[h]
+\tcp{We assume that the initiator is not a leaf}
+\Label(Initiator:){
+	Send \tok{tok} to the children\;
+	Receive \tok{tok} from the children\;
+	Decide\;
+}
+\Label(Non-Initiator:){
+	Receive \tok{tok}\;
+	Send to all the children \tok{tok}\;
+	Receive from all the children \tok{tok}\;
+	Send \tok{tok} to the father\;
+}
+
+
+\end{algorithm}
 
 
 \end{document}
