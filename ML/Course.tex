@@ -513,6 +513,100 @@ Sometimes, it will work, but it is actually a pretty bad idea.
 \paragraph{} Let us assume that $y\in \{0,1\}$ and $h_{\theta} \in [0,1]$. Let us define $h_\theta(x)$ as follows:
 \[h_{\theta}(x)=g(\theta^Tx)=\frac{1}{1+e^{-\theta^Tx}}\]
 where $g(z)=\frac{1}{1+e^{-z}}$ is the \emph{sigmoid (or logistic)} function.
+\bigskip
+
+Assuming we aims at learning $h_\theta(x)$ such that $\mathbb{P}(y=1|x,\theta)=h_\theta(x)$ and $\mathbb{P}(y=0|x,\theta)=1-h_\theta(x)$ we deduce that the likelihood is:
+\[L(\theta) = \mathbb{P}(\vec{y}|x;\theta) = \prod_{i} \mathbb{P}(y^{(i)}|x^{(i)},\theta) = \prod_{i}h_\theta ( x^{(i)})^{y^{(i)}}(1-h_\theta(x^{(i)}))^{1-y^{(i)}}\]
 
 
+As done before, it is easier to maximize the log of the likelihood $\ell(\theta)=\ln L(\theta)$, which leads to the same solution as the least square regression. However, it is not the same algorithm as the objective function is not the same.
+\bigskip
+
+There exists a faster method than the gradient algorithm: \emph{Newton's method}.
+
+The update rule is then:
+\[\theta^{t+1}=\theta^{t}-\dfrac{f(\theta^t}{f'(\theta^t)}\]
+
+Applying to the log-likelihood, we get:
+\[\theta^{t+1}=\theta^{t}-H^{-1}\nabla_\theta \ell\]
+
+Where $H$ is the Hessian matrix, $\nabla_\theta \ell$ is the gradient
+
+\paragraph{Advantages and disadvantages}
+The Newton's method is faster in term of number of steps, but at each iteration, we need to invert the $n \times n$ Hessian matrix, where $n$ is the number of features, which can be very costly.
+
+
+\section{Sparsity in Convex Optimisation for Supervised Machine Learning}
+
+
+\paragraph{Reminder}
+With $S=\{z_i = (x_i,y_i)\}_{i=1}^m$ the set of trainings (i.i.d.) from an unknown joint distribution $\mathcal{D}_\mathcal{Z}$ over a space $\mathcal{Z}=\mathcal{X}\times  \mathcal{Y}$
+\[\min_{h} \sum_{i=1}^m \ell (y_i,h(x_i))+\lambda||h||\]
+This can be rewritten as constrained problem:
+
+\[\min_{h} \sum_{i=1}^m \ell (y_i,h(x_i))\qquad \text{such that } ||h||<c\]
+\bigskip
+
+We consider that the set $S$ is composed of $m$ examples in $\mathbb{R}^d$.
+\[
+S = \begin{pmatrix}
+x_1\\
+.\\
+.\\
+.\\
+x_i\\
+.\\
+.\\
+.\\
+x_m\\
+\end{pmatrix}
+=
+\begin{pmatrix}
+x^1& ... & x^j & ... & x^d
+\\\end{pmatrix}
+\]
+
+
+This set can be reduced:
+\begin{itemize}
+\item in columns $\to$ deletion of features, useful when $d$ is large compared to $m$
+\item in rows $\to$ deletion of examples (useful in $\ell_1$-SVM, CNN).
+\item in rank (e.g. PCA, LSA) $\to$ find the embedding space
+\end{itemize}
+
+Reducing can also:
+\begin{itemize}
+\item Prevent the algorithm from overfitting (curse of dimensionality) $\to$ Occam's razor principle
+\item Computational efficiency
+\item Interpretability: $\to$ understand the unerlying phenomenon
+\end{itemize}
+
+
+There are three categories of methods:
+\begin{itemize}
+\item \emph{Filter approach} Use a criterion to filter, then learn after the treatment
+\item \emph{Wrapper approach} Heuristic search of subset of variable, done with respect to the learning algorithm performance
+\item \emph{Embedded approach} Use of sparsity-inducing norms :
+\begin{itemize}
+\item Feature selection is part of the learning algorithm
+\item All features processed during learning (ex: LASSO)
+\end{itemize}
+\end{itemize}
+
+\paragraph{Note}
+We prefer to use the $\ell_0$ norm rather than any other to induce sparsity. As usual, we will use the $\ell_1$-norm, as it is a good compromise between having a convex relation ($\leq 1$) and having a sparse solution ($\geq 1$).
+
+\subsection{$\ell_1$-norm Regularization}
+$\ell_1$-norm Regularization performs regularization as well as feature selection.
+
+$\lambda$ can be seen as the range of value for what the value of the parameter is zero.
+
+
+\subsection{Optimization methods}
+We can use different tricks:
+\[\mathbf{w}_j = \mathbf{w}_j^+ + \mathbf{w}_j^-\]
+
+Or noticing that $||\mathbf{w}||_1=\min_{\eta \geq 0}\frac{1}{2} \sum_{j=1}^d \dfrac{\mathbf{w}_j^2}{\eta_j}+\eta_j $
+
+We can also use group lasso, if we have a partition of data to prioritise, and use the $\ell_1/\ell_2$-norm $ = \sum_{g\in \mathcal{G}} || \mathbf{w}_g||_2$ where ${\mathcal{G}_k}_{k=1}^K$ forms a partition of $\{1,...,d\}$.
 \end{document}

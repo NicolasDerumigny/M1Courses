@@ -19,6 +19,7 @@
 \usepackage[boxed,linesnumbered]{algorithm2e}
 \usepackage{qcircuit}
 \usepackage{enumerate}
+\usepackage{enumitem}
 
 \newtheorem{thm}{Theorem}
 \newtheorem{prop}{Propriety}
@@ -44,6 +45,7 @@
 % Bas de page + séparation
 \setlength{\textheight}{630pt}
 % Hauteur de la zone de texte
+\setlength{\itemsep}{0pt}
 
 \title{Distributed Systems}
 \author{Eddy Caron\footnote{hadriencroubois.com}\\
@@ -117,7 +119,7 @@ An execution is \emph{strongly fair} if no event is applicable in infinitely man
 
 \subsection{Network topology}
 Many topology exists, including :
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item Ring
 \item Tree
 \item Hypercube
@@ -129,14 +131,14 @@ You can "change the topology" of your network to adapt and algorithm, for exampl
 
 
 \subsection{How to write a distributed algorithm?}
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item A specific code for a specific node (or family of node)
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item The sender code and the receiver code
 \item The initial code and the non-initial code
 \end{itemize}
 \item One code for all
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item The same code is executed on each node
 \item A requirement can switch to the right code for a node
 \end{itemize}
@@ -232,7 +234,7 @@ We need to solve broadcast, global synchronisation, trigger events, parallel com
 For that, we use message passing.
 
 Requirements:
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item Termination
 \item Decision
 \item Dependence
@@ -240,7 +242,7 @@ Requirements:
 \bigskip
 
 List of aspects:
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item Centralized: one initiator
 \item Decentralized: $n$ initiators
 \item Network: topology, undirected links, connected, \emph{Asynchronous} on \emph{Synchronous}
@@ -248,7 +250,7 @@ List of aspects:
 \bigskip
 
 Initial knowledge:
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item Name
 \item Name of its neighbour
 \end{itemize}
@@ -256,26 +258,105 @@ Initial knowledge:
 Most of these algorithm send ``empty messages" (simple token).
 \bigskip
 
-The ring algorithm is a wave algorithm
+The ring algorithm is a wave algorithm.
+\newpage
 
+\subsection{The tree algorithm}
 On a tree:
+\begin{itemize}[noitemsep]
+\item All leaves initiate the algorithm
+\item Each process sends exactly one message
+\end{itemize}
 
 \begin{algorithm}[h]
-\tcp{We assume that the initiator is not a leaf}
-\Label(Initiator:){
-	Send \tok{tok} to the children\;
-	Receive \tok{tok} from the children\;
-	Decide\;
+$rec_p\leftarrow 0$ \tcp{\# of received message}
+$father_p \leftarrow$ undefined\;
+\Begin(Initiator){
+	\For{all $q \in Neighbourhood(p)$}{
+		send \tok{tok} to $q$\;
+	}
+	\While{ $rec_p < \# Neighbourhood(p)$}{
+		receive \tok{tok}\;
+		$rec_p \leftarrow rec_p + 1$\;
+	}
+	decide\;
 }
-\Label(Non-Initiator:){
-	Receive \tok{tok}\;
-	Send to all the children \tok{tok}\;
-	Receive from all the children \tok{tok}\;
-	Send \tok{tok} to the father\;
+\Begin(Non-initiators){
+	receive \tok{tok} from some neighbour $q$\;
+	$father_p \leftarrow q$\;
+	$rec_p \leftarrow rec_p +1$\;
+	\For{all $q\in Neighbourhood(p) \smallsetminus \{father_p\}$}{
+		send \tok{tok} to $q$\;
+	}
+	\While{$rec_p < \# Neighbourhood(p)$}{
+		receive \tok{tok}\;
+		$rec_p\leftarrow rec_p + 1$\;
+	}
+send \tok{tok} to $father_p$
 }
-
-
 \end{algorithm}
 
+\newpage
+\subsection{The echo algorithm}
+
+\begin{algorithm}
+$rec_p\leftarrow 0$ \tcp{\# of received message}
+$father_p \leftarrow$ undefined\;
+\Begin(Initiator){
+	\For{all $q \in Neighbourhood(p)$}{
+		send \tok{tok} to $q$\;
+	}
+	\While{ $rec_p < \# Neighbourhood(p)$}{
+		receive\tok{tok}\;
+		$rec_p \leftarrow rec_p + 1$\;
+	}
+	decide\;
+}
+\Begin(Non-initiators){
+	receive \tok{tok} from some neighbour $q$\;
+	$father_p \leftarrow q$\;
+	$rec_p \leftarrow rec_p +1$\;
+	\For{all $q\in Neighbourhood(p) \smallsetminus \{father_p\}$}{
+		send \tok{tok} to $q$\;
+	}
+	\While{$rec_p < \# Neighbourhood(p)$}{
+		receive \tok{tok}\;
+		$rec_p\leftarrow rec_p + 1$\;
+	}
+send \tok{tok} to $father_p$\;
+}
+\end{algorithm}
+
+\newpage
+\subsection{The Polling Algorithm}
+Cf slides
+
+
+\subsection{The Traversal algorithm}
+They are a subset of wave algorithms. All events are totally ordered by the causality relation, and the last event occurs in the same process as the first event.
+
+\begin{defi}[f-traversal algorithm]
+An algorithm is a f-traversal algorithm for a cass of network if:
+\begin{itemize}[noitemsep]
+\item It is a traversal algorithm
+\item In each computation, 
+%TODO
+\end{itemize}
+\end{defi}
+
+\paragraph{Example}
+The ring algorithm is a traversal algorithm.
+
+\subsection{Tarry's Graph Traversal Algorithm}
+We start from a connected graph, and apply two rules:
+\begin{itemize}[noitemsep]
+\item A process never use the same communication channel twice 
+\item A process will send to its father a message only if there is no other choice in respect to the first rule
+\end{itemize}
+
+\begin{algorithm}
+%TODO
+\tcp{TODO}
+\end{algorithm}
 
 \end{document}
