@@ -18,8 +18,9 @@
 \usepackage{amsfonts}
 \usepackage[boxed,linesnumbered,noend]{algorithm2e}
 \usepackage{qcircuit}
-\usepackage{enumerate}
 \usepackage{bussproofs}
+\usepackage{enumitem}
+\usepackage{multicol}
 
 \newtheorem{thm}{Theorem}
 \newtheorem{prop}{Propriety}
@@ -53,6 +54,7 @@
 
 \newcommand\subst[2]{\langle #1\big/#2\rangle}
 \newcommand\lterm[2]{\lambda #1. #2}
+\newcommand\Lterm[2]{\Lambda #1. #2}
 \newcommand\tlambda[0]{$\lambda$}
 
 \begin{document}
@@ -86,9 +88,9 @@ No mid-time exam, but weekly homework.
 
 \setcounter{section}{0}
 \part{(Pure) $\lambda$-Calculus}
-\section{Computing with functions ?}
+\subsection{Computing with functions ?}
 How do we do mathematics ?
-\begin{enumerate}[A]
+\begin{enumerate}[label=\Alph*.]
 \item Having \emph{structures:} numbers, spaces (points, vectors, functions) $\to$ Eilenberg-Mac Lane ($\sim$ 1942) Category theory
 \item Build, explore, transform structures $\to$ Church ($\sim$ 1930) \emph{$\lambda$-Calculus}
 \item Compare "stuff": \emph{equality} $\to$ Voevoski ($\sim$ 2006) Algebraic topology $\to$ search HoTT (Hight order Type Theory)
@@ -96,7 +98,7 @@ How do we do mathematics ?
 \end{enumerate}
 
 
-\section{Church $\lambda$-calculus (informally)}
+\subsection{Church $\lambda$-calculus (informally)}
 \begin{align*}
 f: &A \to B\\
 & x \mapsto e
@@ -339,9 +341,8 @@ En exo.
 \paragraph{Notation} On note $\equiv$ pour une définition ($\overset{\text{def}}{=}$), mais aussi pour l'$\alpha$-équivalence ($=_\alpha$). On peut utiliser la notation de Bruijn (cf références).
 
 
-\part{Calcul propositionnel et correspondance de Curry-Howard}
-\setcounter{section}{0}
-\section{Éléments de langage (informels)}
+\section{Calcul propositionnel et correspondance de Curry-Howard}
+\subsection{Éléments de langage (informels)}
 \begin{itemize}
 \item Théorie de la \emph{démonstration} (prouvabilité)
 \item Thème des modèles
@@ -368,7 +369,7 @@ Commentaires sur les différentes règles de (NJ):
 \end{itemize}
 
 
-\section{Fragments $\lambda_\to$}
+\subsection{Fragments $\lambda_\to$}
 On peut associer des règles au typages de \tlambda-termes en raisonnant sur $\lterm{x}{t} : T$
 
 
@@ -407,7 +408,7 @@ $\beta$-réduction & transformation sur les dérivations\\
 \end{figure}
 
 
-\section{Interprétation BHK}
+\subsection{Interprétation BHK}
 L'interprétation de Brouwer-Heyting-Kolmogorov consiste à construire un témoin (une preuve) d'une proposition selon le protocole suivant :
 \begin{itemize}
 \item Un témoin pour $A \land B$ est une paire formée par un témoin pour $A$ et un témoin pour $B$
@@ -480,9 +481,8 @@ On rajoute alors trois règles : (+Ig), (+Id) et (+E)
 
 
 
-\part{$\lambda$-calcul simplement typé}
-\setcounter{section}{0}
-\section{Quelques Lemmes}
+\section{$\lambda$-calcul simplement typé}
+\subsection*{Quelques Lemmes}
 
 \begin{lemma} 
 Si $\Delta \vdash t : T$ clos, $FV(t) \subseteq FV(\Delta)$, où $FV(\emptyset)=\emptyset$, et $FV(\Delta,x : S) = FV(\Delta)\cup \{x\}$.
@@ -595,11 +595,158 @@ Sont immédiats :
 Pour le troisième point, soit $e\in \Lambda$ tel que $Succ(e)\subseteq \mathcal{N}$, pour tout $e' \in Succ(e)$, $\ell (e') < \ell(e)$ $\to$ une récurrence simple sur $\ell(e)$ permet d'établir $\mathcal{P}(e) \equiv$ ``$Succ(e) \subseteq \mathcal{N}$ implique $e\in \mathcal{N}$''
 \end{proof}
 
-
-
-
 \end{proof}
 
+
+
+
+\part{Polymorphisme}
+\section{Abstraction des types}
+
+\begin{figure}[h]
+\begin{center}
+\begin{tabular}{c | c | c}
+Programmation & Théorie des types & Raisonnement\\
+\hline
+\tlambda-calcul & $\lambda_\to$ & NJ($\Rightarrow$) \\
+\tlambda-calcul enrichie & $\lambda_{\to,\times,\top\bot,...}$ & NJ\\
+ &  $\lambda_\mu$ ($\sim$ 1990) & NK\\
+Calcul de combinateurs (S,K,I) &  & Système de Hilbert (1900)\\
+\hline
+* & Système F & // \\
+\hline // & ++ & //\\
+\end{tabular}
+\caption{Correspondance programmation - langage de preuve}
+\end{center}
+\end{figure}
+
+
+\subsection{Motivations}
+Prenons quelques exemples:
+\begin{enumerate}
+\item L'identité :\\
+Dans $\lambda_\to$, $\vdash \lterm{x}{x} : T \to T$ pour n'importe quel type $T$.\\
+On voudrait donner à $\lterm{x}{x}$ un type ``polymorphe''
+\item Un entier de Church :\\
+$\bar{z} = \lterm{x}{\lterm{f}{f (f x)}}$. Dans $\lambda_\to$, $\vdash \lterm{x}{\lterm{f}{f (f x)}} : A \to (A \to A) \to A$\\
+$x:A, f:B \vdash f\;\underbrace{(f\;x)}_{:V} : C$
+\begin{enumerate}[noitemsep]
+\item $f:b \equiv U \to V$ et $x : U$ donc $A \equiv U$
+\item $B \equiv V \to W$ et $W \equiv C$ et $U \to V \equiv V \to W$ d'où $U \equiv V$ et $V\equiv W$
+\item $\Delta \equiv \lterm{x}{x\;x}$ qui nécessite $W=W\to V$.
+\end{enumerate}
+\end{enumerate}
+
+
+\paragraph{Observations}
+\begin{itemize}[label=$\star$]
+\item On veut donner à un terme ``plusieurs types'' ``d'un coup ''
+\begin{description}[noitemsep]
+\item[En C] $\to$ template
+\item[En O'Caml] $\to$ \texttt{fun x $\to$ x} : $'\alpha \to \alpha$
+\end{description}
+\item On peut avoir besoin de gérer plusieurs occurences d'une même variable
+\item Observation de J.Reunolds (`74)
+\item Introduit par JY Girard (`70) (cadre logique)
+\end{itemize}
+
+\subsection{Le système F à la Church}
+Que veut-on ?
+\begin{itemize}[noitemsep, label=$\star$]
+\item Une notion de généralisation (d'abstraction) sur les types
+\[T ::= X\in \mathcal{V} \;|\; T\to T \;|\; \forall X.T\]
+\item Une notion \emph{d'instanciation} de type
+\[ \forall X.T \rightsquigarrow T\subst{S}{X}\]
+\end{itemize}
+La conséquence sur les termes :
+\[ t ::= x \in \mathcal{X} \; | \;  \lterm{x^T}{t}  \;|\; t\;t \;|\; \Lterm{X}{t} \;|\; t\; T \]
+
+(Hyp), ($\to_{i}$)\footnote{où $\lterm{x^S}{t}$ précise le type de $x$} et ($\to_E$) de $\lambda_\to$ plus :
+
+\begin{multicols}{2}
+\begin{prooftree}
+\AxiomC{$\Delta \vdash t:T$}
+\AxiomC{$X \notin FT(\delta)$}
+\RightLabel{\scriptsize ($\forall_i$)}
+\BinaryInfC{$\Delta \vdash \Lterm{X}{t}:\forall X.T$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$\Delta \vdash t: \forall X.T$}
+\RightLabel{\scriptsize ($\forall_e$)}
+\UnaryInfC{$\Delta \vdash t\subst{S}{X} : T\subst{S}{X}$}
+\end{prooftree}
+\end{multicols}
+
+\paragraph{Retour sur les exemples}
+\begin{enumerate}
+\item $\vdash \lterm{x}{x} : X \to X$ devient $\Lterm{X}{\lterm{x^X}{x}} : \forall X\; X\to X$
+\item $\bar{z} \equiv \lterm{x}{\lterm{f}{f\;(f\;x)}}$
+\begin{prooftree}
+
+\AxiomC{$\vdash \lterm{x^X}{\lterm{f^{X\to X}}{f\;(f\; x)}}: X \to (X\to X)\to X$}
+\UnaryInfC{$\vdash\Lterm{X}{\lterm{x}{\lterm{f}{f\; (f\; x)}}}: \forall X.X\to (X\to X)\to X$}
+\end{prooftree}
+
+\item $\lterm{x}{x\;x}$
+\begin{itemize}[noitemsep,label=$\star$]
+\item $x\; U : U \to U$
+\item $x\; V : V \to V$\\ avec $V\to V \equiv U$
+\end{itemize}
+On en déduit que $W\equiv V\to V$.
+\begin{prooftree}
+
+\AxiomC{$x\; U : U \to U$}
+\UnaryInfC{$x:\forall X.S \vdash x\; U: (V \to V) \to W $}
+
+\AxiomC{$x\; V : V \to V$}
+\UnaryInfC{$x:\forall X.S \vdash x\; V : V\to V$}
+
+
+\BinaryInfC{$x:\forall x :S \vdash x\; U \; (x\;V):W^{V\to V}$}
+\UnaryInfC{$\vdash \lterm{x^{\forall X.S}}{x\; U \; (X\;V)}:(\forall X.S)\to W$}
+\end{prooftree}
+
+On trouve un type $((\forall X.(X\to X)\to \forall X.(X\to X) )\to ((\forall X.(X\to X)\to \forall X.(X\to X) )$
+
+
+\subsubsection{Système F à la Curry}
+\begin{itemize}[label=$\star$]
+\item \tlambda-term pur
+\item Même types que dans le système à la Church
+\item (Hyp), ($\to_i$), ($\to_e$)
+\newpage
+\item Plus 
+\begin{multicols}{2}
+\begin{prooftree}
+\AxiomC{$\Delta \vdash t : T$}
+\AxiomC{$X\notin FT(\Delta)$}
+\RightLabel{\scriptsize ($\forall_i$)}
+\BinaryInfC{$\Delta \vdash t : \forall X.T$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$\Delta \vdash t : \forall X.T$}
+\RightLabel{\scriptsize ($\forall_e$)}
+\UnaryInfC{$\Delta \vdash t : T\subst{S}{X}$}
+\end{prooftree}
+
+\end{multicols}
+\end{itemize}
+
+
+\end{enumerate}
+
+
+\subsubsection{Aspects dynamiques}
+\begin{enumerate}[label=\alph*.]
+\item A la Church :
+\begin{itemize}[label=$\star$]
+\item $(\lterm{x^T}{a})\; b \to_\beta a\subst{b}{x}$
+\item $(\Lterm{X}{t})\; S \to_\beta t\subst{S}{X}$
+\end{itemize}
+\item A la Cury :
+\end{enumerate}
 
 
 

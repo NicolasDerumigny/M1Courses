@@ -216,6 +216,7 @@ Condition of validity of the ERM principle:
 \end{defi}
 
 \begin{defi}[Bayesian error]
+\label{def:BayErr}
 The bayesian error $\epsilon^*$ is the lowest possible error rate (or irreducible error) for any hypothesis $h$.
 \[\epsilon^8 = \int_{x\in R_i \text{ s.t. }y\neq C_i} \mathbb{P}(C_i|x)\mathbb{P}(x)dx\]
 where $x$ is an instance, $y$ its corresponding label, $R_i$ is the area/region that a classifier function $h$ classifies as $C_i$.
@@ -609,4 +610,114 @@ We can use different tricks:
 Or noticing that $||\mathbf{w}||_1=\min_{\eta \geq 0}\frac{1}{2} \sum_{j=1}^d \dfrac{\mathbf{w}_j^2}{\eta_j}+\eta_j $
 
 We can also use group lasso, if we have a partition of data to prioritise, and use the $\ell_1/\ell_2$-norm $ = \sum_{g\in \mathcal{G}} || \mathbf{w}_g||_2$ where ${\mathcal{G}_k}_{k=1}^K$ forms a partition of $\{1,...,d\}$.
+
+
+\section{$k$-nearest neighbour}
+\paragraph{Recall}
+The bayesian error is defined in definition \ref{def:BayErr}.
+
+\paragraph{Bayesian Classifier}
+The Bayesian classifier predicts the optimal class $y^*\in \mathcal{Y}$ given an example $\mathbf{x} \in \mathcal{X}$ by applying the Maximum A Posteriori (MAP) decision rule:
+\begin{align*}
+\forall y_j \in \mathcal{Y}, p(y_i|\mathbf{x}) = \dfrac{p(\mathbf{x}|y_j).p(y_j)}{p(\mathbf{x})}\\
+y^* (\mathbf{x} = \arg \max_c p(y_c | \mathbf{x}) \\
+\end{align*}
+that corresponds to $y^* = \arg \max_c p(\mathbf{x}|y_c).p(y_c)$, which is optimal from a probabilistic point of view.
+\bigskip
+
+However, this supposes to know $p(y_j)$ and $p(\mathbf{x}|y_j)$, which is not the case. We can estimate $p(y_j)$ by $\hat{p}(y_j)=\dfrac{|S_j|}{|S|}$, and $p(\mathbf{x}|y_j)$ by either a parametric method, that assume it follows a given statistical distribution (and we estimate it), or a non-parametric method, that estimates $p(\mathbf{x}|y_i)$ is locally estimated around $\mathbf{x}$.
+
+An example of non-parametric method is $p(\mathbf{x}) \simeq \dfrac{k}{nV} = \hat{p}(\mathbf{x})$ (cf slides).
+
+
+
+
+
+
+
+
+\begin{thm}
+Let us denote by $\hat{p}_n(\mathbf{x})=\frac{k_n}{nV_n}$ the estimate of $p(\mathbf{x})$ from a training sample $S$ of size $n$. When $n$ increases, $\hat{p}(\mathbf{x})$ converges to $p(\mathbf{x})$ if the following three conditions are fulfilled:
+\begin{itemize}
+\item $\lim_{n\to\infty} V_n = 0$
+\item $\lim_{n\to\infty} k_n = \infty$
+\item $\lim_{n\to\infty} \dfrac{k_n}{n} =0$
+\end{itemize}
+\end{thm}
+
+The $k$-Nearest Neighbour satisfy the previous theorem. It fixes a number $k_n$ of examples, and adapts a volume $V_n$ (e.g. an hypersphere centred at $\mathbf{x}$) such that $k_n$ examples are in the volume.
+\bigskip
+
+Using $k$-NN as a classifier, we get that $h(\mathbf{x})= \arg \max_{j} = \dfrac{k_j}{k}$
+
+\begin{algorithm}
+\KwIn{$x,S,d$}
+\KwOut{class of $x$}
+\For{$(\mathbf{x}',y')\in S$}{
+Compute the distance $d(\mathbf{x}',\mathbf{x})$\;
+}
+Sort the $n$ distances by increasing order\;
+Count the number of occurrences of each class $y_i$ among the $k$ nearest neighbours\;
+Assign to $\mathbf{x}$ the most frequent class \;
+\end{algorithm}
+
+\begin{prop}[Convergence of the 1-nearest neighbour]
+Let $\mathbf{x}'$ be the nearest neighbour of $\mathbf{x}$, then 
+\[\lim n\to \infty p(d(x,x') > \epsilon) = ), \forall \epsilon 0\]
+and thus in $n \to \infty, p(y_j|\mathbf{x}')\simeq p(y_j | \mathbf{x}).$
+\end{prop}
+
+\begin{thm}
+The generalization error $\epsilon_{1NN}$ of the $1$-nearest neighbour rule is bounded by twice the (optimal) bayesian error $\epsilon^*$
+\[e_{1NN}\leq 2\epsilon^*\]
+\begin{coro}
+Half the informations about the true class of an example $\mathbf{x}$ is contained in its nearest neighbour $\mathbf{x}'$
+\end{coro}
+\end{thm}
+
+\paragraph{Issue}
+This is only an asymptotic result $\to$ it needs a large number of training examples, and thus implies a large space/time complexity.
+
+To cope with that, we can reduce the size of $S$ by keeping some examples only, and simplify the calculation of the nearest neighbour.
+
+
+\subsection{Data reduction techniques}
+It can be seen as a pretreatment on the set, that remove from $S$ the outliers and the examples of the bayesian error region.
+
+\begin{algorithm}
+\KwIn{$S$}
+\KwOut{$S_{cleaned}$}
+Split randomly $S$ into two subset $S_1$ and $S_2$\;
+\While{no stabilization of $S_1$ and $S_2$}{
+	Classify $S_1$ with $S_2$ using 1-NN rule\;
+	Remove from $S_1$ the misclassified instances\;
+	Classify $S_2$ with the new set $S_1$ using the $1-NN$ rule\;
+	Remove from $S_2$ the misclassified instances\;
+}
+$S_{cleaned}=S_1\cup S_2$\;
+\end{algorithm}
+
+\begin{algorithm}
+\KwIn{$S$}
+\KwOut{STORAGE}
+STORAGE $\leftarrow \emptyset$\;
+DUSTBIN $\leftarrow \emptyset$\;
+Draw randomly a training example from $S$ and put it in STORAGE\;
+\While{no stabilization of STORAGE}{
+	\For{earch $\mathbf{x}_i \in S$}{
+		\eIf{$\mathbf{x}_i$ is correctly classified with STORAGE using the 1-NN rule}
+		{
+			DUSTBIN $\leftarrow \mathbf{x}_i$\\
+		}{
+			STORAGE $\leftarrow \mathbf{x}_i$\\
+		}
+	}
+} 
+\end{algorithm}
+
+\subsection{Speeding-up the nearest-neighbour calculation}
+Most of the approach are based on the \emph{triangle inequality property}.
+
+
+
 \end{document}
