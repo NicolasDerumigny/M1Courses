@@ -359,4 +359,112 @@ We start from a connected graph, and apply two rules:
 \tcp{TODO}
 \end{algorithm}
 
+\section{Fault-tolerant system}
+There are different types of faults:
+\begin{itemize}[noitemsep]
+\item Fail-stop: some processes stop and terminated unexpectingly
+\item Crash: Freeze, node unavailable
+\item Oversight: Some messages are lost, some information are missing
+\item Byzantine: No idea of what can occur: sometimes a fault, a wrong message. Unpredictible fault in your system. 
+\end{itemize}
+
+They have different durations, degree of detection and degree of correction.
+\medskip
+
+One can implement an algorithm tolerant to a given fault class, where a specific fault id not a ``bad'' action.
+\bigskip
+
+Two parameters are important for our algorithms: \emph{safety} and \emph{liveness}.
+
+
+\begin{description}
+\item[Safety] $E$ sends a message if and only if the previous sent message was received by $R$ and if each message send by $R$ has been received.
+\item[Liveness] Every message sent by $E$ will be received (one day).
+\end{description}
+\paragraph{Example}
+In synchronous mode:
+
+
+\begin{algorithm}
+\Label(Sender){
+	\Label(init){
+		get(m)\;
+		send(m)\;
+	}
+	\Label(rcv(ack)){
+		get(m)\;
+		send(m)\;
+	}
+}
+\Label(Receiver){
+	\Label(rcv(m)){		
+		dlv(m)\;
+		send(ack)\;
+	}
+}
+\end{algorithm}
+
+
+\begin{algorithm}
+\tcp{With correction}
+\Label(Sender){
+	\Label(init){
+		get(m)\;
+		send(seq,m)\;
+	}
+	\Label({recv(ack) and (ack=seq)}){
+		seq=seq $\oplus 1$\;		
+		get(m)\;
+		send(seq,m)\;
+	}
+	\Label({rcv(ack) and (ack$\neq$seq)}){
+		``nothing''\;
+	}
+}
+\Label(Receiver){
+	\Label({rcv(seq,m) and (ack$\neq$seq)}){		
+		dlv(m)\;
+		ack:=seq\;
+		send(seq)\;
+	}
+	\Label({rcv(seq,m) and (ack=seq)}){
+		send(seq)\;
+	}
+}
+\end{algorithm}
+\clearpage
+
+\paragraph{Two Generals' problem}
+Two army are fighting, the blue and the red. The red are on both side, and they need to coordinates to attack at the same time, but the messengers must pass inside the blue army.\\
+$\Rightarrow$ there is no solution!
+
+\begin{proof}
+If we consider the most efficient protocol, and we kill the last messenger. Then it should still work, so we get a better protocol: contradiction!
+\end{proof}
+
+\paragraph{Fundamental limits}
+\begin{itemize}[noitemsep]
+\item algorithm requires an infinity of messages
+\item we never attack
+\end{itemize}
+
+We will thus consider than at least one copy of each message arrives.
+
+\begin{thm}[Fisher, Lynch and Paterson][1985]
+	Consensus is impossible with an asynchronous network if a process can stop.
+\end{thm}
+
+
+
+\paragraph{Self-stabilization}
+\begin{itemize}[noitemsep]
+\item Wrong messages in channels
+\item Wrong values in variables
+\end{itemize}
+
+
+
+
+
+
 \end{document}
