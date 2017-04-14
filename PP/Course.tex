@@ -56,6 +56,7 @@
 \newcommand\lterm[2]{\lambda #1. #2}
 \newcommand\Lterm[2]{\Lambda #1. #2}
 \newcommand\tlambda[0]{$\lambda$}
+\newcommand\seq[0]{\text{ seq}}
 
 \begin{document}
 
@@ -482,7 +483,7 @@ On rajoute alors trois règles : (+Ig), (+Id) et (+E)
 
 
 \section{$\lambda$-calcul simplement typé}
-\subsection*{Quelques Lemmes}
+\subsection{Quelques Lemmes}
 
 \begin{lemma} 
 Si $\Delta \vdash t : T$ clos, $FV(t) \subseteq FV(\Delta)$, où $FV(\emptyset)=\emptyset$, et $FV(\Delta,x : S) = FV(\Delta)\cup \{x\}$.
@@ -597,7 +598,169 @@ Pour le troisième point, soit $e\in \Lambda$ tel que $Succ(e)\subseteq \mathcal
 
 \end{proof}
 
+Soit $\mathcal{N}_0\equiv \{ \underbrace{x\;\bar{u}}_{(((x\; u_1)\; u_2)\; ...)\; u_n} \;|\; x\;\bar{u} \in \mathcal{N} \subseteq \mathcal{N}\}$
+\begin{lemma}
+\begin{enumerate}[label=\roman*)]
+\item Si $e\in \mathcal{N}$, alors $\lterm{x}{e}\in \mathcal{N}$
+\item Si $e \in \mathcal{N}$, et $e\; \beta'\; e$, alors $e'\in \mathcal{N}$
+\item Si $e \in \Lambda$ tel que $Succ(e)\subseteq \mathcal{N}$, alors $e\in \mathcal{N}$
+\item Si $e\in \Lambda$ et $x\in \mathcal{V}$, $e\; x \in \mathcal{N}$ implique $e\in \mathcal{N}$ 
+\end{enumerate}
+\end{lemma}
 
+\begin{lemma}
+Si $b\in \mathcal{N}$ et $a\subst{b}{x}\; \bar{u} \in \mathcal{N}$
+\end{lemma}
+\begin{proof}
+Par récurrence sir $l(b) + l(a\subst{b}{x}\; \bar{u})$
+Il suffit de montrer que $\underset{\substack{\downarrow\\ \beta_0}}{Suc}((\lterm{x}{a}\; b\; \bar{u}) \subseteq \mathcal{N}$
+\end{proof}
+%TODO some 4 lines are missing here.
+
+\subsection{Parties saturées de $\Lambda$}
+\begin{defi}
+Soit $S\subseteq \Lambda$. Ont dit que $S$ est \emph{saturée} si elle satisfait les conditions suivantes:
+\begin{align*}
+\mathcal{N}_0 \subseteq S \subseteq \mathcal{N} \tag{Sat 1}\\
+\text{Si } e\in S \text{ et } e\;\beta_0^*\;e'\tag{Sat 2}\\
+\text{Si $e\in \Lambda$ et $e$ n'est pas une \tlambda-abstraction, et si } Succ(e)\subseteq S, e\in S\tag{Sat 3}
+\end{align*}
+
+\end{defi}
+
+
+\begin{prop}
+\begin{enumerate}[noitemsep,label=\roman*)]
+\item $\mathcal{N}_0$ est saturée
+\item $\mathcal{N}$ est saturée
+\item Si $X, Y$ sont des parties saturées, alors $X \to Y = \{ e\in \Lambda \;|\; \forall a\in X, e\; a \in Y\}$
+\end{enumerate}
+\end{prop}
+\begin{proof}
+\begin{enumerate}[noitemsep,label=\roman*)]
+\item En exercice
+\item Il suffit de vérifier (Sat 3)
+En clair, soit $e\in \Lambda$ qui n'est pas une \tlambda-abstraction, et tel que $Succ(e)\in \mathcal{N}$.\\
+On procède par induction structurelle sur $e$.
+\begin{itemize}[label=*]
+\item $e\in \mathcal{X}$ trivial
+\item $e\equiv e_0\; a$, avec $Succ (e_0\; a)\in \mathcal{N}$
+\[
+\left.
+\begin{array}{r}
+e\;\beta_0\; e_0'\; a, \text{ avec } e_0\;\beta_0\; e_0'\\
+e\;\beta_0\; e_0\; a', \text{ avec } a\;\beta_0\; a'\\
+e\;\beta_0\; e_1\subst{a}{x}, \text{ si } e_0\equiv\lterm{x}{e_1}\\
+\end{array}
+\right]
+\begin{array}{l}
+e_0'\; a \in \mathcal{N}\\
+e_0\; a'\in \mathcal{N}\\
+e_1\subst{a}{x}\in \mathcal{N}\\
+\end{array}
+\]
+\end{itemize}
+\item $X,Y\in Sat(\Lambda)$, montrons que $X\to Y\in Sat(\Lambda)$\\
+(Sat 1)
+\begin{itemize}[label=*]
+\item $\mathcal{N}_0\subseteq X \to Y$ ?\\
+Si $x\;\bar{u}\in \mathcal{N}$, et $a\in X \subseteq \mathcal{N}$
+\item $X\to Y\subseteq \mathcal{N}$\\
+Si $e\in X\to Y$, c'est-à-dire pour tout $a\in X$, $e\; a \in Y \subseteq \mathcal{N}$
+\end{itemize}
+\smallskip
+
+
+(Sat 2) facile : $e\in X\to Y$ et $e\; \beta_0\; e'$\\
+Si $a \in X$, $(e\; a)\; \beta_0\;(e'\; a)$ donc $e'\; a \in Suc(e\; a)$. Par hypothèse, $e\in X \to Y$, c'est-à-dire $e\; a \in Y$. Par (Sat 2) appliqué à $Y$, $e'\; a\in Y$.
+\smallskip
+
+(Sat 3) Soit $e$ qui n'est pas un \tlambda-abstraction et tel que $Succ(e)\subseteq X \to Y$ ; montrons que $e\in X \to Y$. Cela revient à établir que pour tout $a\in X, e\; a \in Y$. On montre ça en appliquant (Sat 3) à $Y$, car $e\; a$ n'est pas un \tlambda-abstraction.
+
+Il suffit de vérifier que $Succ(e\; a)\subseteq Y$ :
+\begin{align*}
+e \; a \; \beta_0\; e' \; a \text{ avec } e\; \beta_0 \; e'\\
+e \; a \; \beta_0\; e' \; a \text{ avec } a\; \beta_0 \; a'\\
+\end{align*}
+Et c'est tout !
+On remarque qu'il suffit de faire une démonstration par récurrence sur $\ell (a)\to$ à faire !
+\end{enumerate}
+\end{proof}
+
+\subsection{Normalisation pour $\lambda_\to$}
+\begin{thm}[SN]
+Si $\Delta \vdash_{\lambda_\to} e:T$, alors $e\in \mathcal{N}$
+\end{thm}
+\begin{proof}
+\begin{itemize}[noitemsep,label=*]
+\item Une ``interprétation'' des types commes parties saturées
+\item Un lemme d'``étiquetage''
+\item Le théorème apparaît comme corollaire.
+\end{itemize}
+\end{proof}
+
+\begin{defi}
+Soit $\rho \in \mathcal{V}\to Sat(\Lambda)$. On définit par induction structurelle l'interprétation d'un type $T$ selon $\rho$ notée $[T]_\rho$:
+\begin{itemize}[label=*]
+\item Si $T\in \mathcal{V}, [T]_\rho \equiv \rho(T)$
+\item Si $T\equiv U\to V$, $[T]_\rho \equiv [U]_\rho \to [V]_\rho$
+\end{itemize}
+\end{defi}
+\begin{proof}
+D'après la proposition précédente :
+\begin{itemize}[noitemsep,label=-]
+\item $\rho$ existe
+\item $[T]_\rho \in Suc(\Lambda)$
+\end{itemize}
+\end{proof}
+
+\paragraph{Remarque}
+$[T]_\rho$ ne dépend que de $\rho \upharpoonright FT(T)$
+
+\begin{defi}
+$x_1,...,x_n \in \mathcal{X}$ et $t_1,...,t_n \in \Lambda$. La substitution $\sigma\equiv \langle t1/x_1,...,t_n/x_n\rangle$ donne lieu à $\sigma(t)$ oú $t\in \Lambda$:
+\begin{itemize}[noitemsep,label=-]
+\item Si $t\equiv x_i \in \{x_1,...x_n\}$, alors $\sigma(t)=t_i$
+\item Si $t\in \mathcal{X}\{x_1,...,x_n\}, \sigma(t) \equiv t$
+\item Si $t\equiv \lterm{x}{t_0}$, on peut supposer que 
+$x\notin \{x_1,...,x_n\}\cup \{ \cup_{i\leq n}FV(t_i) \}$ 
+et $\sigma (t) \equiv \lterm{x}{\sigma (t_0)}$
+\item Si $t\equiv a\; b$, $\sigma(t)=\sigma(a)\; \sigma(b)$
+\end{itemize}
+\end{defi}
+
+\begin{prop}
+Soit $\rho$ une interprétation des types et $\Delta\vdash_{\lambda_to} t:T$\\
+Pour tout substitution $\sigma$ de domaine $\subseteq FV(\Delta)$ telle que pour tout $x:S\in \Delta, \sigma (x) \in [S]_\rho$, on a:
+\[\sigma ( t) \in [T]_\rho\]
+\end{prop}
+\begin{proof}
+Par induction sur ka hauteur de la dérivation, le seul cas intéréssant est $\to_i$
+\begin{prooftree}
+\AxiomC{$\Delta,x:U \vdash a : V$}
+\UnaryInfC{$\Delta \vdash t : U \to V$}
+\end{prooftree}
+Où $t\equiv \lterm{x}{a}$.
+
+Soit $\sigma$ de domaine $\subseteq FV(\Delta)$ ; montrons que si $\forall x : S \in \Delta, \sigma(x) \subseteq [S]_\rho$, alors $\sigma (\lterm{x}{a})\in [U\to V]_\rho = [U]_rho \to [V]_\rho$.
+Par définition, cela revient à montrer que pour tout $b\in [U]_\rho$, $\sigma (\lterm{x}{a})\; b \in [V]_\rho$.
+On peut faire en sorte que 
+\[x\notin dom(\Delta) \cup \{ \underset{y:S\in \Delta}{\cup} FV(\sigma(y))\}\cup FV(b)\]
+Du coup, $\sigma'\equiv \langle t_1/x_1,...,t_n/x_n,b/x\rangle$ où $\sigma \equiv \langle t_1/x_1,...,t_n/x_n\rangle$ avec $\{x_1,...,x_n\}\subseteq dom(\Delta)$
+
+Et $\sigma'$ satisfait :
+\[\sigma (\lterm{x}{a})\; b \equiv \sigma'(a)\]
+$\sigma'$ satisfait les hypothèses relatives à $\Delta, x: U$ car $\sigma'(x)=b\in [U]_\rho$.
+Du coup, par hypothèse d'induction,
+\[\sigma'(a) \in [V]_\rho\]
+Finalement,
+\[(\lterm{x}{\sigma (a)}\; b \; \beta_0 \; \sigma' (a) \in [V]_\rho\]
+En résumé, $\lterm{x}{\sigma (a)} \equiv \sigma (\lterm{x}{a}) \in [U\to V]_\rho$
+\end{proof}
+
+
+
+%TODO : Slides ?
 
 
 \part{Polymorphisme}
@@ -745,9 +908,351 @@ On trouve un type $((\forall X.(X\to X)\to \forall X.(X\to X) )\to ((\forall X.(
 \item $(\lterm{x^T}{a})\; b \to_\beta a\subst{b}{x}$
 \item $(\Lterm{X}{t})\; S \to_\beta t\subst{S}{X}$
 \end{itemize}
-\item A la Cury :
+\item A la Curry :
 \end{enumerate}
 
+\section{Propriétés méta du système F}
 
 
+\begin{figure}[h]
+\begin{center}
+\begin{tabular}{c|c|c}
+& F-Church & F-Cury\\
+\hline
+Confluence (Church-Rosser) & $\times$ & Déjà fait\\
+\hline
+SR (Subject Reduction) & Facile & Plus dure\\
+\hline
+SN (Strong Normalisation)& En TD & A partir de $\lambda_\to$\\
+\end{tabular}
+\caption{Propriétés de confluence de systèmes à la Curry et à la Church}
+\end{center}
+\end{figure}
+
+
+\begin{lemma}[Dans les deux versions du système F]
+
+
+\begin{enumerate}[label=\roman*)]
+\item Si $\Delta \vdash t : T$ et $\Delta'$ contexte de typage tel que $\Delta_{\upharpoonright FV(t)}=\Delta_{\upharpoonright FV(t}$, alors $\Delta'\vdash t:T$
+\item Si $\Delta\vdash t:T$, alors pour tout $S$ et pour tout $X\in \mathcal{V}$, $\Delta\subst{S}{X} \vdash \underbrace{t\subst{S}{X}}_{t}:T\subst{S}{X}$
+\item Si $\Delta,x : S\vdash t:T$ et $\Delta \vdash s : S$ alors $\Delta\vdash t\subst{s}{x}:T$
+\end{enumerate}
+\end{lemma}
+
+\subsection{Propriétés de F-Church}
+\begin{prop}[Subject reduction]
+Si $\Delta \vdash_{Church} t:T$ et $t\to t'$ alors $\Delta \vdash t' : T$
+\end{prop}
+
+\begin{proof}
+En exercice.
+
+Pour rappel, $\to$ est l'analogue de $\beta_0$:\[\to_\beta \; \subseteq \; \to\]
+également dans un terme.
+\end{proof}
+
+\begin{prop}[Strong Normalization]
+Si $\Delta \vdash_{Church} t : T$, alors $t$ est fortement normalisant.
+\end{prop}
+\begin{proof}
+Fiche d'exercice (semaine 7), basée sur le résultat pour $\lambda_\to$
+\end{proof}
+
+\begin{prop}[Confluence faible]
+Si $\Delta \vdash_{Church} t:T$ et si $t\to t_1$, $t\to t_2$, il existe $t_3$ tel que $t_1\to^*t_3$ et $t_1\to^*t_3$.
+\end{prop}
+
+\begin{coro}[Confluence]
+La relation $\to$ est confluente sur les termes bien typés.
+\end{coro}
+
+\begin{proof}
+On s'appuie sur SN et la confluence faible.
+\end{proof}
+
+
+\subsection{Propriétés de F-Curry}
+On veut établir le résultat suivant:
+\begin{prop}
+Si $\Delta \vdash_{Curry}t:T$ et $t\underset{\beta_0}{\nrightarrow} t'$, alors $\Delta \vdash t' : T$.
+\end{prop}
+Le résultat est vrai, mais sa démonstration nécessite des détours...
+
+
+\subsubsection{Système alternatif}
+On introduit la notion de \emph{séquence de types}.
+\[\Delta \to_n T_0,...,T_n \; \seq\]
+avec les règles suivantes :
+
+\begin{multicols}{2}
+\begin{prooftree}
+\AxiomC{}
+\LeftLabel{\scriptsize (Ax)}
+\UnaryInfC{$\Delta \vdash_0 T \seq$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$\Delta \to_n T_0,...,T_n \; \seq$}
+\AxiomC{$X \notin FT(\Delta)$}
+\LeftLabel{\scriptsize (Gen)}
+\BinaryInfC{$\Delta \vdash_{n+1} T_0,...,T_n, \forall X.T_n \seq$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$\Delta \to_n T_0,...,T_n \; \seq$}
+\AxiomC{$T_n\equiv \forall X.T$}
+\LeftLabel{\scriptsize (Inst)}
+\BinaryInfC{$\Delta \vdash_{n+1} T_0,...,T_n, T\subst{S}{X}\seq$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$x:T\in \Delta$}
+\LeftLabel{\scriptsize (Hyp)}
+\UnaryInfC{$\Delta \vdash_0 x : T$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$\Delta,x : S \vdash_n t:T$}
+\LeftLabel{\scriptsize ($\to_i$)}
+\UnaryInfC{$\Delta \vdash_0 \lterm{x}{t}:S\to T$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$\Delta \vdash_p e:S\to T$}
+\AxiomC{$\Delta \vdash_q s:S$}
+\LeftLabel{\scriptsize ($\to_e$)}
+\BinaryInfC{$\Delta \vdash_0 e\; s : T$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$\Delta \vdash_0 t:T$}
+\AxiomC{$\Delta \vdash_n T_0,...,T_n \seq$}
+\LeftLabel{\scriptsize (Sub)}
+\BinaryInfC{$\Delta \vdash_n t : T_n$}
+\end{prooftree}
+
+\end{multicols}
+
+\begin{prop}
+$\Delta\vdash_{Curry} t:T$ si et seulement si il existe $n\geq 0$ tel que $\Delta \vdash_n t:T$
+\end{prop}
+\begin{proof}
+Dans chacun des sens, par induction.
+\end{proof}
+
+\paragraph{Exo}
+Si $\Delta\vdash_p t:T$ et $\Delta \vdash_p T_o,...,T_q \seq$ avec $T_0 \equiv T$, alors
+\[\Delta \to_{p+q-1} t : T_q\]
+
+\paragraph{Exo}
+Si $\Delta \to_n T_0,...,T_n \seq$ avec $T_0\equiv U\to V$ et $T_n \equiv A\to B$ alors il existe $\bar{X}\subseteq \mathcal{V}$ et $\bar{S}$ de même longueur tel que
+\[A\equiv U\subst{\bar{S}}{\bar{X}}, B \equiv V\subst{\bar{S}}{\bar{X}}\]
+
+
+\begin{lemma}
+\begin{enumerate}[label=\roman*)]
+\item Si $\Delta\vdash_n t:T$, alors $\Delta\subst{S}{X}\vdash_n t:T{S}{X}$
+\item Si $\Delta,x:S\vdash_n t:T$ et $\Delta\to_r s:S$ alors il existe $n'\geq 0$ tel que
+\[\Delta \vdash_{n'} t\subst{s}{x}:T\]
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+\begin{enumerate}[label=\roman*)]
+\item facile
+\item Considérons le cas où $t$ est une variable. Soit:
+\begin{prooftree}
+\AxiomC{}
+\UnaryInfC{$\Delta,x:S \vdash_0 t:T$}
+\end{prooftree}
+\begin{itemize}[label=-]
+\item Si $t\equiv x$, $S\equiv T$
+
+Par ailleurs, $\Delta \vdash_r s: T$, du coup $\Delta \vdash_r t\subst{s}{x}: T$
+\item Si $t\not\equiv x$, $t:T\in \Delta$ et 
+\begin{prooftree}
+\AxiomC{$x:T\in \Delta$}
+\LeftLabel{\scriptsize (Hyp)}
+\UnaryInfC{$\Delta \vdash_0 x : T$}
+\end{prooftree}
+\end{itemize}
+\bigskip
+Soit $n\geq 0$:
+\begin{prooftree}
+\AxiomC{$\Delta \vdash_0 t:T_0$}
+\AxiomC{$\Delta \vdash_n T_0,...,T_n \seq$}
+\BinaryInfC{$\Delta\vdash_n t:T_n$}
+\end{prooftree}
+Par hypothèse d'induction, il existe $n''\geq 0$ tel que $\Delta \to_{n''} t : T_0$. On en conclut $\Delta \vdash_{n''+n-1} t : T_n$
+\end{enumerate}
+\end{proof}
+
+$\to$ La démonstration ``séquence'' est différente !
+
+\begin{lemma}
+Si $\Delta \vdash_n (\lterm{x}{a})\;b :T$, alors il existe $n,\geq 0$ tel que $\Delta\vdash_{n'} a\subst{b}{x}:T$
+\end{lemma}
+\begin{proof}
+On se limite ici au cas où $n=0$:
+\begin{prooftree}
+\AxiomC{$\Delta \vdash_p \lterm{x}{a}:S\to T$}
+\AxiomC{$\Delta \vdash_q b :S$}
+\BinaryInfC{$\Delta\vdash_0 (\lterm{x}{a})\; b : T$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$\square$}
+\UnaryInfC{$\Delta, x: U \vdash_r a : V$}
+\UnaryInfC{$\Delta \vdash_0 \lterm{x}{a}:U\to V$}
+\AxiomC{$\Delta \vdash_p F_0,...,F_p \seq$}
+\BinaryInfC{$\Delta\vdash_p \lterm{x}{a}: S\to T$}
+\end{prooftree}
+
+Avec $F_0 \equiv U\to V$ et $F_p \equiv S \to T$, donc il existe $\bar{X},\bar{S}$ tels que $S\equiv U\subst{\bar{S}}{\bar{X}}$ et $T\equiv\subst{\bar{S}}{\bar{X}}$ et $\bar{X}\cap FT(\Delta)=\emptyset$.
+
+Par ailleurs,
+\begin{prooftree}
+\AxiomC{$\Delta \vdash_o b:S$}
+\AxiomC{$\Delta \vdash_q S_0,...,S_q seq$}
+\BinaryInfC{$\Delta \vdash_q b:S\qquad (S_q\equiv S)$}
+\end{prooftree}
+
+On en déduit :
+\begin{itemize}[label=*]
+\item $\Delta\subst{\bar{S}}{\bar{X}}, x: U\subst{\bar{S}}{\bar{X}} \vdash_r a : V\subst{\bar{S}}{\bar{X}}$\\
+mais, puisque $\bar{X}\cap FV(\Delta)=\emptyset$
+\[\Delta, x:S \vdash_r a:T\]
+\item Finalement,
+\[
+\left.\begin{cases}
+\Delta,x:S\vdash_r a:T\\
+\Delta \vdash_q b : S\\
+\end{cases}\right\rbrace \Rightarrow \Delta\vdash_{r'} a\subst{b}{x}:T\]
+\end{itemize}
+Pour un certain $r'\geq 0$
+\end{proof}
+
+\begin{prop}[SR]
+Si $\Delta \vdash_n t: T$ et si $t \; \beta_0 \; t'$, alors il existe $n'\geq 0$ tel que $\Delta \vdash_{n'}t':T$
+\end{prop}
+\begin{proof}
+On a vu le cas de base:
+\begin{itemize}[label=*,noitemsep]
+\item $\to_\beta \subseteq \beta_0$
+\item On regarde les autres cas qui définissent $\beta_0$
+\end{itemize}
+\end{proof}
+
+\begin{thm}[SR]
+Si $\Delta\vdash_{Curry} t:T$ et si $t\; \beta_0 \; t'$, alors $\Delta \vdash_{Curry} t': T$
+\end{thm}
+
+\paragraph{Remarque} Dans (SU)\footnote{Bouquin de référence}, on utilise $\sigma \preceq \tau$ avec $\sigma,\tau$ types.
+
+\part{Égalité}
+\setcounter{section}{-1}
+\section{Usage des inductifs dans Coq}
+\subsection{Les booléens}
+$\mathbf{bool}\equiv \{\mathbf{true}, \mathbf{false}\}$
+
+En Coq, \\
+\texttt{Inductive bool : Type :=\\
+| true $\hspace{410px} (\star)$\\
+| false}\\
+correspond à la déclaration de $\mathbf{true}$ et $\mathbf{false}$ comme éléments de type $\mathbf{bool}$.
+
+
+Ce qui ``correspond'' à l'énoncé d'un principe d'induction sur $\mathbf{bool}$ :\\
+Pour tout $P : \mathbf{bool} \to \mathbf{True}$, si $\begin{cases}
+(P\; \mathbf{true}) \;\text{est habitable}\\
+(P\; \mathbf{false}) \;\text{est habitable}
+\end{cases}$, alors pour tout $b$ $\mathbf{bool}$, $P\; b$ est habitable.
+\bigskip
+
+Dans Coq, ($\star$) engendre:
+\begin{itemize}[noitemsep,label=-]
+\item un nouveau type $\mathbf{bool}$
+\item Les constructeurs $\mathbf{true}$ et $\mathbf{false}$
+\item Le principle d'induction, de type $\Pi \; P : \mathbf{bool} \to Type$
+\end{itemize}
+
+\subsection{Les entiers de Peano}
+\texttt{
+nat : Type\\
+0 : nat\\
+S : nat $\to$ nat
+}
+\bigskip
+
+\texttt{
+Inductive nat : Type :=\\
+| 0 : nat\\
+| S : nat $\to$ nat}
+\bigskip
+
+Ce qui correspond à l'introduction d'un entier, et au principe de récurrence ``standard''.
+
+
+
+
+\subsection{Le produit $A\times B$}
+\texttt{
+Inductive prod (A B : Type) : Type :=\\
+pair : A $\to$ B $\to$ prod A B\\
+}
+\bigskip
+
+\texttt{
+Inductive sum (A B : Type) : Type :=\\
+| inl : A $\to$ sum A B\\
+| inr : B $\to$ sum A B
+}
+
+\section{Types dépendants}
+$\to (\Pi\; x : A)\; B(x)$ ``$\forall x\in A. B(x)$''\\
+$ \to (\Sigma \; x.A)\; B(X)$ ``$\exists x\in A . B(x)$''
+
+\section{Egalité (prélude)}
+Dans Coq : égalité de Leibniz.\\
+$a, b : A$\\
+``$a=b$'' si pour tout $P: A \to Type$, $P\; a \to P \; b$.
+
+\section{Définition inductive}
+\paragraph{Idée}
+$x,y : A \vdash Id_a (x,y) : Type$ ``$x=_A y$''
+d'où la règle de formation :
+\begin{multicols}{2}
+\begin{prooftree}
+\AxiomC{$A: Type$}
+\AxiomC{$a: A$}
+\AxiomC{$b:A$}
+\RightLabel{\scriptsize (Id-form)}
+\TrinaryInfC{$Id_A (a,b) : Type$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$a: A$}
+\RightLabel{\scriptsize (Id-intro)}
+\UnaryInfC{$refl_a : Id_A(a,a)$}
+\end{prooftree}
+\end{multicols}
+
+Et rien d'autre ! Dans Coq:\\
+\texttt{
+Inductive Id (A : Type) : A $\to$ A $\to$ Type :=\\
+IA\_reflexive : forall x:A Id A x x
+}
+
+
+
+\begin{prooftree}
+\AxiomC{C : ($\Pi$ x,y : A)($\Pi$ p : Id$_A$ x y) Type}
+\AxiomC{x : A $\vdash$ c : C x x (refl$_x$)}
+\AxiomC{a : A}
+\AxiomC{b : A}
+\AxiomC{p : Id$_A$ a b}
+%\RightLabel{\scriptsize (Id-elm)}
+\QuinaryInfC{Ind$_{Id_A}$ C (\tlambda x.c) a b p : C a b p}
+\end{prooftree}
 \end{document}
