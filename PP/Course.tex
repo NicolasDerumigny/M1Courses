@@ -1213,46 +1213,167 @@ Inductive sum (A B : Type) : Type :=\\
 $\to (\Pi\; x : A)\; B(x)$ ``$\forall x\in A. B(x)$''\\
 $ \to (\Sigma \; x.A)\; B(X)$ ``$\exists x\in A . B(x)$''
 
+
+\paragraph{Terminologie}
+\begin{itemize}[label=-]
+\item On a des constantes d'\emph{univers} : $Type_i, i\in \mathbb{N}$, noté ``$\mathcal{U}$'' $\to$ Ce sont des types
+
+\item Un objet T est est un \emph{type} s'il existe un univers $\mathcal{U}$ tel que $T : \mathcal{U}$
+
+\item Un objet $t$ est un terme s'il existe un type $T$ tel que $:T$ (en particulier, on a toujours $Type_i : Type_{i+1}$, donc $\forall i \in \mathbb{N}, Type_i : \mathcal{U}$
+\end{itemize}
+
 \section{Egalité (prélude)}
-Dans Coq : égalité de Leibniz.\\
+Dans Coq : 
+\begin{itemize}[label=$\star$]
+\item égalité de Leibniz.\\
 $a, b : A$\\
 ``$a=b$'' si pour tout $P: A \to Type$, $P\; a \to P \; b$.
-
-\section{Définition inductive}
-\paragraph{Idée}
-$x,y : A \vdash Id_a (x,y) : Type$ ``$x=_A y$''
-d'où la règle de formation :
-\begin{multicols}{2}
-\begin{prooftree}
-\AxiomC{$A: Type$}
-\AxiomC{$a: A$}
-\AxiomC{$b:A$}
-\RightLabel{\scriptsize (Id-form)}
-\TrinaryInfC{$Id_A (a,b) : Type$}
-\end{prooftree}
-
-\begin{prooftree}
-\AxiomC{$a: A$}
-\RightLabel{\scriptsize (Id-intro)}
-\UnaryInfC{$refl_a : Id_A(a,a)$}
-\end{prooftree}
-\end{multicols}
-
-Et rien d'autre ! Dans Coq:\\
+\[ a=b \equiv (\Pi A : A \to W) \underbrace{P\; a}_{\mathcal{U}} \to \underbrace{P\; b}_{\mathcal{U}} \;: \;\mathcal{U} \]
+\item Type identité (Martin-Löf)\\
+$A\; : \; \mathcal{U}, \qquad a,b \;:\; A\qquad Id_A (a,b)\; :\; \mathcal{U}$\\
+Peut être présenté à l'aide des \emph{inductifs} de Coq :\\
 \texttt{
-Inductive Id (A : Type) : A $\to$ A $\to$ Type :=\\
-IA\_reflexive : forall x:A Id A x x
-}
-
-
-
+Inductive \{Id A : Type\} (x, y :A) := \\
+ | Id\_reflexive : forall a : A, Id a a.\\
+ \textit{(** Ou @Id A a a pour forcer le premier argument**)}
+}\\
+Qui fournit (entres autres):
+\begin{itemize}
+\item Le constructeur $Id\_reflexive$ $\rightsquigarrow$ règle d'introduction
 \begin{prooftree}
-\AxiomC{C : ($\Pi$ x,y : A)($\Pi$ p : Id$_A$ x y) Type}
-\AxiomC{x : A $\vdash$ c : C x x (refl$_x$)}
-\AxiomC{a : A}
-\AxiomC{b : A}
-\AxiomC{p : Id$_A$ a b}
-%\RightLabel{\scriptsize (Id-elm)}
-\QuinaryInfC{Ind$_{Id_A}$ C (\tlambda x.c) a b p : C a b p}
+\AxiomC{$A\; : \; Type$}
+\AxiomC{$a\;:\; A$}
+\BinaryInfC{$Id\_reflexive \; a\; : \; Id_A(a,a)$}
 \end{prooftree}
+\item Un principe de raisonnement inductif $\rightsquigarrow$ règle d'élimination (faire ``
+\texttt{Print Id\_rect}'')\\
+Pour tout $A\;:\; Type$, $C\; : \: \prod_{a,b : A} Id_A(a,b) \to \mathcal{U}$, si pour tout $a\;:\;A, C\; (a,a,Id\_reflexive\; a)$ est prouvable, alors pour tout $a,b\;:\; A$, pour tout $p:Id_A(a,b),C(a,b,p)$ est prouvable.
+
+$ind_{=_A}(C,c,a,b,p)\;:\; C(a,b,p)$ avec $p\;:\; Id_A(a,b)$ vérifie $ind_{=_A}(C,c,x,x,Id\_reflexive\; x)\equiv C\; x$\\
+($\beta$-règle, en fait $i$-règle, pour $I$ inductif !
+\end{itemize}
+\end{itemize}
+
+\paragraph{Remarques}
+Si $a\equiv b$ dans $A$, alors $a=_A b$ via $Id\_reflexive$ (i.e. $Id_A(a,b)$ prouvable) ! ``$\equiv$'' est l'égalité définitionnelle, et ``$=_A\; (Id_a(\_,\_))$'' est l'égalité propositionnelle.
+
+\paragraph{Exemple}
+soit $f: \left. \begin{cases}
+\mathbb{N}\to \mathbb{N}\\
+a \mapsto x\star x\\
+\end{cases}\right) \lterm{x}{x\star x}$
+\begin{align*}
+f(3) & \equiv (\lterm{x}{x\star x})\; 3\\
+(\lterm{x}{x\star x}) \; 3 \equiv 3 \star 3\\
+\end{align*}
+Mais on n'a pas toujours $3 \star 3 \equiv 9$ ! Par contre, $3 \star 3 =_{\mathbb{N}} 9$ ? $\to \; Id_{\mathbb{N}} (3\star 3, 9)$ ?
+
+%\paragraph{Idée}
+%$x,y : A \vdash Id_a (x,y) : Type$ ``$x=_A y$''
+%d'où la règle de formation :
+%\begin{multicols}{2}
+%\begin{prooftree}
+%\AxiomC{$A: Type$}
+%\AxiomC{$a: A$}
+%\AxiomC{$b:A$}
+%\RightLabel{\scriptsize (Id-form)}
+%\TrinaryInfC{$Id_A (a,b) : Type$}
+%\end{prooftree}
+%
+%\begin{prooftree}
+%\AxiomC{$a: A$}
+%\RightLabel{\scriptsize (Id-intro)}
+%\UnaryInfC{$refl_a : Id_A(a,a)$}
+%\end{prooftree}
+%\end{multicols}
+%
+%Et rien d'autre ! Dans Coq:\\
+%\texttt{
+%Inductive Id (A : Type) : A $\to$ A $\to$ Type :=\\
+%IA\_reflexive : forall x:A Id A x x
+%}
+%
+%
+%
+%\begin{prooftree}
+%\AxiomC{C : ($\Pi$ x,y : A)($\Pi$ p : Id$_A$ x y) Type}
+%\AxiomC{x : A $\vdash$ c : C x x (refl$_x$)}
+%\AxiomC{a : A}
+%\AxiomC{b : A}
+%\AxiomC{p : Id$_A$ a b}
+%%\RightLabel{\scriptsize (Id-elm)}
+%\QuinaryInfC{Ind$_{Id_A}$ C (\tlambda x.c) a b p : C a b p}
+%\end{prooftree}
+
+\section{Question d'égalité}
+\subsubsection*{En Logique}
+Si $P,Q$ sont énoncés logiques,
+\[P \Leftrightarrow Q \equiv (P\Rightarrow Q) \land (Q \Rightarrow P)\]
+Relation d'équivalence. Est-ce une notion d'égalité ? $\to$ pas toujours en logique intuitionniste.
+\subsection*{Isomorphisme en math}
+$A \simeq B \qquad f: A \to B \qquad g : B \to A$\\
+$g \circ f = id_A \;;\; f\circ g = id_B$
+
+\section{Mise en oeuvre de $Id_A(\_,\_)$}
+\subsection{}
+\begin{lemma}
+$Id_A(\_,\_)$ est une relation d'équivalence.
+\end{lemma}
+
+\begin{proof}
+\begin{enumerate}[label=\roman*)]
+\item Pour tout $a : A$, $Id_A(a,a)$ par application de $Id\_reflexive$ ``par réflexivité''
+\item Pour tout $a,b : A$, $Id_A(a,b)\to Id_A(b,a)$
+\[ \prod_{a,b : A}\prod_{p:Id_A (a,b)} Id_A(b,c)\]
+
+On raisonne par induction sur le chemin $p:Id_A(a,b)$:
+
+Il suffit de considérer le cas de base, c'est-à-dire lorsque $b$ est $a$, et $p$ est $refl_a$ (alors $Id\_reflexive$). Dans ce cas, on doit prouver 
+\[Id_A(a,a)\]
+Il suffit de fournir $refl_a$.
+\item pour tout $a,b,c : A,\qquad p:Id_a(a,b),\qquad q:Id_A(b,c)$ on a $Id_A(a,c)$
+
+On raisonne par induction sur $p$:
+
+Le cas de base correspond à $b$ est $a$ et $p$ est $refl_a$. Dans ce cas, il faut prouver $\prod_{q:Id_a(a,e)} Id_a (a,e)$. On raisonne par induction sur $q$:
+
+Le cas de base : $c$ est $a$, et $q$ est $refl_a$ : $refl_a\; : \; Id_a(a,a)$
+\end{enumerate}
+\end{proof}
+
+On interprète $Id_A(a,b)$ comme un chemin de $a$ à $b$ : on obtient une structure de groupoïde.
+
+\begin{prop}
+\begin{enumerate}[label=\roman*)]
+\item $p=p.refl_y$ et $p=refl_x.p$
+\item $p^{-1}.p=refl_x$ et $p.p^{-1}=refl_y$
+\item $(p^{-1})^{-1}=p$
+\item $p.(q.r)=(p.q).r$
+\item $(refl_x)^{-1} = refl_x$
+\end{enumerate}
+\end{prop}
+
+\subsection{Transport de l'égalité}
+\begin{lemma}
+$f : A \to B, x,y :A$ et $p:x=_A y$ (elim $Id_A(x,y)$)
+Alors il existe un terme
+\[ap_f(p) : f(x) =_B f(y)\]
+tel que pour tout $x:A, ap_f (refl_x) \equiv refl_{f(x)}$
+\end{lemma}
+
+\begin{proof}
+Par induction sur la classe $p: x=_A y$, if suffit de considérer le cas de base : $y$ est $x$ et $p$ est $refl_x$. Alors $refl_{f(x)} =_B f(x)$
+%TODO
+
+
+\end{proof}
+
+
+Dans le cas dépendant:
+\begin{lemma}
+
+$f : \prod_{x:A} P(x), \qquad x,y :A$ et $P:x=_A y$. Alors il existe un chemin noté $P_\star : P(x) \to P(y)$ tel que $(refl_x)_\star \equiv refl_{P(x)}$.
+\end{lemma}
+
 \end{document}
