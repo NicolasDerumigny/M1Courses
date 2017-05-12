@@ -56,6 +56,7 @@
 \newcommand\tok[1]{$\langle$#1$\rangle$}
 \SetKw{Var}{Var:\\}
 \SetKwBlock{Label}{label}{end}
+\SetKwProg{Fn}{Function}{}{}
 
 \begin{document}
 
@@ -473,5 +474,139 @@ Work from the Ph.D of Cédric Tedeschi.
 \item The load balancing is handled by a heuristic: \emph{Max Local Throughput}
 \item Fault tolerance via the \emph{snap-stabilizing protocol}
 \end{itemize}
+
+\section{More Ph.D}
+See slides (self-stabilisation of DIET and termination detection).
+
+\section{Bully algorithm}
+
+\begin{algorithm}
+\Begin(Init:){
+	\For{all $i$}{
+		ask\_elect$_i$=false\;
+		coordinator$_i$=max\;
+	}
+}
+\Begin(R1:){
+	\tcp{I want to be a leader}
+	ask\_elect$_i$=true\;
+	\For{all $j>i$}{
+		send($p_j$, ELECT)\;
+		start\_timeout(T)\;
+	}
+}
+\Begin(R2:){
+	receive($p_j$, ELECT)\;
+	\If{not(ask\_elect$_i$)}{
+		\For{$k>i$}{
+			send($p_k$, ELECT)\;
+		}
+	}
+	send($p_j$, ACK)\;
+}
+\Begin(R3:){
+	receive ACK\;
+	wait for receive ELECTED from $p$\;
+}
+\Begin(R4:){
+	receive($p_j$, ELECTED)\;
+	ask\_elect$_i$=false\;
+	coordinator$_i$=$j$\;
+}
+\Fn{start\_timeout(T):}{
+	receive($p_j$, ACK)\;
+	send(all, ELECTED)\;
+}
+\end{algorithm}
+
+\paragraph{Efficiency}
+$O(n^2)$ in worst case $\to$ costly
+
+\paragraph{Problem} It is complicated to find the best time-out
+
+\clearpage
+
+
+
+\section{Chang and Roberts Algorithm}
+To reduce the number of messages, we can use a topology: a virtual \emph{ring}. Multiple elections can be in progress simultaneously.
+
+
+\begin{algorithm}
+\Begin(Candidat){
+	candidat$_{i}$=true\;
+	send(succ[i],ELECT,i)\;
+}
+\Begin(R1: receive \{p$_i$, ELECT, j\}){
+	\Switch{$i,j$}{
+		\Label($j>i$){
+			send(succ[i], ELECT, i)\;
+		}
+		\Label($j<i$){
+			\If{not(candidat$_{i}$}{
+				candidat$_{i}$=true
+				send(succ[i], ELECT, i)
+			}
+		}
+		\Label($j=i$){
+			send(all, ELECTED, i)
+		}
+	}
+}
+\end{algorithm}
+
+\paragraph{Complexity}
+$O(n\log n)$ in average, $O(n^2)$ in worst case
+
+
+\section{I.Suzuki and T.Kasami's algorithm}
+
+
+\begin{algorithm}
+\Begin(Init){
+	RN[i] = number of the last request received from p$_{i}$ to get the token\;
+	LN[i] = number of the last critical section (CS) for p$_i$\;
+	queue = request queue for unsatisfied request for the token
+}
+\Begin(Request for CS){
+	\tcp{on p$_i$}
+	\If{not token\_is\_here}{
+		RN[i]++\;
+		broadcast(REQ, i RN[i])\;
+		wait(token\_is\_here)\;
+	cs\_inprogress = true\;
+	enter in CS\;
+	}
+}
+\Begin(Exit of CS){
+	cs\_inprogress = false\;
+	LN[i] = RN[i]
+	\For{all $i$ s.t. $p_j \notin$ queue}{
+		\If{RN[j]==LN[j]+1}{
+			enter\_queue(j)\;
+		}
+		\If{not(empty\_queue}{
+			k = exit\_queue()\;
+			send (k, TOKEN)\;
+		}
+	}
+}
+\Begin(receive \{ REQ, j, n\} ){
+	RN[j] = max ( RN[j],n)\;
+	\If{token\_is\_here and not cs\_inprogress}{
+		\If{RN[j]==LN[j]+1}{
+			send(j, TOKEN)\;
+			token\_is\_here = false\;
+		}
+	}
+}
+\Begin(receive TOKEN){
+	token\_is\_here = true\;
+	cs\_inprogress = true\;
+	enter in CS\;
+}
+\end{algorithm}
+
+
 
 \end{document}

@@ -22,11 +22,11 @@
 \usepackage{enumitem}
 \usepackage{multicol}
 
-\newtheorem{thm}{Theorem}
-\newtheorem{prop}{Propriety}
-\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Théorème}
+\newtheorem{prop}{Propriété}
+\newtheorem{lemma}{Lemme}
 \newtheorem{defi}{Definition}
-\newtheorem{coro}{Corollary}
+\newtheorem{coro}{Corollaire}
 
 
 
@@ -537,14 +537,14 @@ Le seul cas ``délicat'' est lorsque
 
 
 \begin{thm}
-Si $\Delta \vdash t : T$, alor $t$ est fortement normalisant.
+Si $\Delta \vdash t : T$, alors $t$ est fortement normalisant.
 \end{thm}
 
 \begin{proof}
 Deux parties : poser la notation générale, puis l'adapter à $\to_\lambda$.
 
 \begin{enumerate}
-\item \emph{Définition générale :} Si $e \in \Lambda$, $e\equiv \lterm{\overline{x}}{\Delta \overline{u}}$ avec $|\overline{x}|>0$, $|\overline{u}|>0$ et $\Delta \in \mathcal{X}$ ou bien $\Delta$ est un $\beta$-redex
+\item \emph{Définition générale :} Si $e \in \Lambda$, $e\equiv \lterm{\overline{x}}{\Delta \; \overline{u}}$ avec $|\overline{x}|>0$, $|\overline{u}|>0$ et $\Delta \in \mathcal{X}$ ou bien $\Delta$ est un $\beta$-redex
 \begin{itemize}
 \item $e$ est en forme normale si $\Delta \in \mathcal{X}$ et chaque $u_i$ est en forme normale
 \item $e$ est une forme normale de tête (HNF) si $\Delta \in \mathcal{X}$
@@ -559,7 +559,7 @@ $e \in \Lambda$ est fortement normalisant (SN) s'il n'existe pas de $\beta$-réd
 \paragraph{Exemple}
 \begin{itemize}
 \item $\Omega$ n'est pas SN
-\item $(\lterm{x}{\lterm{y}{y}} \Omega$ n'est pas SN (il existe une dérivation infinie) $\to$ \emph{attention} : la $\beta$-équivalence n'est pas compatible avec la propriété d'être fortement normalisant.
+\item $(\lterm{x}{\lterm{y}{y}}) \; \Omega$ n'est pas SN (il existe une dérivation infinie) $\to$ \emph{attention} : la $\beta$-équivalence n'est pas compatible avec la propriété d'être fortement normalisant.
 \end{itemize}
 
 Par contre, si $a=_\beta b$ et $b$ a une NF (resp HNF), alors $a$ a une NF (resp HNF)
@@ -571,10 +571,10 @@ De plus :
 \end{itemize}
 \bigskip
 
-Soit $\mathcal{N}$ l'ensemble des termes SN, et $\mathcal{N}_0 \equiv \{  x\overline{u} \:|\: x\overline{u} \in \mathcal{N}\} \subseteq \mathcal{N}$
+Soit $\mathcal{N}$ l'ensemble des termes SN, et $\mathcal{N}_0 \equiv \{  x \; \overline{u} \;|\; x \; \overline{u} \in \mathcal{N}\} \subseteq \mathcal{N}$
 \paragraph{Notation}
 \begin{itemize}
-\item $e\in \Lambda$, $Succ(e)=\{e'\in \Lambda \:|\: e\beta_0 e' \}$, et cet ensemble est \emph{fini} (réduction à branchements fini)
+\item $e\in \Lambda$, $Succ(e)=\{e'\in \Lambda \;|\; e \;\beta_0 \; e' \}$, et cet ensemble est \emph{fini} (réduction à branchements fini)
 \item Lemme de Koenig : si un arbre est infini et que cet arbre est a branchement fini, alors il existe un chemin infini
 \end{itemize}
 
@@ -588,7 +588,7 @@ Pour $e\in \mathcal{N}$, $\ell(e)$ désigne la somme des longueurs des chemins d
 Sont immédiats :
 \begin{itemize}
 \item Si $e\in \mathcal{N}$, alors $\lterm{x}{e} \in \mathcal{N}$
-\item Si de plus $e' \in \mathcal{N}$ et $e \beta e'$, alors $e' \in \mathcal{N}$
+\item Si de plus $e' \in \mathcal{N}$ et $e \; \beta \; e'$, alors $e' \in \mathcal{N}$
 \item Si $e \in \Lambda$ tel que $Succ(e)\subseteq \mathcal{N}$, alors $e\in \mathcal{N}$
 \end{itemize}
 \end{lemma}
@@ -598,7 +598,7 @@ Pour le troisième point, soit $e\in \Lambda$ tel que $Succ(e)\subseteq \mathcal
 
 \end{proof}
 
-Soit $\mathcal{N}_0\equiv \{ \underbrace{x\;\bar{u}}_{(((x\; u_1)\; u_2)\; ...)\; u_n} \;|\; x\;\bar{u} \in \mathcal{N} \subseteq \mathcal{N}\}$
+Soit $\mathcal{N}_0\equiv \{ \underbrace{x\;\bar{u}}_{(((x\; u_1)\; u_2)\; ...)\; u_n} \;|\; x\;\bar{u} \in \mathcal{N} \} \subseteq \mathcal{N}$
 \begin{lemma}
 \begin{enumerate}[label=\roman*)]
 \item Si $e\in \mathcal{N}$, alors $\lterm{x}{e}\in \mathcal{N}$
@@ -612,7 +612,7 @@ Soit $\mathcal{N}_0\equiv \{ \underbrace{x\;\bar{u}}_{(((x\; u_1)\; u_2)\; ...)\
 Si $b\in \mathcal{N}$ et $a\subst{b}{x}\; \bar{u} \in \mathcal{N}$
 \end{lemma}
 \begin{proof}
-Par récurrence sir $l(b) + l(a\subst{b}{x}\; \bar{u})$
+Par récurrence sur $l(b) + l(a\subst{b}{x}\; \bar{u})$
 Il suffit de montrer que $\underset{\substack{\downarrow\\ \beta_0}}{Suc}((\lterm{x}{a}\; b\; \bar{u}) \subseteq \mathcal{N}$
 \end{proof}
 %TODO some 4 lines are missing here.
@@ -633,7 +633,7 @@ Soit $S\subseteq \Lambda$. Ont dit que $S$ est \emph{saturée} si elle satisfait
 \begin{enumerate}[noitemsep,label=\roman*)]
 \item $\mathcal{N}_0$ est saturée
 \item $\mathcal{N}$ est saturée
-\item Si $X, Y$ sont des parties saturées, alors $X \to Y = \{ e\in \Lambda \;|\; \forall a\in X, e\; a \in Y\}$
+\item Si $X, Y$ sont des parties saturées, alors $X \to Y = \{ e\in \Lambda \;|\; \forall a\in X, e\; a \in Y\}$ est saturée
 \end{enumerate}
 \end{prop}
 \begin{proof}
@@ -771,8 +771,8 @@ En résumé, $\lterm{x}{\sigma (a)} \equiv \sigma (\lterm{x}{a}) \in [U\to V]_\r
 \begin{tabular}{c | c | c}
 Programmation & Théorie des types & Raisonnement\\
 \hline
-\tlambda-calcul & $\lambda_\to$ & NJ($\Rightarrow$) \\
-\tlambda-calcul enrichie & $\lambda_{\to,\times,\top\bot,...}$ & NJ\\
+\tlambda-calcul & $\lambda_\to$ & NJ ($\Rightarrow$) \\
+\tlambda-calcul enrichi & $\lambda_{\to,\times,\top\bot,...}$ & NJ\\
  &  $\lambda_\mu$ ($\sim$ 1990) & NK\\
 Calcul de combinateurs (S,K,I) &  & Système de Hilbert (1900)\\
 \hline
