@@ -336,13 +336,15 @@ Cf slides
 \subsection{The Traversal algorithm}
 They are a subset of wave algorithms. All events are totally ordered by the causality relation, and the last event occurs in the same process as the first event.
 
-\begin{defi}[f-traversal algorithm]
-An algorithm is a f-traversal algorithm for a cass of network if:
+\begin{defi}[traversal algorithm]
+An algorithm is a traversal algorithm for a class of network if:
 \begin{itemize}[noitemsep]
-\item It is a traversal algorithm
-\item In each computation, 
-%TODO
+\item It is a wave algorithm
+\item In each computation, there is only one initiator that begins by sending one message.
+\item After a receive, each process either sends or decide
+\item The initiator decides after each process has sent a message at least once.
 \end{itemize}
+A $k$-traversal algorithm verifies that at least $\min(N,x+1)$ processes has been visited after $f(x)$ token passes.
 \end{defi}
 
 \paragraph{Example}
@@ -392,13 +394,13 @@ In synchronous mode:
 		get(m)\;
 		send(m)\;
 	}
-	\Label(rcv(ack)){
+	\Label(rcv\{ack\}){
 		get(m)\;
 		send(m)\;
 	}
 }
 \Label(Receiver){
-	\Label(rcv(m)){		
+	\Label(rcv\{m\}){		
 		dlv(m)\;
 		send(ack)\;
 	}
@@ -558,11 +560,11 @@ To reduce the number of messages, we can use a topology: a virtual \emph{ring}. 
 \paragraph{Complexity}
 $O(n\log n)$ in average, $O(n^2)$ in worst case
 
-
 \section{I.Suzuki and T.Kasami's algorithm}
 
 
 \begin{algorithm}
+\tcp{I.Suzuki and T.Kasami's algorithm}
 \Begin(Init){
 	RN[i] = number of the last request received from p$_{i}$ to get the token\;
 	LN[i] = number of the last critical section (CS) for p$_i$\;
